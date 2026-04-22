@@ -1,0 +1,19 @@
+{
+  "available_slots": [
+    {"id": "S1", "date": "2026-04-24", "time": "10:00", "tz": "IST", "advisor": "Advisor A", "booked": false},
+    {"id": "S2", "date": "2026-04-24", "time": "15:00", "tz": "IST", "advisor": "Advisor A", "booked": false},
+    {"id": "S3", "date": "2026-04-25", "time": "11:00", "tz": "IST", "advisor": "Advisor B", "booked": false},
+    {"id": "S4", "date": "2026-04-25", "time": "14:00", "tz": "IST", "advisor": "Advisor B", "booked": false},
+    {"id": "S5", "date": "2026-04-26", "time": "10:00", "tz": "IST", "advisor": "Advisor A", "booked": false},
+    {"id": "S6", "date": "2026-04-26", "time": "16:00", "tz": "IST", "advisor": "Advisor C", "booked": false},
+    {"id": "S7", "date": "2026-04-28", "time": "09:00", "tz": "IST", "advisor": "Advisor B", "booked": false},
+    {"id": "S8", "date": "2026-04-28", "time": "13:00", "tz": "IST", "advisor": "Advisor C", "booked": false}
+  ],
+  "topics": [
+    "KYC / Onboarding",
+    "SIP / Mandates",
+    "Statements / Tax Documents",
+    "Withdrawals & Timelines",
+    "Account Changes / Nominee"
+  ]
+}

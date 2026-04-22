@@ -1,0 +1,26 @@
+review_id,date,rating,review_text,source
+1,2026-01-05,2,"I have been trying to update my nominee for 2 weeks now. The process is confusing and keeps failing at the last step.",app_store
+2,2026-01-06,1,"Login OTP is not coming on my registered number. Tried 5 times. Support is not responding.",google_play
+3,2026-01-07,3,"SIP deduction happened but units not reflecting. Worried about my money.",app_store
+4,2026-01-08,2,"The nominee update screen shows a blank page after submitting documents. Very frustrating.",google_play
+5,2026-01-09,1,"Completely unable to login for 3 days. OTP issue continues. Is anyone even looking at this?",app_store
+6,2026-01-10,4,"Good app overall but nominee update is a nightmare. Took me 3 weeks.",google_play
+7,2026-01-11,2,"My SIP failed this month even though my bank account had sufficient balance. No notification.",app_store
+8,2026-01-12,3,"Exit load charges are not explained anywhere in the app before redemption. Surprised by the deduction.",google_play
+9,2026-01-13,1,"Login keeps timing out. Very bad experience.",app_store
+10,2026-01-14,3,"Why is there no clear breakdown of expense ratio? I had to search the AMFI site myself.",google_play
+11,2026-01-15,2,"Nominee update feature is broken. Getting error 500 when I submit the form.",app_store
+12,2026-01-16,4,"App works well but the fee structure is opaque. I want to see all charges upfront.",google_play
+13,2026-01-17,1,"SIP mandate not activating even after 10 days of bank registration.",app_store
+14,2026-01-18,2,"Password reset is not working. Stuck in a loop.",google_play
+15,2026-01-19,3,"I appreciate the clean UI but nominee update should be simpler.",app_store
+16,2026-01-20,2,"Capital gains statement download fails every time. I need it for tax filing.",google_play
+17,2026-01-21,1,"OTP not received on email as backup. Phone also not working. Locked out.",app_store
+18,2026-01-22,3,"SIP pause feature is good but resuming is buggy.",google_play
+19,2026-01-23,4,"Would be 5 stars if nominee updates were faster.",app_store
+20,2026-01-24,2,"Exit load deducted on ELSS redemption but I thought lock-in was over. Need clarity.",google_play
+21,2026-01-25,1,"Login page crashes on Android 14. Been broken for weeks.",app_store
+22,2026-01-26,3,"Statement download works but the format is confusing for tax purposes.",google_play
+23,2026-01-27,2,"SIP missed 3 months in a row due to mandate issues. Lost money to timing.",app_store
+24,2026-01-28,4,"Fee transparency could be better but service quality is good.",google_play
+25,2026-01-29,1,"Nominee update: submitted documents 4 times, keeps getting rejected without reason.",app_store

@@ -1,0 +1,49 @@
+# Environment
+.env
+.env.local
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.egg-info/
+dist/
+build/
+*.egg
+.eggs/
+
+# Virtual environments
+venv/
+.venv/
+env/
+.env/
+
+# ChromaDB (vector store — rebuilt by ingest script)
+data/chroma/
+data/.index_hash
+
+# Runtime state (auto-generated)
+data/mcp_state.json
+
+# macOS
+.DS_Store
+.AppleDouble
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Pytest / coverage
+.pytest_cache/
+.coverage
+htmlcov/
+*.json.report
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Logs
+*.log
