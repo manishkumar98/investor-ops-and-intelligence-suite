@@ -1,5 +1,5 @@
 """Adapted from M3 phase2/src/dialogue/intent_router.py slot extraction functions."""
-from pillar_b.intent_classifier import (
+from .intent_classifier import (
     _TOPIC_KEYWORDS,
     _extract_day_preference,
     _extract_time_preference,

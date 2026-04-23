@@ -3,11 +3,11 @@ import os
 import sys
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).parent.parent))
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
 import anthropic
 
-from pillar_a.faq_engine import query
+from phase5_pillar_a_faq.faq_engine import query
 from session_init import init_session_state
 
 ALLOWED_DOMAINS = ["sbimf.com", "amfiindia.com", "sebi.gov.in"]
@@ -59,7 +59,7 @@ def check_relevance(question: str, response) -> dict:
 
 
 def run_rag_eval() -> dict:
-    questions = json.loads(Path("evals/golden_dataset.json").read_text())
+    questions = json.loads((Path(__file__).parent / "golden_dataset.json").read_text())
     session: dict = {}
     init_session_state(session)
 

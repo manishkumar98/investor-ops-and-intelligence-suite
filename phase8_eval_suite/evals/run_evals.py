@@ -8,14 +8,14 @@ sys.path.insert(0, str(ROOT))
 from config import load_env
 load_env()
 
-from evals.safety_eval import run_safety_eval
-from evals.ux_eval import run_ux_eval
-from evals.rag_eval import run_rag_eval
-from evals.report_generator import generate_report
+from .safety_eval import run_safety_eval
+from .ux_eval import run_ux_eval
+from .rag_eval import run_rag_eval
+from .report_generator import generate_report
 
 from session_init import init_session_state
-from pillar_b.pipeline_orchestrator import run_pipeline
-from pillar_b.voice_agent import VoiceAgent
+from phase3_review_pillar_b.pipeline_orchestrator import run_pipeline
+from phase4_voice_pillar_b.voice_agent import VoiceAgent
 
 
 def main() -> int:

@@ -5,9 +5,9 @@ from pathlib import Path
 import chromadb
 
 from config import CHROMA_PERSIST_DIR
-from pillar_a.url_loader import fetch_url
-from pillar_a.chunker import chunk_text
-from pillar_a.embedder import get_embeddings
+from .url_loader import fetch_url
+from .chunker import chunk_text
+from .embedder import get_embeddings
 
 _INDEX_HASH_FILE = Path("data/.index_hash")
 _RAW_DIR = Path("data/raw")

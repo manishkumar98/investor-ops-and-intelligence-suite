@@ -3,11 +3,11 @@ from typing import Union
 
 import pandas as pd
 
-from pillar_b.pii_scrubber import scrub
-from pillar_b.theme_clusterer import cluster
-from pillar_b.quote_extractor import extract
-from pillar_b.pulse_writer import write
-from pillar_b.fee_explainer import explain
+from .pii_scrubber import scrub
+from .theme_clusterer import cluster
+from .quote_extractor import extract
+from .pulse_writer import write
+from .fee_explainer import explain
 
 
 REQUIRED_COLUMNS = {"review_id", "review_text", "rating"}
@@ -77,7 +77,7 @@ def run_pipeline(csv_source: Union[str, io.IOBase], session: dict) -> dict:
     session["pulse_generated"] = True
 
     # ── 8. Enqueue MCP actions ──────────────────────────────────────────────
-    from pillar_c.mcp_client import enqueue_action
+    from phase7_pillar_c_hitl.mcp_client import enqueue_action
     from datetime import date
 
     enqueue_action(

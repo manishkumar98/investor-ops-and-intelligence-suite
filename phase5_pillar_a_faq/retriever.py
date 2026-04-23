@@ -1,5 +1,5 @@
-from pillar_a.ingest import get_collection
-from pillar_a.embedder import get_embeddings
+from phase2_corpus_pillar_a.ingest import get_collection
+from phase2_corpus_pillar_a.embedder import get_embeddings
 
 MAX_DISTANCE = 0.75
 

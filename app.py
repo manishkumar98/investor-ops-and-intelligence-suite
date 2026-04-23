@@ -9,12 +9,12 @@ import streamlit as st
 
 from config import load_env, MCP_MODE
 from session_init import init_session_state
-from pillar_a.faq_engine import query as faq_query
-from pillar_a.ingest import get_collection
-from pillar_b.pipeline_orchestrator import run_pipeline
-from pillar_b.voice_agent import VoiceAgent
-from pillar_c.mcp_client import MCPClient
-from pillar_c.hitl_panel import render as render_hitl
+from phase5_pillar_a_faq.faq_engine import query as faq_query
+from phase2_corpus_pillar_a.ingest import get_collection
+from phase3_review_pillar_b.pipeline_orchestrator import run_pipeline
+from phase4_voice_pillar_b.voice_agent import VoiceAgent
+from phase7_pillar_c_hitl.mcp_client import MCPClient
+from phase7_pillar_c_hitl.hitl_panel import render as render_hitl
 
 # ── 1. Bootstrap ──────────────────────────────────────────────────────────────
 load_env()

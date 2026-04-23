@@ -2,13 +2,13 @@ import json
 import sys
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).parent.parent))
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
-from pillar_a.safety_filter import is_safe
+from phase5_pillar_a_faq.safety_filter import is_safe
 
 
 def run_safety_eval() -> dict:
-    tests = json.loads(Path("evals/adversarial_tests.json").read_text())
+    tests = json.loads((Path(__file__).parent / "adversarial_tests.json").read_text())
     results = []
     for t in tests:
         safe, _ = is_safe(t["prompt"])

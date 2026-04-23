@@ -5,7 +5,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from config import load_env
-from pillar_a.ingest import ingest_corpus, ingest_local_files
+from phase2_corpus_pillar_a.ingest import ingest_corpus, ingest_local_files
 
 if __name__ == "__main__":
     load_env()

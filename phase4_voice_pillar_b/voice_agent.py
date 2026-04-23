@@ -5,9 +5,9 @@ import re
 import anthropic
 
 from config import SECURE_BASE_URL
-from pillar_b.intent_classifier import classify
-from pillar_b.slot_filler import extract_topic, extract_time_pref
-from pillar_b.booking_engine import load_calendar, match_slots, book, generate_waitlist_code
+from .intent_classifier import classify
+from .slot_filler import extract_topic, extract_time_pref
+from .booking_engine import load_calendar, match_slots, book, generate_waitlist_code
 
 # ── Safety patterns (refuse investment advice / PII requests on the call) ──
 _SAFETY_PATTERNS = [
@@ -231,7 +231,7 @@ class VoiceAgent:
         self.session["booking_code"] = code
         self.state = "WAITLIST"
 
-        from pillar_c.mcp_client import enqueue_action
+        from phase7_pillar_c_hitl.mcp_client import enqueue_action
         from datetime import date
         enqueue_action(
             self.session,
@@ -281,7 +281,7 @@ class VoiceAgent:
         code   = detail["booking_code"]
         self.state = "BOOKED"
 
-        from pillar_c.mcp_client import enqueue_action
+        from phase7_pillar_c_hitl.mcp_client import enqueue_action
         enqueue_action(
             self.session,
             type="calendar_hold",

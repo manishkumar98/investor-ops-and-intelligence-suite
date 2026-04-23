@@ -3,7 +3,7 @@ from pathlib import Path
 
 import streamlit as st
 
-from pillar_c.mcp_client import MCPClient
+from .mcp_client import MCPClient
 
 MCP_STATE_PATH = Path("data/mcp_state.json")
 

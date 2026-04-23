@@ -1,4 +1,4 @@
-from pillar_b.pii_scrubber import scrub
+from .pii_scrubber import scrub
 
 
 def extract(clean_reviews: list[dict], themes: list[dict], top_3: list[str]) -> list[dict]:
