@@ -2,10 +2,11 @@ import os
 
 _openai_client = None
 _sentence_model = None
+_openai_failed = False  # set True on first quota/auth failure; then skip for session
 
 
 def _use_openai() -> bool:
-    return bool(os.getenv("OPENAI_API_KEY"))
+    return bool(os.getenv("OPENAI_API_KEY")) and not _openai_failed
 
 
 def get_embeddings(texts: list[str]) -> list[list[float]]:
@@ -16,7 +17,13 @@ def get_embeddings(texts: list[str]) -> list[list[float]]:
     The model chosen at first ingest is fixed — mixing dimensions breaks ChromaDB.
     """
     if _use_openai():
-        return _openai_embed(texts)
+        try:
+            return _openai_embed(texts)
+        except Exception as exc:
+            global _openai_failed
+            _openai_failed = True
+            print(f"[embedder] OpenAI failed ({exc}) — switching to local embeddings for this session")
+            return _local_embed(texts)
     return _local_embed(texts)
 
 

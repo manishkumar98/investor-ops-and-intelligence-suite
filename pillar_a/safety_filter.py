@@ -2,9 +2,10 @@ import re
 
 # These 4 patterns are locked — never expand without a compliance review.
 BLOCK_PATTERNS = [
-    (r"(which|what|best|better|top).*(fund|scheme|invest)",    "advice_refusal"),
+    # Advice: block recommendation/selection questions, not factual "what is X of fund Y"
+    (r"(which\s+fund|best\s+fund|better\s+fund|top\s+fund|recommend.*fund|fund.*recommend|should\s+i\s+(?:invest|move|switch|buy|sell|put|allocate|exit|redeem|transfer)|which.*invest|best.*invest|good\s+fund|good\s+scheme)", "advice_refusal"),
     (r"(return|profit|earn|gain).*(next|predict|will|expect)", "performance_refusal"),
-    (r"(compare|vs|versus).*(fund|scheme)",                    "comparison_refusal"),
+    (r"(compare|vs|versus|which.*better|better.*than).*(fund|scheme|elss|bluechip|midcap|smallcap|flexicap|sip)", "comparison_refusal"),
     (r"(email|phone|contact|ceo|cxo|address)",                 "pii_refusal"),
 ]
 

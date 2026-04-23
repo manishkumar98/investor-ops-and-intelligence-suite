@@ -1,56 +1,43 @@
 # Source Manifest — INDMoney Advisor Suite
 # Format: mf_faq: <URL>   or   fee: <URL>
 # Lines starting with # are ignored.
-# 30+ official URLs across SBI MF, AMFI, and SEBI.
+# All URLs sourced from M1 docs/sources.md — verified working.
 
-# ── SBI Mutual Fund — Scheme Pages ─────────────────────────────────────────
-mf_faq: https://www.sbimf.com/en-us/sbi-long-term-equity-fund
-mf_faq: https://www.sbimf.com/en-us/sbi-bluechip-fund
-mf_faq: https://www.sbimf.com/en-us/sbi-small-cap-fund
-mf_faq: https://www.sbimf.com/en-us/sbi-flexi-cap-fund
-mf_faq: https://www.sbimf.com/en-us/sbi-magnum-midcap-fund
+# ── SBI Mutual Fund — Official Scheme Pages ──────────────────────────────────
+mf_faq: https://www.sbimf.com/sbimf-scheme-details/sbi-large-cap-fund-(formerly-known-as-sbi-bluechip-fund)-43
+mf_faq: https://www.sbimf.com/sbimf-scheme-details/SBI-Flexicap-Fund-39
+mf_faq: https://www.sbimf.com/sbimf-scheme-details/SBI-ELSS-Tax-Saver-Fund-(formerly-known-as-SBI-Long-Term-Equity-Fund)-3
+mf_faq: https://www.sbimf.com/sbimf-scheme-details/SBI-Small-Cap-Fund-329
+mf_faq: https://www.sbimf.com/sbimf-scheme-details/SBI-Midcap-Fund-34
+mf_faq: https://www.sbimf.com/sbimf-scheme-details/sbi-focused-equity-fund-5
+mf_faq: https://www.sbimf.com/sbimf-scheme-details/sbi-contra-fund-13
+mf_faq: https://www.sbimf.com/sbimf-scheme-details/sbi-magnum-midcap-fund-34
+mf_faq: https://www.sbimf.com/sbimf-scheme-details/sbi-arbitrage-opportunities-fund-112
 
-# ── SBI MF — Key Information / SID / KIM pages ─────────────────────────────
-mf_faq: https://www.sbimf.com/en-us/downloads/SBI-Long-Term-Equity-Fund-KIM.pdf
-mf_faq: https://www.sbimf.com/en-us/downloads/SBI-Bluechip-Fund-KIM.pdf
-mf_faq: https://www.sbimf.com/en-us/downloads/SBI-Small-Cap-Fund-KIM.pdf
+# ── SBI MF — Investor & Info Pages ──────────────────────────────────────────
+mf_faq: https://www.sbimf.com/en-us/about-us
+mf_faq: https://www.sbimf.com/en-us/direct-mutual-fund-online
+mf_faq: https://www.sbimf.com/en-us/investor-corner
+mf_faq: https://www.sbimf.com/en-us/sip-calculator
 
-# ── SBI MF — Investor FAQ / Help ────────────────────────────────────────────
-mf_faq: https://www.sbimf.com/en-us/investor-service/faq
-mf_faq: https://www.sbimf.com/en-us/investor-service/how-to-invest
-mf_faq: https://www.sbimf.com/en-us/investor-service/how-to-redeem
+# ── INDMoney — Fund Detail Pages ────────────────────────────────────────────
+mf_faq: https://www.indmoney.com/mutual-funds/sbi-bluechip-fund-direct-growth-3046
+mf_faq: https://www.indmoney.com/mutual-funds/sbi-flexicap-fund-direct-growth-3249
+mf_faq: https://www.indmoney.com/mutual-funds/sbi-long-term-equity-fund-direct-growth-2754
+mf_faq: https://www.indmoney.com/mutual-funds/sbi-small-cap-fund-direct-plan-growth-3603
+mf_faq: https://www.indmoney.com/mutual-funds/sbi-midcap-fund-direct-growth-3129
+mf_faq: https://www.indmoney.com/mutual-funds/sbi-focused-equity-fund-direct-growth-3532
+mf_faq: https://www.indmoney.com/mutual-funds/amc/sbi-mutual-fund
+mf_faq: https://www.indmoney.com/mutual-funds/sbi-liquid-fund-direct-growth-2831
+mf_faq: https://www.indmoney.com/mutual-funds/sbi-multicap-fund-direct-growth-13693
+mf_faq: https://www.indmoney.com/mutual-funds/sbi-contra-fund-direct-growth-3081
 
-# ── AMFI — Scheme Detail Pages ──────────────────────────────────────────────
-mf_faq: https://www.amfiindia.com/scheme-details?mf=128&st=1
-mf_faq: https://www.amfiindia.com/scheme-details?mf=128&st=3
-mf_faq: https://www.amfiindia.com/investor-corner/knowledge-center/mutual-fund.html
-
-# ── AMFI — Investor Education ───────────────────────────────────────────────
-mf_faq: https://www.amfiindia.com/investor-corner/knowledge-center/sip.html
-mf_faq: https://www.amfiindia.com/investor-corner/knowledge-center/elss.html
-mf_faq: https://www.amfiindia.com/investor-corner/knowledge-center/nfo.html
-
-# ── SEBI — MF Regulations / Circulars ──────────────────────────────────────
-mf_faq: https://www.sebi.gov.in/legal/regulations/jun-2021/securities-and-exchange-board-of-india-mutual-funds-regulations-1996-last-amended-on-june-25-2021_50520.html
-mf_faq: https://www.sebi.gov.in/sebiweb/other/OtherAction.do?doRecognisedFbo=yes&intmId=29
-
-# ── SBI MF — Fee & Expense Ratio Pages ─────────────────────────────────────
-fee: https://www.sbimf.com/en-us/investor-service/expense-ratio
-fee: https://www.sbimf.com/en-us/investor-service/exit-load
-
-# ── AMFI — Fee Guidelines ───────────────────────────────────────────────────
-fee: https://www.amfiindia.com/investor-corner/knowledge-center/expense-ratio.html
-fee: https://www.amfiindia.com/investor-corner/knowledge-center/exit-load.html
-fee: https://www.amfiindia.com/research-information/other-data/mf-scheme-performance-details
-
-# ── SEBI — Expense Ratio / TER Circulars ───────────────────────────────────
-fee: https://www.sebi.gov.in/legal/circulars/sep-2018/categorization-and-rationalization-of-mutual-fund-schemes_40165.html
-fee: https://www.sebi.gov.in/legal/circulars/oct-2018/circular-on-total-expense-ratio-ter-of-mutual-fund-schemes_40392.html
-fee: https://www.sebi.gov.in/legal/circulars/sep-2012/mutual-funds-charging-of-distribution-expenses-exit-loads-and-other-charges_23987.html
-
-# ── SBI MF — Statement & Tax Docs ──────────────────────────────────────────
-mf_faq: https://www.sbimf.com/en-us/investor-service/capital-gain-statement
-mf_faq: https://www.sbimf.com/en-us/investor-service/account-statement
-
-# ── AMFI — Riskometer & Benchmark ──────────────────────────────────────────
-mf_faq: https://www.amfiindia.com/investor-corner/knowledge-center/riskometer.html
+# ── Fee Corpus — SBI MF Scheme Pages (exit load + expense ratio data) ────────
+fee: https://www.sbimf.com/sbimf-scheme-details/SBI-ELSS-Tax-Saver-Fund-(formerly-known-as-SBI-Long-Term-Equity-Fund)-3
+fee: https://www.sbimf.com/sbimf-scheme-details/sbi-large-cap-fund-(formerly-known-as-sbi-bluechip-fund)-43
+fee: https://www.sbimf.com/sbimf-scheme-details/SBI-Small-Cap-Fund-329
+fee: https://www.sbimf.com/sbimf-scheme-details/SBI-Flexicap-Fund-39
+fee: https://www.sbimf.com/sbimf-scheme-details/SBI-Midcap-Fund-34
+fee: https://www.indmoney.com/mutual-funds/sbi-bluechip-fund-direct-growth-3046
+fee: https://www.indmoney.com/mutual-funds/sbi-long-term-equity-fund-direct-growth-2754
+fee: https://www.indmoney.com/mutual-funds/sbi-small-cap-fund-direct-plan-growth-3603

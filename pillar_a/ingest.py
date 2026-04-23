@@ -10,6 +10,7 @@ from pillar_a.chunker import chunk_text
 from pillar_a.embedder import get_embeddings
 
 _INDEX_HASH_FILE = Path("data/.index_hash")
+_RAW_DIR = Path("data/raw")
 
 
 def get_collection(name: str):
@@ -32,6 +33,70 @@ def _parse_manifest(manifest_path: str) -> list[tuple[str, str]]:
             url = line.split("fee:", 1)[1].strip()
             entries.append((url, "fee_corpus"))
     return entries
+
+
+def _parse_raw_file(path: Path) -> tuple[str, str]:
+    """Parse M1-format raw txt: first line is 'Source URL: <url>', rest is content."""
+    lines = path.read_text(encoding="utf-8").splitlines()
+    source_url = ""
+    content_start = 0
+    for i, line in enumerate(lines):
+        if line.startswith("Source URL:"):
+            source_url = line.split("Source URL:", 1)[1].strip()
+        if line.startswith("---"):
+            content_start = i + 1
+            break
+    text = " ".join(lines[content_start:])
+    return source_url, text
+
+
+def ingest_local_files(raw_dir: Path = _RAW_DIR) -> dict:
+    """Ingest pre-scraped txt files from data/raw/ into ChromaDB.
+
+    Files named *official* → both mf_faq_corpus and fee_corpus.
+    Files named *indmoney* → mf_faq_corpus only.
+    """
+    if not raw_dir.exists():
+        return {"mf_faq_added": 0, "fee_added": 0}
+
+    col_faq = get_collection("mf_faq_corpus")
+    col_fee = get_collection("fee_corpus")
+    mf_faq_added = fee_added = 0
+
+    for txt_file in sorted(raw_dir.glob("*.txt")):
+        source_url, text = _parse_raw_file(txt_file)
+        if not text.strip():
+            print(f"[ingest_local] SKIP {txt_file.name}: empty")
+            continue
+        if not source_url:
+            source_url = f"file://{txt_file.name}"
+
+        is_official = "official" in txt_file.name.lower()
+        targets = ["mf_faq_corpus", "fee_corpus"] if is_official else ["mf_faq_corpus"]
+
+        for corpus in targets:
+            chunks = chunk_text(text, source_url, corpus)
+            if not chunks:
+                continue
+            embeddings = get_embeddings([c["text"] for c in chunks])
+            col = col_faq if corpus == "mf_faq_corpus" else col_fee
+            col.upsert(
+                ids=[c["chunk_id"] for c in chunks],
+                embeddings=embeddings,
+                documents=[c["text"] for c in chunks],
+                metadatas=[{
+                    "source_url": c["source_url"],
+                    "corpus":     c["corpus"],
+                    "loaded_at":  c["loaded_at"],
+                } for c in chunks],
+            )
+            if corpus == "mf_faq_corpus":
+                mf_faq_added += len(chunks)
+            else:
+                fee_added += len(chunks)
+            print(f"[ingest_local] {txt_file.name} → {corpus}: {len(chunks)} chunks")
+
+    return {"mf_faq_added": mf_faq_added, "fee_added": fee_added}
 
 
 def ingest_corpus(manifest_path: str = "SOURCE_MANIFEST.md", force: bool = False) -> dict:

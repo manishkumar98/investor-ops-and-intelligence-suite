@@ -147,6 +147,11 @@ with tab2:
                     st.write(result["pulse"])
                     st.caption(f"Word count: {result['word_count']}")
 
+                if result.get("action_ideas"):
+                    st.markdown("#### Action Ideas")
+                    for idea in result["action_ideas"]:
+                        st.markdown(f"- {idea}")
+
                 st.markdown("#### Fee Context")
                 for bullet in result["fee_bullets"]:
                     st.markdown(f"- {bullet}")

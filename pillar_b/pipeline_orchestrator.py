@@ -46,14 +46,20 @@ def run_pipeline(csv_source: Union[str, io.IOBase], session: dict) -> dict:
             "date":        row.get("date", ""),
         })
 
-    # ── 3. Theme clustering ─────────────────────────────────────────────────
+    # ── 3. Theme clustering (2-pass for large datasets, from M2) ───────────
     cluster_result = cluster(clean_reviews)
-    themes = cluster_result["themes"]
-    top_3  = cluster_result["top_3"]
-    top_theme = top_3[0] if top_3 else "General Feedback"
+    themes       = cluster_result["themes"]
+    top_3        = cluster_result["top_3"]
+    action_ideas = cluster_result.get("action_ideas", [])
+    top_theme    = top_3[0] if top_3 else "General Feedback"
+
+    # Use quotes from cluster result if available (M2 2-pass already extracts them)
+    cluster_quotes = cluster_result.get("quotes", [])
 
     # ── 4. Quote extraction ─────────────────────────────────────────────────
-    quotes = extract(clean_reviews, themes, top_3)
+    quotes = extract(clean_reviews, themes, top_3) if not cluster_quotes else [
+        {"quote": q, "rating": 3} for q in cluster_quotes
+    ]
 
     # ── 5. Pulse writing ────────────────────────────────────────────────────
     pulse = write(top_3, quotes)
@@ -106,11 +112,12 @@ def run_pipeline(csv_source: Union[str, io.IOBase], session: dict) -> dict:
     )
 
     return {
-        "top_3":      top_3,
-        "quotes":     quotes,
-        "pulse":      pulse,
-        "word_count": word_count,
-        "fee_bullets": fee_result["bullets"],
-        "fee_sources": fee_result["sources"],
-        "fee_checked": fee_result["checked"],
+        "top_3":        top_3,
+        "quotes":       quotes,
+        "pulse":        pulse,
+        "word_count":   word_count,
+        "action_ideas": action_ideas,
+        "fee_bullets":  fee_result["bullets"],
+        "fee_sources":  fee_result["sources"],
+        "fee_checked":  fee_result["checked"],
     }

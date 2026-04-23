@@ -1,6 +1,6 @@
 import hashlib
 from datetime import date
-from langchain.text_splitter import RecursiveCharacterTextSplitter
+from langchain_text_splitters import RecursiveCharacterTextSplitter
 
 CHUNK_SIZE    = 512   # tokens (approximate via chars * 0.75)
 CHUNK_OVERLAP = 64

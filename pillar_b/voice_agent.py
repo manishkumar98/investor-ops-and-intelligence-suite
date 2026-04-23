@@ -7,7 +7,7 @@ import anthropic
 from config import SECURE_BASE_URL
 from pillar_b.intent_classifier import classify
 from pillar_b.slot_filler import extract_topic, extract_time_pref
-from pillar_b.booking_engine import load_calendar, match_slots, book, generate_booking_code
+from pillar_b.booking_engine import load_calendar, match_slots, book, generate_waitlist_code
 
 # ── Safety patterns (refuse investment advice / PII requests on the call) ──
 _SAFETY_PATTERNS = [
@@ -111,9 +111,20 @@ class VoiceAgent:
         return self._handle_intent(utterance)
 
     def _handle_intent(self, utterance: str) -> str:
-        intent = classify(utterance)
+        intent_result = classify(utterance)   # returns dict {intent, slots, compliance_flag, speech}
+        intent = intent_result.get("intent", "book_new")
+        slots  = intent_result.get("slots", {})
 
         if intent == "book_new":
+            # Pre-fill topic from classify slots to reduce turns
+            if slots.get("topic"):
+                self._topic = slots["topic"]
+                self.state = "TIMEPREF"
+                return (
+                    f"Great! I'll help you book a call about {self._topic}. "
+                    "What day and time works best? "
+                    "(e.g., 'Monday morning', 'Wednesday afternoon')"
+                )
             self.state = "TOPIC"
             return (
                 "Great! What would you like to discuss with the advisor? "
@@ -216,7 +227,7 @@ class VoiceAgent:
         )
 
     def _handle_waitlist(self, _: str) -> str:
-        code = generate_booking_code(prefix="WL")
+        code = generate_waitlist_code()
         self.session["booking_code"] = code
         self.state = "WAITLIST"
 
