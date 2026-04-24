@@ -692,11 +692,19 @@ Reviews this week present a polarised but telling picture of INDmoney's trading 
 
             // Fee explainer collapsible body
             if (FEE_DATA) {
-                const bullets = FEE_DATA.explanation_bullets.map(b =>
-                    `<div class="fee-bullet"><span class="fee-dot"></span><span>${escapeHtml(b)}</span></div>`
-                ).join('');
+                function renderBullet(raw) {
+                    // Strip leading bullet chars, then render **bold** and [text](url) via marked
+                    const stripped = raw.replace(/^[•\-\*]\s*/, '').trim();
+                    const inner = marked.parseInline(stripped);
+                    return `<div class="fee-bullet"><span class="fee-dot"></span><span>${inner}</span></div>`;
+                }
+                function domainLabel(url) {
+                    try { return new URL(url).hostname.replace(/^www\./, ''); }
+                    catch { return url; }
+                }
+                const bullets = FEE_DATA.explanation_bullets.map(renderBullet).join('');
                 const links = FEE_DATA.source_links.map(l =>
-                    `<a class="fee-link" href="${l}" target="_blank" rel="noopener">${escapeHtml(l)}</a>`
+                    `<a class="fee-link" href="${escapeHtml(l)}" target="_blank" rel="noopener">↗ ${escapeHtml(domainLabel(l))}</a>`
                 ).join('');
                 document.getElementById('fee-body').innerHTML = `
                     ${bullets}
@@ -741,11 +749,11 @@ Reviews this week present a polarised but telling picture of INDmoney's trading 
                 ${FEE_DATA ? `<div class="poster-section">
                     <h3>Fee Explainer — ${escapeHtml(FEE_DATA.scenario_name)}</h3>
                     <ul style="margin:0;padding-left:20px;color:rgba(255,255,255,0.85);line-height:1.8">
-                        ${FEE_DATA.explanation_bullets.map(b => `<li>${escapeHtml(b)}</li>`).join('')}
+                        ${FEE_DATA.explanation_bullets.map(b => `<li>${marked.parseInline(b.replace(/^[•\-\*]\s*/,'').trim())}</li>`).join('')}
                     </ul>
                     <div style="margin-top:12px;font-size:13px;color:rgba(255,255,255,0.55)">Last checked: ${escapeHtml(FEE_DATA.last_checked)}</div>
                     <div style="margin-top:8px;display:flex;flex-direction:column;gap:4px">
-                        ${FEE_DATA.source_links.map(l => `<a href="${l}" target="_blank" rel="noopener" style="color:#a5b4fc;font-size:13px;word-break:break-all">${escapeHtml(l)}</a>`).join('')}
+                        ${FEE_DATA.source_links.map(l => `<a href="${escapeHtml(l)}" target="_blank" rel="noopener" style="color:#C9A84C;font-size:13px;">↗ ${escapeHtml(new URL(l).hostname.replace(/^www\./,''))}</a>`).join('')}
                     </div>
                 </div>` : ''}`;
 

@@ -97,8 +97,11 @@ def run() -> None:
 
     # FEE_DATA in M2 format
     scenario_raw = fee.get("scenario", "exit_load")
+    _sname = scenario_raw.replace("_", " ").title() if "_" in scenario_raw else scenario_raw
+    if not any(w in _sname.lower() for w in ("explainer", "fee", "load", "charge")):
+        _sname += " — Fee Explainer"
     fee_data_m2 = {
-        "scenario_name":      scenario_raw.replace("_", " ").title() if "_" in scenario_raw else scenario_raw,
+        "scenario_name":      _sname,
         "explanation_bullets": fee.get("bullets", []),
         "source_links":       fee.get("sources", []),
         "last_checked":       fee.get("checked", today_str),
