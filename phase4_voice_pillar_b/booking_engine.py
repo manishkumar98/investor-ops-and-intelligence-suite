@@ -1,7 +1,7 @@
 """Adapted from M3 phase1/src/booking/booking_code_generator.py + slot_resolver.py"""
 import json
 import random
-from datetime import date, datetime, timedelta
+from datetime import date
 from pathlib import Path
 
 import pytz
@@ -55,14 +55,40 @@ def is_valid_booking_code(code: str) -> bool:
 
 
 def load_calendar(calendar_path: str) -> list[dict]:
-    return json.loads(Path(calendar_path).read_text())
+    data = json.loads(Path(calendar_path).read_text())
+    if isinstance(data, dict):
+        return data.get("available_slots", data.get("slots", list(data.values())[0] if data else []))
+    return data
+
+
+def _slot_day_name(slot: dict) -> str:
+    """Return weekday name from a slot's 'day' or 'date' field."""
+    if "day" in slot:
+        return slot["day"].lower()
+    if "date" in slot:
+        try:
+            from datetime import date as _date
+            d = _date.fromisoformat(slot["date"])
+            return d.strftime("%A").lower()
+        except Exception:
+            pass
+    return ""
+
+
+def _slot_available(slot: dict) -> bool:
+    """Return True if the slot is not booked / is available."""
+    if slot.get("booked") is True:
+        return False
+    if slot.get("status") == "BOOKED":
+        return False
+    if slot.get("available") is False:
+        return False
+    return True
 
 
 def match_slots(calendar: list[dict], day_pref: str | None, period: str | None) -> list[dict]:
-    """Return up to 2 available slots matching day and time-of-day preference.
-    Adapted from M3 slot_resolver._resolve_slots_mock.
-    """
-    available = [s for s in calendar if s.get("available", True) or s.get("status") == "AVAILABLE"]
+    """Return up to 2 available slots matching day and time-of-day preference."""
+    available = [s for s in calendar if _slot_available(s)]
     if not available:
         return []
 
@@ -71,12 +97,19 @@ def match_slots(calendar: list[dict], day_pref: str | None, period: str | None) 
         day_lower = day_pref.lower()
         target_weekday = next((v for k, v in _DAY_MAP.items() if k in day_lower), None)
         if target_weekday is not None:
-            today = datetime.now(IST)
-            days_ahead = (target_weekday - today.weekday()) % 7 or 7
-            target_day_name = (today + timedelta(days=days_ahead)).strftime("%A").lower()
-            available = [s for s in available if target_day_name in s.get("day", "").lower()]
+            matched = []
+            for s in available:
+                sday = _slot_day_name(s)
+                if sday:
+                    slot_wd = _DAY_MAP.get(sday[:3])
+                    if slot_wd == target_weekday:
+                        matched.append(s)
+            if matched:
+                available = matched
         else:
-            available = [s for s in available if day_lower in s.get("day", "").lower()]
+            filtered = [s for s in available if day_lower in _slot_day_name(s)]
+            if filtered:
+                available = filtered
 
     # Period / time band filter
     if period and available:
@@ -105,14 +138,22 @@ def book(slot: dict, topic: str, session: dict) -> dict:
     """Write booking details to session and return the detail dict."""
     code = generate_booking_code()
     today = str(date.today())
-    slot_str = f"{slot.get('day', '').title()} {slot.get('time', '')} IST"
+
+    day_name = slot.get("day", "")
+    if not day_name and "date" in slot:
+        try:
+            from datetime import date as _date
+            day_name = _date.fromisoformat(slot["date"]).strftime("%A")
+        except Exception:
+            pass
+    slot_str = f"{day_name.title()} {slot.get('time', '')} IST".strip()
 
     detail = {
         "date":         today,
         "topic":        topic,
         "slot":         slot_str,
         "time":         slot.get("time", ""),
-        "day":          slot.get("day", ""),
+        "day":          day_name,
         "tz":           "IST",
         "booking_code": code,
     }

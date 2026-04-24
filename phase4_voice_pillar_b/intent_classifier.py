@@ -1,10 +1,10 @@
-"""Adapted from M3 phase2/src/dialogue/intent_router.py — Claude replaces Groq."""
+"""Adapted from M3 phase2/src/dialogue/intent_router.py.
+Provider chain: Groq llama-3.3-70b (primary) → Anthropic Claude Haiku (fallback) → rule-based.
+"""
 import json
 import logging
 import os
 import re
-
-import anthropic
 
 logger = logging.getLogger(__name__)
 
@@ -81,14 +81,67 @@ Respond ONLY with valid JSON:
 }
 Set compliance_flag to "refuse_advice"/"refuse_pii"/"out_of_scope" when applicable."""
 
-_client = None
+def _make_groq_callable():
+    api_key = os.environ.get("GROQ_API_KEY", "")
+    if not api_key:
+        return None
+    try:
+        from groq import Groq
+        client = Groq(api_key=api_key)
+        def _call(system: str, user: str) -> str:
+            resp = client.chat.completions.create(
+                model="llama-3.3-70b-versatile",
+                messages=[{"role": "system", "content": system}, {"role": "user", "content": user}],
+                temperature=0.0,
+                max_tokens=512,
+            )
+            return resp.choices[0].message.content or ""
+        return _call
+    except Exception as exc:
+        logger.warning("Groq setup failed: %s", exc)
+        return None
 
 
-def _get_client():
-    global _client
-    if _client is None:
-        _client = anthropic.Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
-    return _client
+def _make_anthropic_callable():
+    api_key = os.environ.get("ANTHROPIC_API_KEY", "")
+    if not api_key:
+        return None
+    try:
+        import anthropic
+        client = anthropic.Anthropic(api_key=api_key)
+        def _call(system: str, user: str) -> str:
+            msg = client.messages.create(
+                model="claude-haiku-4-5-20251001",
+                max_tokens=512,
+                system=system,
+                messages=[{"role": "user", "content": user}],
+            )
+            return msg.content[0].text if msg.content else ""
+        return _call
+    except Exception as exc:
+        logger.warning("Anthropic setup failed: %s", exc)
+        return None
+
+
+_llm_callable = None
+_llm_provider = "none"
+
+
+def _get_llm():
+    global _llm_callable, _llm_provider
+    if _llm_callable is None:
+        groq_fn = _make_groq_callable()
+        if groq_fn:
+            _llm_callable = groq_fn
+            _llm_provider = "groq"
+        else:
+            anth_fn = _make_anthropic_callable()
+            if anth_fn:
+                _llm_callable = anth_fn
+                _llm_provider = "anthropic"
+            else:
+                _llm_provider = "rule_based"
+    return _llm_callable
 
 
 # ── Speech → booking code extractor (handles Whisper output variations) ──────
@@ -231,12 +284,11 @@ def _parse_llm_json(raw: str) -> dict:
 
 def classify(utterance: str, context: dict | None = None) -> dict:
     """Return dict with intent, slots, compliance_flag, speech.
-    Rule-based first (fast), LLM fallback for ambiguous inputs.
-    Adapted from M3 IntentRouter.route().
+    Provider chain: Groq → Anthropic → rule-based.
     """
     low = utterance.lower()
 
-    # Rule-based for clear compliance / end-call signals (always fast)
+    # Fast rule-based path for clear compliance / end-call signals
     advice_words = ["invest", "stock", "return", "nifty", "sensex", "portfolio",
                     "buy", "sell", "recommend", "crypto", "market crash", "market prediction"]
     if any(w in low for w in advice_words):
@@ -247,23 +299,20 @@ def classify(utterance: str, context: dict | None = None) -> dict:
     if any(w in low for w in end_words):
         return _rule_based(utterance)
 
-    # Try LLM for rich intent + slot extraction
-    if os.getenv("ANTHROPIC_API_KEY"):
-        context_str = ""
-        if context:
-            filled = {k: v for k, v in context.items() if v and k in
-                      ("topic", "day_preference", "time_preference", "intent")}
-            if filled:
-                context_str = f"\n[Context already collected]: {json.dumps(filled)}"
-        try:
-            msg = _get_client().messages.create(
-                model="claude-haiku-4-5-20251001",
-                max_tokens=256,
-                system=_LLM_SYSTEM,
-                messages=[{"role": "user", "content": f"{utterance}{context_str}"}],
-            )
-            return _parse_llm_json(msg.content[0].text)
-        except Exception as exc:
-            logger.warning("LLM intent classification failed: %s — using rule-based", exc)
+    llm = _get_llm()
+    if llm is None:
+        return _rule_based(utterance)
+
+    context_str = ""
+    if context:
+        filled = {k: v for k, v in context.items() if v and k in
+                  ("topic", "day_preference", "time_preference", "intent")}
+        if filled:
+            context_str = f"\n[Context already collected]: {json.dumps(filled)}"
+    try:
+        raw = llm(_LLM_SYSTEM, f"{utterance}{context_str}")
+        return _parse_llm_json(raw)
+    except Exception as exc:
+        logger.warning("LLM classification failed (%s): %s — rule-based fallback", _llm_provider, exc)
 
     return _rule_based(utterance)
