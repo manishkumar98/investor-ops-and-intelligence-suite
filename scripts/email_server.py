@@ -34,6 +34,22 @@ class EmailRequest(BaseModel):
     email: EmailStr
 
 
+def _md_to_html(text: str) -> str:
+    """Convert **bold** markdown and strip leading bullet chars to clean HTML."""
+    import re
+    text = text.lstrip("•–- ").strip()
+    text = re.sub(r"\*\*(.+?)\*\*", r"<strong>\1</strong>", text)
+    return text
+
+
+def _scenario_title(raw: str) -> str:
+    """'exit_load' → 'Exit Load Explainer'."""
+    title = raw.replace("_", " ").title()
+    if not any(w in title.lower() for w in ("explainer", "fee", "load", "charge")):
+        title += " — Fee Explainer"
+    return title
+
+
 def _build_html(pulse: dict, fee: dict, recipient_name: str) -> str:
     quotes = pulse.get("quotes", [])
     themes = pulse.get("top_3_themes", [])
@@ -41,22 +57,30 @@ def _build_html(pulse: dict, fee: dict, recipient_name: str) -> str:
     note = pulse.get("weekly_note", "")
 
     quotes_html = "".join(
-        f"<p style='font-size:18px;line-height:1.6;color:#333;border-left:3px solid #C9A84C;"
+        f"<p style='font-size:17px;line-height:1.6;color:#333;border-left:3px solid #C9A84C;"
         f"padding-left:16px;margin:20px 0;'>\"{q}\"</p>"
         for q in quotes
     )
-    themes_html = "".join(f"<li style='margin-bottom:10px;font-size:16px;'>{t}</li>" for t in themes)
+    themes_html = "".join(f"<li style='margin-bottom:10px;font-size:15px;'>{t}</li>" for t in themes)
     actions_html = "".join(
-        f"<li style='margin-bottom:10px;font-size:16px;color:#444;'>{a}</li>"
+        f"<li style='margin-bottom:10px;font-size:15px;color:#444;line-height:1.5;'>{a}</li>"
         for a in action_ideas
     )
 
     bullets = fee.get("bullets", fee.get("explanation_bullets", []))
     sources = fee.get("sources", fee.get("source_links", []))
-    scenario = fee.get("scenario", fee.get("scenario_name", "Fee Explainer"))
-    fee_html = "".join(f"<li style='margin-bottom:8px;font-size:15px;color:#444;'>{b}</li>" for b in bullets)
+    raw_scenario = fee.get("scenario", fee.get("scenario_name", "Fee Explainer"))
+    scenario = _scenario_title(raw_scenario)
+
+    fee_html = "".join(
+        f"<li style='margin-bottom:10px;font-size:15px;color:#333;line-height:1.6;'>{_md_to_html(b)}</li>"
+        for b in bullets
+    )
     src_html = "".join(
-        f"<a href='{s}' style='display:block;font-size:13px;color:#0066cc;margin-top:4px;word-break:break-all;'>{s}</a>"
+        f"<a href='{s}' style='display:block;font-size:13px;color:#C9A84C;margin-top:6px;"
+        f"word-break:break-all;text-decoration:none;'>"
+        f"&#8599; {s.split('//')[-1].split('/')[0]}"
+        f"</a>"
         for s in sources
     )
 
@@ -93,9 +117,12 @@ def _build_html(pulse: dict, fee: dict, recipient_name: str) -> str:
     </tr>
   </table>
 
-  <div style="margin-top:32px;border-top:1px solid #eee;padding-top:24px;">
-    <h2 style="font-size:17px;color:#0A0C14;">{scenario}</h2>
-    <ul style="padding-left:18px;">{fee_html}</ul>
+  <div style="margin-top:32px;border-top:1px solid #eee;padding-top:24px;background:#f9f7f2;
+       border-radius:8px;padding:24px;">
+    <h2 style="font-size:17px;color:#0A0C14;margin-top:0;">{scenario}</h2>
+    <ul style="padding-left:20px;margin:0 0 16px;">{fee_html}</ul>
+    <p style="font-size:12px;font-weight:600;color:#666;margin:0 0 4px;text-transform:uppercase;
+       letter-spacing:0.5px;">Sources</p>
     {src_html}
   </div>
 
