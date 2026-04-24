@@ -51,13 +51,11 @@ def _source_label(url: str) -> str:
 load_env()
 
 # Start email API server once per process (for the dashboard Send Email button)
-if "email_server_started" not in st.session_state:
-    try:
-        from scripts.email_server import start_email_server
-        start_email_server(port=8510)
-        st.session_state["email_server_started"] = True
-    except Exception:
-        st.session_state["email_server_started"] = False
+try:
+    from scripts.email_server import start_email_server
+    start_email_server(port=8510)
+except Exception:
+    pass
 
 st.set_page_config(
     page_title="Investor Ops & Intelligence Suite by Dalal Street Advisors",

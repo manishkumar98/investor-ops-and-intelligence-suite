@@ -170,12 +170,29 @@ def send_email(req: EmailRequest):
     return {"status": "success", "message": f"Email sent to {req.email}"}
 
 
+_server_started = False
+
+
 def start_email_server(port: int = 8510) -> None:
-    """Start uvicorn in a daemon thread — call once from app.py."""
+    """Start uvicorn in a daemon thread — safe to call multiple times."""
+    global _server_started
+    if _server_started:
+        return
+    _server_started = True
+
     import uvicorn
 
     def _run():
-        uvicorn.run(app, host="127.0.0.1", port=port, log_level="warning")
+        try:
+            uvicorn.run(app, host="127.0.0.1", port=port, log_level="warning")
+        except Exception:
+            pass  # port already in use from another process
 
     t = Thread(target=_run, daemon=True)
     t.start()
+
+
+if __name__ == "__main__":
+    import uvicorn
+    print("Starting Investor Ops Email Server on port 8510…")
+    uvicorn.run(app, host="127.0.0.1", port=8510, log_level="info")
