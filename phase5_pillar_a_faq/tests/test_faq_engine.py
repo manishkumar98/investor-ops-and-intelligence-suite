@@ -62,7 +62,7 @@ class TestSafetyFilter:
         (r"should i (buy|sell|invest)", "advice_refusal"),
         (r"which fund.*(better|best)",  "comparison_refusal"),
         (r"give.*\d+%.*return",         "performance_refusal"),
-        (r"(email|phone|contact).*ceo", "pii_refusal"),
+        (r"(email|phone|contact|ceo|cxo|address)", "pii_refusal"),
         (r"(pan|aadhaar|account number)", "pii_refusal"),
     ]
 

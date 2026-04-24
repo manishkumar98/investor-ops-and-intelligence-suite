@@ -90,12 +90,12 @@ class TestIntentDetection:
 
     def _classify_intent(self, utterance: str) -> str:
         utterance_lower = utterance.lower()
-        if any(k in utterance_lower for k in ("book", "schedule", "new appointment")):
-            return "book_new"
         if any(k in utterance_lower for k in ("reschedule", "change my booking", "move my slot")):
             return "reschedule"
         if any(k in utterance_lower for k in ("cancel", "remove my booking")):
             return "cancel"
+        if any(k in utterance_lower for k in ("book", "schedule", "new appointment")):
+            return "book_new"
         if any(k in utterance_lower for k in ("what to prepare", "what should i bring", "prepare")):
             return "what_to_prepare"
         if any(k in utterance_lower for k in ("available", "availability", "when can i")):
