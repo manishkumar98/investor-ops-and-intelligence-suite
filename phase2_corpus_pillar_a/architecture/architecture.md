@@ -4,11 +4,11 @@
 
 Phase 2 builds the knowledge base that powers the FAQ engine. Before users can ask any question about SBI Mutual Funds, the system needs to have read, understood, and indexed all the relevant official documents. That preparation work happens here.
 
-Think of it like a research assistant spending a day reading every official document from SBI Mutual Fund, AMFI, and SEBI — highlighting important passages, organising them by topic, and filing them in a cabinet. After this one-time preparation, finding the answer to any question takes seconds instead of hours.
+Think of it like a research assistant spending a day reading every official document from SBI Mutual Fund, AMFI, and SEBI — but now also filling out a structured form for each fund: exit load, expense ratio, minimum SIP, AUM, fund manager, benchmark, risk level, and so on. Both the filled form and the highlighted passages go into the filing cabinet. Finding the answer to any question takes seconds.
 
-**What actually happens technically:** The system fetches 30+ official web pages, strips out all the navigation menus and HTML clutter to get plain text, splits that text into small searchable passages (chunks), converts each passage into a numerical fingerprint (embedding), and stores everything in ChromaDB — a local vector database on disk. From then on, when a user asks a question, the question gets the same fingerprint treatment and the database finds the most similar passages in milliseconds.
+**What actually happens technically:** The system fetches all URLs listed in `SOURCE_MANIFEST.md`, strips HTML clutter to get plain text, runs a **structured extractor** to pull out named fields (exit load, expense ratio, min SIP, etc.), creates one synthetic "structured summary chunk" per URL that is always retrieved for direct field queries, splits remaining text into overlapping passage chunks, embeds everything with sentence-transformers or OpenAI, and upserts into ChromaDB. Extracted fields are also persisted to `data/fund_snapshot.json` — a structured JSON store that survives restarts and can be read without touching ChromaDB.
 
-This phase runs **once** during setup, not on every user request. The result (the populated ChromaDB) is what Phases 3 and 5 depend on. A hash guard ensures that re-running this phase does nothing if the source documents haven't changed — it won't waste money on re-embedding unless you explicitly force it.
+This phase runs **once** during setup, not on every user request. A hash guard ensures re-running does nothing if the source URLs haven't changed.
 
 ---
 
@@ -16,36 +16,68 @@ This phase runs **once** during setup, not on every user request. The result (th
 
 ```
 SOURCE_MANIFEST.md
-  (list of 30+ URLs, each tagged mf_faq: or fee:)
+  (list of URLs, each tagged mf_faq: or fee:)
          │
          ▼
 ┌─────────────────────────────────┐
 │  STEP 1: URL Loader             │
-│  requests.get(url)              │
-│  BeautifulSoup strips HTML      │
-│  removes <script> and <style>   │
+│  url_loader.fetch_url(url)      │
+│  requests.get → BeautifulSoup   │
+│  strips <script><style>         │
+│  <nav><footer><head>            │
 │  returns clean plain text       │
-│  adds metadata: source_url,     │
-│  corpus ("mf_faq"|"fee"),       │
-│  loaded_at (ISO8601 timestamp)  │
 └────────────┬────────────────────┘
              │
              ▼
-┌─────────────────────────────────┐
-│  STEP 2: Chunker                │
-│  RecursiveCharacterTextSplitter │
-│  chunk_size  = 512 tokens       │
-│  chunk_overlap = 64 tokens      │
-│  each chunk gets chunk_id       │
-│  = sha256(url+idx)[:8]          │
-│  Each chunk is a dict:          │
-│  {text, source_url, corpus,     │
-│   chunk_id, loaded_at}          │
-└────────────┬────────────────────┘
+┌─────────────────────────────────────────────────────────┐
+│  STEP 2: Structured Extractor  ← NEW                    │
+│  structured_extractor.extract(url, text)                │
+│                                                         │
+│  Runs 14 field regex patterns on full page text:        │
+│  exit_load, expense_ratio, min_sip, min_lumpsum,        │
+│  aum, nav, benchmark, fund_manager, risk, category,     │
+│  lock_in, inception_date, returns_1y, returns_3y        │
+│                                                         │
+│  Normalises fund name from URL slug                     │
+│  Returns: dict of named field slots                     │
+│                                                         │
+│  ┌─────────────────────────────────────────────┐        │
+│  │  to_summary_text(fields)                    │        │
+│  │  Formats fields into labelled text block:   │        │
+│  │  "[STRUCTURED FUND DATA — SBI ELSS …]       │        │
+│  │   Exit Load: Nil                            │        │
+│  │   Expense Ratio (Direct Plan): 0.87%        │        │
+│  │   Minimum SIP Amount: 500                   │        │
+│  │   Lock-in Period: 3 years  …"               │        │
+│  └──────────────┬──────────────────────────────┘        │
+│                 │                                        │
+│                 ▼                                        │
+│  Merged into data/fund_snapshot.json  ← persistent      │
+│  (one entry per fund, survives restarts)                 │
+└──────────────┬──────────────────────────────────────────┘
+               │
+               ▼
+┌─────────────────────────────────────────────────────────┐
+│  STEP 3: Chunk Builder                                   │
+│                                                         │
+│  A) make_structured_chunk(summary, url, corpus)         │
+│     → single synthetic chunk, deterministic ID          │
+│     → always retrieved for direct field queries         │
+│     → prepended before all other chunks                 │
+│                                                         │
+│  B) chunk_text(text, url, corpus)                       │
+│     RecursiveCharacterTextSplitter                      │
+│     chunk_size=512 tokens, overlap=64 tokens            │
+│     each chunk: {text, source_url, corpus,              │
+│                  chunk_id=sha256(url+idx)[:8],          │
+│                  loaded_at}                             │
+│                                                         │
+│  Final list = [structured_chunk] + text_chunks          │
+└────────────┬────────────────────────────────────────────┘
              │
              ▼
 ┌─────────────────────────────────┐
-│  STEP 3: Embedder               │
+│  STEP 4: Embedder               │
 │  if OPENAI_API_KEY set:         │
 │    text-embedding-3-small       │
 │    dim = 1536                   │
@@ -57,7 +89,7 @@ SOURCE_MANIFEST.md
              │
              ▼
 ┌─────────────────────────────────────────────────┐
-│  STEP 4: Route & Upsert into ChromaDB           │
+│  STEP 5: Route & Upsert into ChromaDB           │
 │                                                 │
 │  corpus=="mf_faq"     corpus=="fee"             │
 │       │                     │                   │
@@ -71,7 +103,7 @@ SOURCE_MANIFEST.md
              │
              ▼
 ┌─────────────────────────────────┐
-│  STEP 5: Hash Guard             │
+│  STEP 6: Hash Guard             │
 │  source_hash = sha256(          │
 │    sorted(all_urls).encode())   │
 │  save to data/.index_hash       │
@@ -83,29 +115,186 @@ SOURCE_MANIFEST.md
 
 ---
 
+## Structured Extractor Detail
+
+### `structured_extractor.py`
+
+The structured extractor is the key quality improvement over plain text chunking. Instead of relying on cosine similarity to find "exit load: 1%" buried somewhere in a 512-token chunk, we extract it explicitly and store it in a labelled block that is always retrievable.
+
+**Fund name normalisation:**
+The extractor maintains a `_SLUG_MAP` dict mapping URL path fragments (`sbi-bluechip-fund`, `sbi-elss-tax-saver-fund`, etc.) to canonical fund names. This ensures all sources for the same fund are merged under one key in `fund_snapshot.json`.
+
+**Field patterns (14 fields):**
+
+| Field | Example extracted value |
+|---|---|
+| `exit_load` | `1% if redeemed within 1 year from date of allotment` |
+| `expense_ratio` | `0.87%` |
+| `min_sip` | `500` |
+| `min_lumpsum` | `5000` |
+| `aum` | `25847 cr` |
+| `nav` | `84.32` |
+| `benchmark` | `BSE 100 TRI` |
+| `fund_manager` | `Mohit Jain` |
+| `risk` | `Moderately High` |
+| `category` | `Large Cap Equity` |
+| `lock_in` | `3 years` |
+| `inception_date` | `Jan 14 2013` |
+| `returns_1y` | `12.4%` |
+| `returns_3y` | `18.2%` |
+
+Each field has 2–4 regex patterns tried in order. The first match wins. All patterns are case-insensitive. Empty string means not found on this page.
+
+**Synthetic structured chunk:**
+When at least one field is found, `to_summary_text()` creates a single text block:
+```
+[STRUCTURED FUND DATA — SBI ELSS Tax Saver Fund — as of 2026-04-24]
+Exit Load: Nil
+Expense Ratio (Direct Plan): 0.87%
+Minimum SIP Amount: 500
+Lock-in Period: 3 years
+Benchmark Index: BSE 500 TRI
+Fund Manager: Dinesh Balachandran
+Risk Level: Very High
+Fund Category: ELSS
+Source: https://www.sbimf.com/...
+```
+
+This block is embedded as a single chunk with a **deterministic ID** (`sha256("structured_" + url)[:8]`). Re-ingesting the same URL replaces the chunk rather than duplicating it.
+
+---
+
+## fund_snapshot.json — Persistent Structured Store
+
+`data/fund_snapshot.json` is written after every ingest run and persists between app restarts. It gives any part of the application direct access to structured fund data without a ChromaDB query.
+
+**Structure:**
+```json
+{
+  "funds": {
+    "SBI Large Cap Fund (Bluechip)": {
+      "fund_name":      "SBI Large Cap Fund (Bluechip)",
+      "source_url":     "https://www.sbimf.com/...",
+      "last_scraped":   "2026-04-24",
+      "exit_load":      "1% if redeemed within 1 year",
+      "expense_ratio":  "0.87%",
+      "min_sip":        "500",
+      "min_lumpsum":    "5000",
+      "aum":            "25847 cr",
+      "nav":            "84.32",
+      "benchmark":      "BSE 100 TRI",
+      "fund_manager":   "Mohit Jain",
+      "risk":           "Moderately High",
+      "category":       "Large Cap Equity",
+      "lock_in":        "",
+      "inception_date": "Feb 14 2006",
+      "returns_1y":     "",
+      "returns_3y":     ""
+    },
+    "SBI ELSS Tax Saver Fund": { ... },
+    ...
+  }
+}
+```
+
+**Merge behaviour:** If multiple URLs cover the same fund (e.g. sbimf.com + indmoney.com both have SBI ELSS data), the extractor merges them — a field from a later URL fills in only if the earlier URL left it empty. The richest combined view is stored.
+
+**When to re-ingest:** The snapshot is only as fresh as the last `ingest_corpus.py --force` run. The `last_scraped` field on each fund entry shows when it was last updated.
+
+**Who reads it:**
+- `scripts/health_monitor.py` — checks corpus freshness from `system_state.json` (ingest writes timestamp there too)
+- Any future module that needs instant field lookup without RAG (e.g. a sidebar widget showing fund data)
+
+---
+
+## Local Raw File Ingestion
+
+In addition to fetching live URLs, the ingest pipeline processes pre-scraped Playwright files from `data/raw/*.txt`. These files have richer content than live fetches because they capture fully JavaScript-rendered pages.
+
+**File naming convention:**
+- `*official*` → ingested into both `mf_faq_corpus` and `fee_corpus`
+- `*indmoney*` → ingested into `mf_faq_corpus` only
+
+**File format (M1 format):**
+```
+Source URL: https://www.indmoney.com/mutual-funds/sbi-bluechip-fund-direct-growth-3046
+---
+[collapsed page text — newlines joined with single space]
+```
+
+**Current files in `data/raw/`:**
+- `sbi_large_cap_fund_(official).txt`, `sbi_flexicap_fund_(official).txt`, `sbi_elss_tax_saver_fund_(official).txt`, `sbi_midcap_fund_(official).txt`, `sbi_small_cap_fund_(official).txt`
+- `sbi_flexicap_fund_(indmoney).txt`, `sbi_midcap_fund_(indmoney).txt`, `sbi_small_cap_fund_(indmoney).txt`, `sbi_bluechip_fund_(indmoney).txt`, `sbi_long_term_equity_fund_(indmoney).txt`
+- `capital_gains_statements_(official).txt` — guide for downloading capital gains statements from CAMS / MF Central, fund-specific links for all 8 SBI funds
+
+**`ingest_local_files()` flow:**
+1. Reads each `.txt` file from `data/raw/`
+2. Calls `fund_name_from_filename(stem)` to resolve canonical fund name from file stem
+3. Calls `extract(source_url, text, fund_name=...)` with the resolved name
+4. Merges into `data/fund_snapshot.json` snapshot
+5. Creates structured chunk + text chunks, upserts to ChromaDB
+
+**`fund_name_from_filename(filename)`** uses `_FILE_SLUG_MAP` (underscore → canonical name) analogous to `_SLUG_MAP` for URLs.
+
+---
+
 ## Key Interfaces
 
 ```python
-# pillar_a/ingest.py
+# phase2_corpus_pillar_a/ingest.py
 
-def ingest_corpus(source_manifest_path: str, force: bool = False) -> dict:
+def ingest_corpus(manifest_path: str = "SOURCE_MANIFEST.md", force: bool = False) -> dict:
     """
-    Reads SOURCE_MANIFEST.md, fetches URLs, chunks, embeds, upserts.
+    Full ingest pipeline: fetch → structured extract → chunk → embed → upsert.
+    Writes data/fund_snapshot.json and data/.index_hash.
     Returns: {"mf_faq_count": int, "fee_count": int, "skipped": bool}
-    skipped=True means hash matched and ingest was skipped (no change).
     """
 
-def get_collection(name: str):
+def ingest_local_files(raw_dir: Path = Path("data/raw")) -> dict:
+    """
+    Ingests pre-scraped Playwright txt files from data/raw/.
+    Calls structured extractor + merges into fund_snapshot.json.
+    Returns: {"mf_faq_added": int, "fee_added": int}
+    Called automatically by scripts/ingest_corpus.py after ingest_corpus().
+    """
+
+def get_collection(name: str) -> chromadb.Collection:
     """
     name: "mf_faq_corpus" | "fee_corpus"
-    Returns: chromadb.Collection
     Imported by Phase 3 (fee_explainer) and Phase 5 (retriever).
     """
 
-def query_collection(collection_name: str, query_text: str, n: int = 4) -> list[dict]:
+# phase2_corpus_pillar_a/structured_extractor.py
+
+def extract(url: str, page_text: str, fund_name: str = "") -> dict:
     """
-    Returns list of {text, source_url, corpus, distance}
-    Used by check_corpus.py to verify ingest quality.
+    Returns dict with fund_name, source_url, last_scraped, and 14 named fields.
+    fund_name: optional override (used by ingest_local_files to pass resolved name).
+    Empty string means field not found on this page.
+    """
+
+def fund_name_from_filename(filename: str) -> str:
+    """
+    Resolves canonical fund name from a raw file stem like 'sbi_elss_tax_saver_fund_(official)'.
+    Uses _FILE_SLUG_MAP (underscore-separated slugs → canonical names).
+    """
+
+def to_summary_text(fields: dict) -> str:
+    """
+    Formats extracted fields into the structured chunk text block.
+    Returns "" if no fields were found (no structured chunk created).
+    """
+
+# phase2_corpus_pillar_a/chunker.py
+
+def chunk_text(text: str, url: str, corpus: str) -> list[dict]:
+    """Splits raw text into overlapping chunks with metadata."""
+
+def make_structured_chunk(summary_text: str, url: str, corpus: str) -> dict | None:
+    """
+    Creates a single synthetic structured chunk from to_summary_text() output.
+    Returns None if summary_text is empty.
+    Chunk ID is deterministic: sha256("structured_" + url)[:8]
     """
 ```
 
@@ -115,27 +304,22 @@ def query_collection(collection_name: str, query_text: str, n: int = 4) -> list[
 
 The `SOURCE_MANIFEST.md` file lists all URLs to ingest. Each line is prefixed with either `mf_faq:` (goes into `mf_faq_corpus`) or `fee:` (goes into `fee_corpus`).
 
-| Category | Target Count | Collection | What's in there |
-|---|---|---|---|
-| SBI ELSS Tax Advantage Fund factsheet + KIM/SID | 2–3 | `mf_faq_corpus` | Lock-in period, exit load, SIP minimums, riskometer |
-| SBI Bluechip Fund factsheet + KIM/SID | 2–3 | `mf_faq_corpus` | Fund objective, benchmark, expense ratio, NAV |
-| SBI Small Cap Fund factsheet + KIM/SID | 2–3 | `mf_faq_corpus` | Scheme details, category, AUM, fund manager |
-| AMFI Scheme Detail Pages | 3–5 | `mf_faq_corpus` | Official scheme data from amfiindia.com |
-| SEBI Circulars (MF-related) | 2–3 | `mf_faq_corpus` | Regulatory requirements, scheme categorisation |
-| SBI MF Fee Schedule Pages | 2–3 | `fee_corpus` | Exit load tables, expense ratio tiers by plan |
-| AMFI Fee Guidelines | 2–3 | `fee_corpus` | Total Expense Ratio caps, direct vs regular |
-| SEBI Expense Ratio Circular | 1–2 | `fee_corpus` | Regulatory limits on expense ratios |
+| Category | Collection | What's extracted |
+|---|---|---|
+| SBI MF scheme pages (sbimf.com) | `mf_faq_corpus` + `fee_corpus` | Exit load, expense ratio, min SIP, AUM, fund manager, benchmark, NAV |
+| INDMoney fund detail pages | `mf_faq_corpus` | Category, risk level, returns, NAV, SIP minimums |
+| SBI SIP calculator page | `mf_faq_corpus` | SIP mechanics, compounding explanation |
 
-**Minimum thresholds:** After ingest, `mf_faq_corpus` must have ≥30 chunks and `fee_corpus` must have ≥8 chunks. The `eval_corpus.py` script checks this.
+**Minimum thresholds after ingest:** `mf_faq_corpus` ≥ 30 chunks, `fee_corpus` ≥ 8 chunks.
 
 ---
 
 ## Prerequisites
 
-- Phase 1 complete: `config.py` and `session_init.py` working, ChromaDB client initialises without error
-- `SOURCE_MANIFEST.md` created and populated with 30+ URLs (see categories above)
-- `OPENAI_API_KEY` valid and has available quota — embedding 30+ pages will cost a small amount
-- Network access to `sbimf.com`, `amfiindia.com`, `sebi.gov.in`
+- Phase 1 complete: `config.py` and `session_init.py` working
+- `SOURCE_MANIFEST.md` populated with URLs
+- `ANTHROPIC_API_KEY` set (used by FAQ engine in Phase 5; not needed for ingest itself)
+- Network access to `sbimf.com`, `indmoney.com`
 
 ---
 
@@ -143,98 +327,62 @@ The `SOURCE_MANIFEST.md` file lists all URLs to ingest. Each line is prefixed wi
 
 | Env Var | Required? | Purpose |
 |---|---|---|
-| `OPENAI_API_KEY` | Yes | `openai.embeddings.create(model="text-embedding-3-small")` — generates 1536-dim vectors for every chunk |
-| `CHROMA_PERSIST_DIR` | Yes | `PersistentClient(path=CHROMA_PERSIST_DIR)` — where ChromaDB writes files to disk |
-
-**No `ANTHROPIC_API_KEY` needed for this phase.** Embedding is purely OpenAI. The LLM is not involved.
+| `OPENAI_API_KEY` | Optional | `text-embedding-3-small` (dim=1536). If absent, falls back to local `all-MiniLM-L6-v2` (dim=384) |
+| `CHROMA_PERSIST_DIR` | Yes | Where ChromaDB writes to disk |
 
 ---
 
 ## Tools & Libraries
 
-| Package | Version | Purpose | Notes |
-|---|---|---|---|
-| `requests` | >=2.31 | `requests.get(url, timeout=10)` — fetches each URL | Included via langchain; add explicit retry on 5xx |
-| `beautifulsoup4` | >=4.12 | `BeautifulSoup(html, "html.parser")` — strips tags, removes `<script>`/`<style>` | May need `pip install beautifulsoup4` |
-| `langchain` | >=0.3.0 | `RecursiveCharacterTextSplitter` — chunks text at 512 tokens with 64 overlap | Already in `requirements.txt` |
-| `openai` | >=1.50.0 | `openai.embeddings.create(model="text-embedding-3-small", input=[...])` | Already in `requirements.txt` |
-| `sentence-transformers` | >=3.0 | `SentenceTransformer("all-MiniLM-L6-v2").encode()` — fallback embedder (dim=384) | `pip install sentence-transformers` if no OpenAI key |
-| `chromadb` | >=0.5.0 | `collection.upsert(ids, embeddings, documents, metadatas)` | Already in `requirements.txt` |
-| `tiktoken` | >=0.8.0 | Token counting to enforce `chunk_size=512` accurately | Already in `requirements.txt` |
-| `hashlib` | stdlib | `hashlib.sha256(sorted_urls_str.encode()).hexdigest()` — hash guard | No install |
+| Package | Purpose |
+|---|---|
+| `requests` | `fetch_url()` — fetches each URL with retry |
+| `beautifulsoup4` | Strips HTML tags, extracts plain text |
+| `re` (stdlib) | Structured extractor field patterns |
+| `langchain-text-splitters` | `RecursiveCharacterTextSplitter` for text chunking |
+| `sentence-transformers` | Local embedding fallback (`all-MiniLM-L6-v2`) |
+| `openai` | Optional: `text-embedding-3-small` embeddings |
+| `chromadb` | Vector store — persistent on disk |
+| `hashlib` (stdlib) | Hash guard + chunk ID generation |
 
 ### Critical: The Embedding Model Lock
 
-**You must decide which embedding model to use before the first ingest, and you cannot change it afterward.**
+**Decide before the first ingest. Cannot change afterward without deleting `data/chroma/`.**
 
-- If `OPENAI_API_KEY` is set → use `text-embedding-3-small` (dim=1536)
-- If `OPENAI_API_KEY` is not set → use `all-MiniLM-L6-v2` (dim=384)
+- `OPENAI_API_KEY` set → `text-embedding-3-small` (dim=1536)
+- No key → `all-MiniLM-L6-v2` (dim=384)
 
-ChromaDB stores the vector dimensions when you first write to a collection. If you later query with a different-dimension embedding, ChromaDB raises an error. The fix is to delete `data/chroma/` and re-ingest everything from scratch. This is why the decision must be made consciously once, not changed accidentally.
-
----
-
-## Inputs
-
-- `SOURCE_MANIFEST.md` — list of 30+ URLs, one per line, prefixed with `mf_faq:` or `fee:`
-- `CHROMA_PERSIST_DIR` — disk directory for ChromaDB storage
-- Network: HTML pages from `sbimf.com`, `amfiindia.com`, `sebi.gov.in`
+ChromaDB locks the vector dimension on first write. Querying with a different-dimension embedding raises an error. Fix: `rm -rf data/chroma/ data/.index_hash` then re-ingest with `--force`.
 
 ---
 
 ## Step-by-Step Build Order
 
-**1. `pillar_a/url_loader.py`**
-Function: `fetch_url(url: str) -> str`
-- `requests.get(url, timeout=10)` with max 2 retries on `ConnectionError` or `Timeout`
-- `BeautifulSoup(response.text, "html.parser")`
-- Remove all `<script>` and `<style>` tags: `[tag.decompose() for tag in soup(["script","style"])]`
-- Extract body text: `soup.get_text(separator=" ", strip=True)`
-- Return clean string. On failure (404, 403, empty body): return `""` and log warning
+**1. `url_loader.py`** — `fetch_url(url) -> str`
+- `requests.get` with retry, BeautifulSoup strip, return plain text
 
-**2. `pillar_a/chunker.py`**
-Function: `chunk_text(text: str, url: str, corpus: str, size=512, overlap=64) -> list[dict]`
-- Wrap `RecursiveCharacterTextSplitter(chunk_size=size, chunk_overlap=overlap)`
-- For each chunk at index `i`, create dict:
-  ```python
-  {
-    "text":       chunk,
-    "source_url": url,
-    "corpus":     corpus,
-    "chunk_id":   hashlib.sha256(f"{url}{i}".encode()).hexdigest()[:8],
-    "loaded_at":  datetime.utcnow().isoformat()
-  }
-  ```
-- Return list of these dicts
+**2. `structured_extractor.py`** — `extract(url, text) -> dict`, `to_summary_text(fields) -> str`
+- Regex field extraction on full page text
+- Fund name normalisation from URL slug via `_SLUG_MAP`
+- Summary text formatter for synthetic chunk
 
-**3. `pillar_a/embedder.py`**
-Function: `get_embeddings(texts: list[str]) -> list[list[float]]`
-- Check `os.getenv("OPENAI_API_KEY")` — if set, use OpenAI; else use SentenceTransformer
-- OpenAI path: batch in groups of 100; call `openai.embeddings.create(model="text-embedding-3-small", input=batch)`; retry on rate limit (429) with exponential backoff: 1s, 2s, 4s
-- Fallback path: `SentenceTransformer("all-MiniLM-L6-v2").encode(texts, batch_size=64)`; return as `list[list[float]]`
+**3. `chunker.py`** — `chunk_text(text, url, corpus) -> list[dict]`, `make_structured_chunk(summary, url, corpus) -> dict|None`
+- RecursiveCharacterTextSplitter for text chunks
+- Deterministic structured chunk builder
 
-**4. `pillar_a/ingest.py`**
-Function: `ingest_corpus(manifest_path, force=False) -> dict`
-- Parse `SOURCE_MANIFEST.md`: collect `(url, corpus_tag)` tuples
-- Hash guard: compute `sha256(sorted_urls)`, compare to `data/.index_hash`; if equal and not `force`, print "Corpus already current" and return `{"skipped": True}`
-- For each URL: fetch → chunk → embed → upsert into correct collection
-- Write new hash to `data/.index_hash`
-- Return `{"mf_faq_count": N, "fee_count": N, "skipped": False}`
+**4. `embedder.py`** — `get_embeddings(texts) -> list[list[float]]`
+- OpenAI or sentence-transformers, batched
 
-Function: `get_collection(name: str) -> chromadb.Collection`
-- `PersistentClient(path=CHROMA_PERSIST_DIR).get_or_create_collection(name)`
-- Returns the live collection handle; called by Phase 3 and Phase 5
+**5. `ingest.py`** — `ingest_corpus(manifest_path, force) -> dict`
+- Orchestrates all steps above
+- Loads/saves `data/fund_snapshot.json`
+- Writes `data/.index_hash`
 
-**5. `scripts/ingest_corpus.py`**
-CLI entry point:
+**6. `scripts/ingest_corpus.py`** — CLI entry point
 ```bash
 python scripts/ingest_corpus.py           # skip if already ingested
-python scripts/ingest_corpus.py --force   # force re-ingest regardless
+python scripts/ingest_corpus.py --force   # force re-ingest
 ```
-Calls `ingest_corpus()`, prints summary table, exits with code 0 on success.
-
-**6. `scripts/check_corpus.py`**
-Queries each collection with the 5 golden questions from `evals/golden_dataset.json`. For each query, prints the top result's cosine distance. Warns if any distance is > 0.6 (meaning the corpus may not have relevant content for that question).
 
 ---
 
@@ -242,36 +390,31 @@ Queries each collection with the 5 golden questions from `evals/golden_dataset.j
 
 | Output | Consumed By | What breaks if missing |
 |---|---|---|
-| `mf_faq_corpus` ChromaDB collection | Phase 5 `retriever.py` | FAQ engine returns "not in knowledge base" for all questions |
-| `fee_corpus` ChromaDB collection | Phase 3 `fee_explainer.py`, Phase 5 `retriever.py` | Fee explanation returns placeholder; compound FAQ fails |
-| `get_collection(name)` function | Phase 3, Phase 5 import this to get live collection handle | Import error at runtime |
-| `data/.index_hash` | Phase 2 re-run guard | Corpus re-ingested on every run (wastes API quota) |
+| `mf_faq_corpus` ChromaDB collection | Phase 5 `retriever.py` | FAQ returns "not in knowledge base" for all questions |
+| `fee_corpus` ChromaDB collection | Phase 3 `fee_explainer.py`, Phase 5 `retriever.py` | Fee explanation fails; compound FAQ fails |
+| `data/fund_snapshot.json` | `health_monitor.py`, any direct-lookup module | No structured field store; RAG-only mode |
+| `get_collection(name)` function | Phase 3, Phase 5 | Import error at runtime |
+| `data/.index_hash` | Phase 2 re-run guard | Corpus re-ingested on every run |
 
 ---
 
 ## Error Cases
 
-**URL fetch fails (403 / 404 / timeout):**
-Log `WARNING: Failed to fetch {url} — {status}. Skipping.` and continue with remaining URLs. Only fail the whole ingest if the total chunk count falls below the minimum thresholds after all URLs are tried.
+**URL fetch fails (403 / 404 / timeout):** Skip URL, log warning. Ingest continues with remaining URLs.
 
-**BeautifulSoup returns empty or near-empty text:**
-Skip the URL, log `WARNING: {url} returned empty text after stripping HTML.`. This happens with JavaScript-heavy pages that render content client-side.
+**Structured extractor finds no fields:** `to_summary_text()` returns `""`, no structured chunk is created. Regular text chunks are still ingested. This is not an error — just means the page layout didn't match any patterns.
 
-**OpenAI rate limit (HTTP 429):**
-Retry with exponential backoff: wait 1s, then 2s, then 4s. After 3 failures on the same batch, log the error and skip that batch.
+**Same fund covered by multiple URLs:** Fields are merged — empty fields from the first URL are filled in by the second URL. Richer combined data is stored in `fund_snapshot.json`.
 
-**ChromaDB dimension mismatch:**
-This is a fatal error. It means a previous ingest used a different embedding model. The error message from ChromaDB will mention "dimensionality". Fix: `rm -rf data/chroma/ data/.index_hash` then re-ingest with `--force`.
+**OpenAI rate limit (HTTP 429):** Retry with exponential backoff (1s, 2s, 4s). After 3 failures, skip that batch and log error.
 
-**Hash unchanged but `--force` not passed:**
+**ChromaDB dimension mismatch:** Fatal. Means a prior ingest used a different embedding model. Fix: `rm -rf data/chroma/ data/.index_hash` then re-ingest.
+
+**Hash unchanged, `--force` not passed:**
 ```
-Corpus already current (hash matches SOURCE_MANIFEST.md).
-To force re-ingest: python scripts/ingest_corpus.py --force
+Corpus already current. Use --force to re-ingest.
 ```
-Exit 0 — this is not an error.
-
-**No URLs in the `fee:` category:**
-`fee_corpus` would have 0 chunks. Fee explainer and compound queries would fail. This is caught by `eval_corpus.py` which asserts `fee_count >= 8`.
+Not an error — exit 0.
 
 ---
 
@@ -280,19 +423,26 @@ Exit 0 — this is not an error.
 All of the following must pass before starting Phase 3:
 
 ```bash
-# Build the corpus (first time)
-python scripts/ingest_corpus.py
-# Expected output: mf_faq: N chunks, fee: N chunks ingested
+# Build corpus (first time, or after adding new URLs to SOURCE_MANIFEST.md)
+python scripts/ingest_corpus.py --force
 
-# Verify cosine distances are reasonable
-python scripts/check_corpus.py
-# Expected: all 5 golden Q distances < 0.6
+# Verify chunks were created and structured extraction ran
+# Look for lines like:
+#   [ingest] structured fields extracted for SBI Large Cap Fund (Bluechip)
+#   [ingest] fund snapshot saved → data/fund_snapshot.json  (8 funds)
+
+# Check fund_snapshot.json is populated
+python3 -c "
+import json
+s = json.load(open('data/fund_snapshot.json'))
+for name, f in s['funds'].items():
+    filled = sum(1 for v in f.values() if v and v not in (name, f.get('source_url',''), f.get('last_scraped','')))
+    print(f'{name}: {filled} fields extracted')
+"
 
 # Run unit tests
-pytest phase2_corpus/tests/test_corpus.py -v
-# Expected: all tests pass
+pytest phase2_corpus_pillar_a/tests/ -v
 
-# Run eval
-python phase2_corpus/evals/eval_corpus.py
-# Expected: mf_faq_corpus >= 30 chunks, fee_corpus >= 8 chunks
+# Run health check
+python scripts/health_monitor.py
 ```

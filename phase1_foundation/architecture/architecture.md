@@ -68,9 +68,12 @@ app.py  /  test_dashboard.py
 |---|---|
 | `config.py` | `load_env()` — validate and expose all env vars |
 | `session_init.py` | `init_session_state(state)` — idempotent schema init |
-| `pillar_a/ingest.py` | `get_chroma_client()`, `get_collection(name)` |
-| `pillar_c/mcp_client.py` | `MCPClient` class with mock/live modes |
+| `phase2_corpus_pillar_a/ingest.py` | `get_collection(name)` — shared ChromaDB accessor |
+| `phase7_pillar_c_hitl/mcp_client.py` | `MCPClient` class with mock/live modes |
 | `data/mock_calendar.json` | Static slot list for voice agent |
+| `data/fund_snapshot.json` | Structured fund fields written on every ingest (Phase 2) |
+| `data/nav_snapshot.json` | NAV + prev_nav for each fund — drives the NAV ticker in app.py |
+| `data/system_state.json` | Operational timestamps: last_ingest, last_backup, last_health_check |
 
 ---
 
@@ -94,7 +97,7 @@ These are the environment variables this phase reads and validates. They live in
 | `CHROMA_PERSIST_DIR` | No | Path to ChromaDB storage on disk. Default: `./data/chroma` | Set in `.env` |
 | `MCP_MODE` | No | `mock` (default, no HTTP calls) or `live` (calls real MCP server) | Set in `.env` |
 | `MCP_SERVER_URL` | No | Live MCP endpoint. Default: `http://localhost:3000` | Set in `.env` |
-| `PRODUCT_NAME` | No | Display name shown in the UI. Default: `INDMoney Advisor Suite` | Set in `.env` |
+| `PRODUCT_NAME` | No | Display name shown in the UI. Default: `Investor Ops & Intelligence Suite by Dalal Street Advisors` | Set in `.env` |
 | `SECURE_BASE_URL` | No | Base URL for booking links. Default: `https://app.example.com` | Set in `.env` |
 | `ROUTER_MODE` | No | `keyword` (default, no LLM call) or `llm` (1-shot Claude classification) | Set in `.env` |
 
@@ -162,13 +165,14 @@ def init_session_state(state: dict) -> dict:
 
 The "only if not already present" rule is critical. Streamlit reruns `app.py` on every user interaction. If `init_session_state` overwrote existing values, the app would reset its state every time the user clicks a button.
 
-**3. `pillar_a/__init__.py`** — Empty file. Creates the `pillar_a` Python package.
-
-**4. `pillar_b/__init__.py`** — Empty file. Creates the `pillar_b` Python package.
-
-**5. `pillar_c/__init__.py`** — Empty file. Creates the `pillar_c` Python package.
-
-**6. `evals/__init__.py`** — Empty file. Creates the `evals` Python package.
+**3. Phase `__init__.py` files** — Empty files that make each phase directory importable as a Python package:
+- `phase2_corpus_pillar_a/__init__.py`
+- `phase3_review_pillar_b/__init__.py`
+- `phase4_voice_pillar_b/__init__.py`
+- `phase5_pillar_a_faq/__init__.py`
+- `phase7_pillar_c_hitl/__init__.py`
+- `phase8_eval_suite/__init__.py`
+- `phase8_eval_suite/evals/__init__.py`
 
 **7. `.env.example`** — Template file showing all env vars without real values:
 ```
@@ -177,9 +181,33 @@ OPENAI_API_KEY=sk-...
 CHROMA_PERSIST_DIR=./data/chroma
 MCP_MODE=mock
 MCP_SERVER_URL=http://localhost:3000
-PRODUCT_NAME=INDMoney Advisor Suite
+PRODUCT_NAME=Investor Ops & Intelligence Suite by Dalal Street Advisors
 SECURE_BASE_URL=https://app.example.com
 ROUTER_MODE=keyword
+```
+
+---
+
+## Utility Scripts
+
+Two operational scripts live in `scripts/` and depend on Phase 1 infrastructure:
+
+**`scripts/health_monitor.py`** — 7-check system health monitor:
+1. `ANTHROPIC_API_KEY` present and non-empty
+2. ChromaDB collections exist (`mf_faq_corpus`, `fee_corpus`)
+3. Corpus freshness — warns if last ingest was >48 hours ago
+4. Required data files present (`fund_snapshot.json`, `nav_snapshot.json`, `mock_calendar.json`)
+5. Required Python packages importable
+6. SOURCE_MANIFEST.md has ≥5 URLs
+7. `data/chroma/` directory size reasonable
+
+Writes result to `data/system_state.json["last_health_check"]`. Exit code 0 if healthy, 1 if degraded.
+
+**`scripts/backup_data.py`** — backs up `data/chroma/`, all `data/*.json`, `SOURCE_MANIFEST.md`, `.streamlit/config.toml` to `data/backups/backup_YYYYMMDD_HHMMSS/`. Keeps last 5 backups. Writes timestamp to `data/system_state.json["last_backup"]`.
+
+```bash
+python scripts/health_monitor.py    # check system health
+python scripts/backup_data.py       # take a backup
 ```
 
 ---
@@ -197,8 +225,10 @@ Everything built in Phase 1 is consumed by every subsequent phase.
 | `config.py::ROUTER_MODE` | Phase 5 `query_router.py` |
 | `config.py::SECURE_BASE_URL` | Phase 4 `voice_agent.py` BOOKED state (builds secure link) |
 | `session_init.py::init_session_state()` | `app.py` startup; all phase test fixtures use it to create a clean session dict |
-| `pillar_*/evals/__init__.py` files | Test files use `sys.path.insert(0, ROOT)` + these enable `from pillar_a.faq_engine import query` |
+| Phase `__init__.py` files | Enable `from phase5_pillar_a_faq.faq_engine import query` style imports across all phases |
 | `data/mock_calendar.json` | Phase 4 `booking_engine.py` — loads this to find available slots |
+| `data/nav_snapshot.json` | `app.py` NAV ticker — reads `nav` + `prev_nav` per fund to show % change |
+| `data/system_state.json` | `scripts/health_monitor.py`, `scripts/backup_data.py`, `scripts/ingest_corpus.py` — all write timestamps here |
 
 ---
 

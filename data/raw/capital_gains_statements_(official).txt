@@ -1,0 +1,76 @@
+Source URL: https://www.camsonline.com/Investors/Statements/Capital-Gains-Statement
+---
+How to Download Capital Gains Statement for SBI Mutual Fund
+
+All SBI Mutual Fund schemes are serviced by CAMS (Computer Age Management Services) as their Registrar and Transfer Agent (RTA). To download your capital gains statement for any SBI MF folio, use the CAMS portal.
+
+Direct Link to Download Capital Gains Statement:
+https://www.camsonline.com/Investors/Statements/Capital-Gains-Statement
+
+Step-by-step instructions to download capital gains statement from CAMS:
+1. Visit https://www.camsonline.com/Investors/Statements/Capital-Gains-Statement
+2. Enter your PAN (Permanent Account Number)
+3. Enter your registered email address or mobile number
+4. Select the financial year for which you need the capital gains statement
+5. Choose statement type: Detailed or Summary
+6. Click Submit — the statement will be sent to your registered email
+
+Fund-specific capital gains download links for SBI Mutual Fund schemes:
+
+SBI Large Cap Fund (also known as SBI Bluechip Fund):
+Download capital gains statement at: https://www.camsonline.com/Investors/Statements/Capital-Gains-Statement
+RTA: CAMS
+
+SBI Flexicap Fund:
+Download capital gains statement at: https://www.camsonline.com/Investors/Statements/Capital-Gains-Statement
+RTA: CAMS
+
+SBI ELSS Tax Saver Fund (also known as SBI Long Term Equity Fund):
+Download capital gains statement at: https://www.camsonline.com/Investors/Statements/Capital-Gains-Statement
+RTA: CAMS
+Note: ELSS funds have a statutory lock-in period of 3 years. Redemptions before 3 years are not allowed. Long-term capital gains (LTCG) above Rs 1 lakh per year are taxed at 10% without indexation.
+
+SBI Small Cap Fund:
+Download capital gains statement at: https://www.camsonline.com/Investors/Statements/Capital-Gains-Statement
+RTA: CAMS
+
+SBI Midcap Fund (also known as SBI Magnum Midcap Fund):
+Download capital gains statement at: https://www.camsonline.com/Investors/Statements/Capital-Gains-Statement
+RTA: CAMS
+
+SBI Focused Equity Fund:
+Download capital gains statement at: https://www.camsonline.com/Investors/Statements/Capital-Gains-Statement
+RTA: CAMS
+
+SBI Liquid Fund:
+Download capital gains statement at: https://www.camsonline.com/Investors/Statements/Capital-Gains-Statement
+RTA: CAMS
+
+SBI Contra Fund:
+Download capital gains statement at: https://www.camsonline.com/Investors/Statements/Capital-Gains-Statement
+RTA: CAMS
+
+Alternative: MF Central (Consolidated across all AMCs)
+If you hold mutual funds across multiple AMCs, you can also download a consolidated capital gains statement from MF Central:
+https://mfcentral.com
+MF Central is a SEBI-registered platform jointly operated by CAMS and KFintech.
+
+Alternative: SBI MF Investor Portal
+You can also download statements directly from the SBI Mutual Fund website:
+https://www.sbimf.com
+Login with your folio number and PAN to access account statements and capital gains reports.
+
+Tax treatment for SBI Equity Funds (Large Cap, Flexicap, Small Cap, Midcap, Focused, Contra):
+- Short-term capital gains (STCG): Units held less than 12 months — taxed at 20%
+- Long-term capital gains (LTCG): Units held more than 12 months — gains above Rs 1.25 lakh per financial year taxed at 12.5% without indexation
+
+Tax treatment for SBI ELSS Tax Saver Fund:
+- Lock-in period: 3 years (statutory)
+- Long-term capital gains (LTCG): Gains above Rs 1.25 lakh per financial year taxed at 12.5%
+- Tax deduction: Investment up to Rs 1.5 lakh per year eligible for deduction under Section 80C
+
+Tax treatment for SBI Liquid Fund (Debt Fund):
+- Short-term capital gains (STCG): Units held less than 36 months — added to income and taxed at slab rate
+- Long-term capital gains (LTCG): Units held more than 36 months — taxed at 20% with indexation
+
+Financial year in India runs from April 1 to March 31. Capital gains statements are typically required for income tax filing.

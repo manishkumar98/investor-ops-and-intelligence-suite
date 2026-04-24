@@ -40,6 +40,6 @@ SESSION_KEYS: dict = {
 CHROMA_PERSIST_DIR: str = os.getenv("CHROMA_PERSIST_DIR", str(ROOT / "data" / "chroma"))
 MCP_MODE: str           = os.getenv("MCP_MODE", "mock")
 MCP_SERVER_URL: str     = os.getenv("MCP_SERVER_URL", "http://localhost:3000")
-PRODUCT_NAME: str       = os.getenv("PRODUCT_NAME", "INDMoney Advisor Suite")
+PRODUCT_NAME: str       = os.getenv("PRODUCT_NAME", "Investor Ops & Intelligence Suite by Dalal Street Advisors")
 SECURE_BASE_URL: str    = os.getenv("SECURE_BASE_URL", "https://app.example.com")
 ROUTER_MODE: str        = os.getenv("ROUTER_MODE", "keyword")

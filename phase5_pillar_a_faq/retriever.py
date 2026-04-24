@@ -1,7 +1,7 @@
 from phase2_corpus_pillar_a.ingest import get_collection
 from phase2_corpus_pillar_a.embedder import get_embeddings
 
-MAX_DISTANCE = 0.75
+MAX_DISTANCE = 1.2  # local sentence-transformers cosine distance is in 0-2 scale
 
 
 def retrieve(query: str, query_type: str) -> list[dict]:

@@ -1,0 +1,128 @@
+{
+  "funds": {
+    "SBI Large Cap Fund (Bluechip)": {
+      "fund_name": "SBI Large Cap Fund (Bluechip)",
+      "source_url": "https://www.sbimf.com/sbimf-scheme-details/sbi-large-cap-fund-(formerly-known-as-sbi-bluechip-fund)-43",
+      "last_scraped": "2026-04-24",
+      "exit_load": "0.2%",
+      "expense_ratio": "0.84%",
+      "risk": "VERY HIGH",
+      "aum": "48925.75Cr",
+      "nav": "93.3755",
+      "min_sip": "500",
+      "min_lumpsum": "5,000",
+      "benchmark": "BSE 100 TRI",
+      "fund_manager": "Saurabh Pant",
+      "category": "An open ended equity scheme predominantly investing in large cap stocks",
+      "inception_date": "14 Feb, 2006",
+      "returns_1y": "13.85%"
+    },
+    "SBI Flexicap Fund": {
+      "fund_name": "SBI Flexicap Fund",
+      "source_url": "https://www.sbimf.com/sbimf-scheme-details/SBI-Flexicap-Fund-39",
+      "last_scraped": "2026-04-24",
+      "exit_load": "0.1%",
+      "expense_ratio": "0.86%",
+      "risk": "VERY HIGH",
+      "aum": "20624.56Cr",
+      "nav": "107.6367",
+      "min_sip": "500",
+      "min_lumpsum": "1,000",
+      "benchmark": "BSE 500 TRI",
+      "fund_manager": "Dinesh Balachandran",
+      "inception_date": "29 Sep, 2005",
+      "returns_1y": "14.1%"
+    },
+    "SBI ELSS Tax Saver Fund": {
+      "fund_name": "SBI ELSS Tax Saver Fund",
+      "source_url": "https://www.indmoney.com/mutual-funds/sbi-long-term-equity-fund-direct-growth-2754",
+      "last_scraped": "2026-04-24",
+      "exit_load": "0%",
+      "expense_ratio": "0.99%",
+      "risk": "VERY HIGH",
+      "lock_in": "3 years",
+      "aum": "28441.67Cr",
+      "nav": "433.6579",
+      "min_sip": "500",
+      "min_lumpsum": "500",
+      "benchmark": "BSE 500 TRI",
+      "fund_manager": "Dinesh Balachandran",
+      "category": "An open ended Equity Linked Saving Scheme with a statutory lock-in period of 3 years and tax benefit",
+      "inception_date": "31 Mar, 1993",
+      "returns_1y": "14.88%"
+    },
+    "SBI Small Cap Fund": {
+      "fund_name": "SBI Small Cap Fund",
+      "source_url": "https://www.sbimf.com/sbimf-scheme-details/SBI-Small-Cap-Fund-329",
+      "last_scraped": "2026-04-24",
+      "exit_load": "1.0%",
+      "expense_ratio": "0.79%",
+      "risk": "VERY HIGH",
+      "aum": "32285.44Cr",
+      "nav": "168.6406",
+      "min_sip": "500",
+      "benchmark": "BSE 250 SMALLCAP INDEX TRI",
+      "fund_manager": "R Srinivasan",
+      "inception_date": "09 Sep, 2009",
+      "returns_1y": "21.47%"
+    },
+    "SBI Midcap Fund": {
+      "fund_name": "SBI Midcap Fund",
+      "source_url": "https://www.sbimf.com/sbimf-scheme-details/SBI-Midcap-Fund-34",
+      "last_scraped": "2026-04-24",
+      "exit_load": "0.2%",
+      "expense_ratio": "0.86%",
+      "risk": "VERY HIGH",
+      "aum": "20576.48Cr",
+      "nav": "236.4533",
+      "min_sip": "500",
+      "min_lumpsum": "5,000",
+      "benchmark": "Nifty Midcap 150 TRI",
+      "fund_manager": "Bhavin Vithlani",
+      "category": "An open ended equity scheme predominantly investing in mid cap stocks",
+      "inception_date": "29 Mar, 2005",
+      "returns_1y": "17.43%"
+    },
+    "Sip Calculator": {
+      "fund_name": "Sip Calculator",
+      "source_url": "https://www.sbimf.com/en-us/sip-calculator",
+      "last_scraped": "2026-04-24"
+    },
+    "SBI Focused Equity Fund": {
+      "fund_name": "SBI Focused Equity Fund",
+      "source_url": "https://www.indmoney.com/mutual-funds/sbi-focused-equity-fund-direct-growth-3532",
+      "last_scraped": "2026-04-24",
+      "exit_load": "1.0%",
+      "expense_ratio": "2.49%",
+      "risk": "Very High"
+    },
+    "Sbi Mutual Fund": {
+      "fund_name": "Sbi Mutual Fund",
+      "source_url": "https://www.indmoney.com/mutual-funds/amc/sbi-mutual-fund",
+      "last_scraped": "2026-04-24",
+      "fund_manager": "Shamsher Singh"
+    },
+    "SBI Liquid Fund": {
+      "fund_name": "SBI Liquid Fund",
+      "source_url": "https://www.indmoney.com/mutual-funds/sbi-liquid-fund-direct-growth-2831",
+      "last_scraped": "2026-04-24",
+      "exit_load": "0.2%",
+      "expense_ratio": "1.56%",
+      "risk": "Very High"
+    },
+    "SBI Contra Fund": {
+      "fund_name": "SBI Contra Fund",
+      "source_url": "https://www.indmoney.com/mutual-funds/sbi-contra-fund-direct-growth-3081",
+      "last_scraped": "2026-04-24",
+      "exit_load": "0.5%",
+      "expense_ratio": "0.52%",
+      "risk": "Very High"
+    },
+    "Capital Gains Statements": {
+      "fund_name": "Capital Gains Statements",
+      "source_url": "https://www.camsonline.com/Investors/Statements/Capital-Gains-Statement",
+      "last_scraped": "2026-04-24",
+      "lock_in": "3 years"
+    }
+  }
+}

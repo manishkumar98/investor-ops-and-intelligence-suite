@@ -1,4 +1,4 @@
-"""7-state Voice Agent FSM for INDMoney advisor booking."""
+"""7-state Voice Agent FSM for Investor Ops booking."""
 import os
 import re
 
@@ -84,7 +84,7 @@ class VoiceAgent:
             theme_line = ""
 
         text = (
-            f"Welcome to INDMoney Advisor Booking. {DISCLAIMER} "
+            f"Welcome to Investor Ops Booking. {DISCLAIMER} "
             f"{theme_line}"
             f"Would you like to book a call, reschedule, or cancel an appointment?"
         )

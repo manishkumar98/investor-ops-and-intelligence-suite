@@ -23,7 +23,9 @@ cp .env.example .env
 ```bash
 python scripts/ingest_corpus.py
 ```
-This fetches 30+ official SBI MF / AMFI / SEBI pages, chunks them, embeds them with OpenAI `text-embedding-3-small`, and stores them in ChromaDB under `data/chroma/`.
+Fetches 30+ official SBI MF / INDMoney pages, extracts structured fund fields (AUM, NAV, exit load, expense ratio, etc.) into `data/fund_snapshot.json`, chunks the text, embeds with OpenAI `text-embedding-3-small` (fallback: `all-MiniLM-L6-v2`), and stores in ChromaDB under `data/chroma/`. Also ingests pre-scraped local files from `data/raw/`.
+
+Use `--force` to re-fetch even if the source list hasn't changed.
 
 > **Important:** The embedding model is locked at first ingest. Do not switch `OPENAI_API_KEY` between ingests without deleting `data/chroma/` first.
 
@@ -38,16 +40,18 @@ streamlit run app.py
 
 ```
 app.py  (single entry point)
-├── Tab 1 — Smart-Sync FAQ       → pillar_a/faq_engine.py
-├── Tab 2 — Review Pulse & Voice → pillar_b/pipeline_orchestrator.py + voice_agent.py
-└── Tab 3 — Approval Center      → pillar_c/hitl_panel.py
+├── Tab 1 — Smart-Sync FAQ       → phase5_pillar_a_faq/faq_engine.py
+├── Tab 2 — Review Pulse & Voice → phase3_review_pillar_b/pipeline_orchestrator.py + phase4_voice_pillar_b/voice_agent.py
+└── Tab 3 — Approval Center      → phase7_pillar_c_hitl/hitl_panel.py
 ```
 
-| Pillar | Modules | Adapted From |
-|---|---|---|
-| pillar_a (FAQ) | url_loader, chunker, embedder, ingest, safety_filter, query_router, retriever, llm_fusion, faq_engine | M1 RAG chatbot |
-| pillar_b (Review + Voice) | pii_scrubber, theme_clusterer, pulse_writer, fee_explainer, pipeline_orchestrator, intent_classifier, slot_filler, booking_engine, voice_agent | M2 review pipeline + M3 voice agent |
-| pillar_c (HITL) | mcp_client, email_builder, hitl_panel | New (M2/M3 approval gate migrated to Streamlit) |
+| Phase | Pillar | Modules | Adapted From |
+|---|---|---|---|
+| Phase 2 | Corpus (Pillar A) | url_loader, chunker, embedder, ingest, structured_extractor | M1 RAG corpus build |
+| Phase 5 | FAQ (Pillar A) | safety_filter, query_router, retriever, llm_fusion, faq_engine | M1 RAG chatbot |
+| Phase 3 | Review (Pillar B) | pii_scrubber, theme_clusterer, quote_extractor, pulse_writer, fee_explainer, pipeline_orchestrator | M2 review pipeline |
+| Phase 4 | Voice (Pillar B) | intent_classifier, slot_filler, booking_engine, voice_agent | M3 voice agent |
+| Phase 7 | HITL (Pillar C) | mcp_client, email_builder, hitl_panel | New — approval gate |
 
 ---
 
@@ -86,6 +90,15 @@ app.py  (single entry point)
 
 ---
 
+## Sample Queries (M1 Tested)
+
+See [docs/sample_queries.md](docs/sample_queries.md) for verified Q&A pairs tested end-to-end on 2026-04-24, covering:
+- Expense ratio, exit load, minimum SIP, lock-in, riskometer, benchmark
+- Capital gains statement download with fund-specific CAMS links
+- Known gaps and how to fix them
+
+---
+
 ## Running Evals
 
 ```bash
@@ -114,9 +127,19 @@ Expected output:
 
 ---
 
+## Utility Scripts
+
+```bash
+# Health check (API key, ChromaDB, corpus freshness, disk)
+python scripts/health_monitor.py
+
+# Backup chroma + snapshots to data/backups/ (keeps last 5)
+python scripts/backup_data.py
+```
+
 ## Source Manifest
 
-All 30+ official URLs used for corpus ingestion are listed in `SOURCE_MANIFEST.md`.
+All 30+ official URLs used for corpus ingestion are listed in `SOURCE_MANIFEST.md`. Add new URLs with prefix `mf_faq:` or `fee:` then re-run `ingest_corpus.py --force`.
 
 ---
 
@@ -124,56 +147,77 @@ All 30+ official URLs used for corpus ingestion are listed in `SOURCE_MANIFEST.m
 
 ```
 investor_ops-and-intelligence_suit/
-├── app.py                          # Main entry point
+├── app.py                          # Main entry point (Streamlit)
 ├── config.py                       # Env vars + SESSION_KEYS
 ├── session_init.py                 # Idempotent session initialiser
-├── SOURCE_MANIFEST.md              # 30+ official URLs
-├── .env.example                    # Template for credentials
+├── SOURCE_MANIFEST.md              # 30+ official URLs for ingest
 ├── requirements.txt                # Python dependencies
 │
-├── pillar_a/                       # Smart-Sync FAQ (M1 adapted)
-│   ├── url_loader.py
-│   ├── chunker.py
-│   ├── embedder.py
-│   ├── ingest.py
-│   ├── safety_filter.py
-│   ├── query_router.py
-│   ├── retriever.py
-│   ├── llm_fusion.py
-│   └── faq_engine.py
+├── phase1_foundation/              # Infrastructure (config, session, ChromaDB init)
+│   ├── prd/ architecture/ tests/ evals/
 │
-├── pillar_b/                       # Review Pipeline + Voice (M2+M3 adapted)
+├── phase2_corpus_pillar_a/         # Corpus ingestion (M1 RAG build)
+│   ├── url_loader.py               # Fetch + collapse page text
+│   ├── chunker.py                  # Text chunker + structured chunk builder
+│   ├── embedder.py                 # OpenAI / local sentence-transformer embedder
+│   ├── ingest.py                   # Full ingest pipeline → ChromaDB + fund_snapshot.json
+│   ├── structured_extractor.py     # Regex field extractor (14 named slots per fund)
+│   └── prd/ architecture/ tests/ evals/
+│
+├── phase3_review_pillar_b/         # Review pipeline (M2 adapted)
 │   ├── pii_scrubber.py
 │   ├── theme_clusterer.py
 │   ├── quote_extractor.py
 │   ├── pulse_writer.py
 │   ├── fee_explainer.py
 │   ├── pipeline_orchestrator.py
+│   └── prd/ architecture/ tests/ evals/
+│
+├── phase4_voice_pillar_b/          # Voice agent (M3 adapted)
 │   ├── intent_classifier.py
 │   ├── slot_filler.py
 │   ├── booking_engine.py
-│   └── voice_agent.py
+│   ├── voice_agent.py
+│   └── prd/ architecture/ tests/ evals/
 │
-├── pillar_c/                       # HITL Approval Center (new)
+├── phase5_pillar_a_faq/            # FAQ engine (M1 chatbot)
+│   ├── safety_filter.py            # Pre-filter: blocks advice/PII before retrieval
+│   ├── query_router.py             # Routes to mf_faq / fee / both collections
+│   ├── retriever.py                # Embeds query, retrieves + distance-filters chunks
+│   ├── llm_fusion.py               # Claude fusion → FaqResponse (bullets/prose/sources)
+│   ├── faq_engine.py               # Pipeline orchestrator (safety→route→retrieve→fuse)
+│   └── prd/ architecture/ tests/ evals/
+│
+├── phase7_pillar_c_hitl/           # HITL approval center
 │   ├── mcp_client.py
 │   ├── email_builder.py
-│   └── hitl_panel.py
+│   ├── hitl_panel.py
+│   └── prd/ architecture/ tests/ evals/
 │
-├── evals/                          # Evaluation suite (Phase 8)
-│   ├── golden_dataset.json
-│   ├── adversarial_tests.json
-│   ├── safety_eval.py
-│   ├── ux_eval.py
-│   ├── rag_eval.py
-│   └── report_generator.py
+├── phase8_eval_suite/              # Evaluation suite
+│   └── evals/
+│       ├── run_evals.py
+│       ├── safety_eval.py
+│       ├── rag_eval.py
+│       ├── ux_eval.py
+│       ├── report_generator.py
+│       ├── golden_dataset.json
+│       └── adversarial_tests.json
 │
 ├── scripts/
-│   └── ingest_corpus.py
+│   ├── ingest_corpus.py            # CLI: python scripts/ingest_corpus.py [--force]
+│   ├── health_monitor.py           # 7-check health monitor → data/system_state.json
+│   └── backup_data.py              # Backs up chroma + snapshots (keeps last 5)
 │
 └── data/
-    ├── reviews_sample.csv
-    ├── mock_calendar.json
-    └── chroma/                     # Created by ingest_corpus.py
+    ├── chroma/                     # ChromaDB (created by ingest)
+    ├── raw/                        # Pre-scraped Playwright txt files
+    ├── fund_snapshot.json          # Structured fields for all funds (written on ingest)
+    ├── nav_snapshot.json           # NAV + prev_nav for ticker display
+    ├── system_state.json           # Last ingest / backup / health-check timestamps
+    ├── reviews_sample.csv          # Sample reviews for pipeline demo
+    ├── mock_calendar.json          # Mock appointment slots
+    └── mcp_state.json              # MCP action queue
 ```
 
 ---

@@ -7,7 +7,7 @@ import anthropic
 _client = None
 NOT_IN_KB = "This information is not available in our knowledge base. Please check https://www.amfiindia.com"
 
-ALLOWED_DOMAINS = ["sbimf.com", "amfiindia.com", "sebi.gov.in"]
+ALLOWED_DOMAINS = ["sbimf.com", "amfiindia.com", "sebi.gov.in", "indmoney.com", "camsonline.com", "mfcentral.com"]
 
 
 @dataclass
@@ -31,17 +31,52 @@ _SYSTEM = """You are a Facts-Only Mutual Fund Assistant for INDMoney users.
 Answer using ONLY the retrieved context provided below.
 
 Rules:
-- For compound questions (query_type=compound): respond in exactly 6 numbered bullet points.
+- FUND SPECIFICITY: Answer ONLY about the exact fund(s) named in the question. Never use data from other funds as substitutes.
+- For compound questions (query_type=compound): write numbered bullet points (max 6). EACH bullet must be a single self-contained line in the form "N. Topic — answer text here." with the full answer on that same line. Do NOT write a heading on one line and the answer on the next line.
 - For simple factual or fee questions: respond in ≤3 clear sentences.
-- Never infer returns. Never recommend specific funds.
-- If context is insufficient, respond: "This information is not available in our knowledge base. Please check https://www.amfiindia.com"
-- End every answer with "Source: <url>" and "Last updated from sources: <date>"."""
+- Never infer returns. Never recommend funds.
+- "Not available" rule: only say information is unavailable when the context truly has no data for that fund. Never add this disclaimer after you have already answered.
+- End with "Source: <exact_url>" — use only the raw URL, no markdown link syntax."""
 
 _PROMPT = """Context:
 {context}
 
 Query type: {query_type}
-Question: {question}"""
+Question: {question}
+
+Answer only about the specific fund(s) named above. Each numbered point must contain its full answer on the same line."""
+
+
+def _extract_bullets(lines: list[str]) -> list[str]:
+    """Collect numbered sections from LLM output.
+
+    Handles two formats the LLM may produce:
+      A) Single-line: "1. Topic — answer on same line."
+      B) Multi-line:  "1. Topic heading:"
+                      "   answer text on next line(s)"
+    Returns one merged string per numbered item.
+    """
+    import re
+    bullets: list[str] = []
+    current: list[str] = []
+
+    for line in lines:
+        if re.match(r"^\d+[\.\)]\s", line):
+            if current:
+                bullets.append(" ".join(current))
+            current = [line]
+        elif current and not line.startswith("Source:") and not line.startswith("Last updated"):
+            # continuation line for the current numbered item
+            current.append(line)
+        else:
+            if current:
+                bullets.append(" ".join(current))
+                current = []
+
+    if current:
+        bullets.append(" ".join(current))
+
+    return bullets
 
 
 def fuse(query: str, chunks: list[dict], query_type: str) -> FaqResponse:
@@ -81,17 +116,18 @@ def fuse(query: str, chunks: list[dict], query_type: str) -> FaqResponse:
             last_updated=today,
         )
 
-    # Parse bullets vs prose
-    lines = [l.strip() for l in raw.splitlines() if l.strip()]
-    bullets = [l for l in lines if l[0].isdigit() and "." in l[:3]]
-
-    # Extract source URLs from response text if any
     import re
-    url_matches = re.findall(r"https?://\S+", raw)
+
+    # Extract source URLs — stop at markdown/punctuation chars that aren't part of a URL
+    url_matches = re.findall(r"https?://[^\s\)\]\,\"\'<>]+", raw)
     for url in url_matches:
-        url = url.rstrip(")")
+        url = url.rstrip("./,")
         if any(d in url for d in ALLOWED_DOMAINS) and url not in source_urls:
             source_urls.append(url)
+
+    # Parse bullets: collect numbered sections (header line + any continuation lines)
+    lines = [l.strip() for l in raw.splitlines() if l.strip()]
+    bullets = _extract_bullets(lines)
 
     if query_type == "compound" and bullets:
         return FaqResponse(
@@ -100,7 +136,7 @@ def fuse(query: str, chunks: list[dict], query_type: str) -> FaqResponse:
             last_updated=today,
         )
 
-    # Prose response — strip Source: line from text
+    # Prose response — strip Source: / Last updated lines
     prose_lines = [l for l in lines if not l.startswith("Source:") and not l.startswith("Last updated")]
     prose = " ".join(prose_lines)
 

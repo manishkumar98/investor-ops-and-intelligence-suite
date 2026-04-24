@@ -1,0 +1,14 @@
+{
+  "as_of": "2026-04-24",
+  "source": "mock — replace with live NAV feed",
+  "funds": [
+    { "symbol": "SBIBLUECHIP",   "name": "SBI Large Cap",      "nav": 84.32,  "prev_nav": 83.61 },
+    { "symbol": "SBIFLEXICAP",   "name": "SBI Flexicap",       "nav": 97.18,  "prev_nav": 98.04 },
+    { "symbol": "SBIELSS",       "name": "SBI ELSS",           "nav": 312.45, "prev_nav": 309.87 },
+    { "symbol": "SBISMALLCAP",   "name": "SBI Small Cap",      "nav": 173.90, "prev_nav": 170.22 },
+    { "symbol": "SBIMIDCAP",     "name": "SBI Midcap",         "nav": 214.63, "prev_nav": 216.44 },
+    { "symbol": "SBIFOCUSED",    "name": "SBI Focused Equity", "nav": 305.71, "prev_nav": 303.10 },
+    { "symbol": "SBILIQUID",     "name": "SBI Liquid",         "nav": 3724.88,"prev_nav": 3723.65 },
+    { "symbol": "SBICONTRA",     "name": "SBI Contra",         "nav": 362.44, "prev_nav": 358.90 }
+  ]
+}

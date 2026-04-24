@@ -41,7 +41,143 @@ for _k in ("rp_df_raw", "rp_df_clean", "rp_cluster", "rp_quotes", "rp_pulse", "r
     if _k not in st.session_state:
         st.session_state[_k] = None
 
-# ── CSS: dark cards ──────────────────────────────────────────────────────────
+# ── Shared theme + header/footer CSS ─────────────────────────────────────────
+st.markdown("""
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+  html, body, [class*="css"] { font-family: 'Inter', sans-serif !important; }
+
+  .stApp { background-color: #0A0C14; color: #F5F0E8; }
+
+  section[data-testid="stSidebar"] {
+    background-color: #10131F !important;
+    border-right: 1px solid #1E2235;
+  }
+  section[data-testid="stSidebar"] * { color: #F5F0E8 !important; }
+
+  .stButton > button {
+    background: linear-gradient(135deg, #C9A84C, #A8863C) !important;
+    color: #0A0C14 !important;
+    border: none !important;
+    border-radius: 6px !important;
+    font-weight: 600 !important;
+    padding: 8px 20px !important;
+  }
+  .stButton > button:hover { opacity: 0.88 !important; }
+
+  div[data-testid="stMetricValue"] { color: #C9A84C !important; font-weight: 700; }
+  h1, h2, h3, h4 { color: #F5F0E8 !important; font-weight: 600 !important; }
+  hr { border-color: #1E2235 !important; }
+
+  #MainMenu, footer, header { visibility: hidden; }
+
+  /* ── NAV Ticker ── */
+  .ticker-wrap {
+    width: 100%; background: #0D0F1A;
+    border-bottom: 1px solid #1E2235;
+    overflow: hidden; padding: 7px 0;
+    position: sticky; top: 0; z-index: 1000;
+  }
+  .ticker-track {
+    display: flex; width: max-content;
+    animation: ticker-scroll 38s linear infinite;
+  }
+  .ticker-track:hover { animation-play-state: paused; }
+  @keyframes ticker-scroll {
+    0%   { transform: translateX(0); }
+    100% { transform: translateX(-50%); }
+  }
+  .ticker-item {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 0 28px; white-space: nowrap;
+    font-size: 0.78rem; border-right: 1px solid #1E2235;
+  }
+  .ticker-symbol { color: #C9A84C; font-weight: 600; letter-spacing: 0.04em; }
+  .ticker-nav    { color: #9A9080; font-size: 0.73rem; }
+  .ticker-up     { color: #28a745; font-weight: 600; }
+  .ticker-down   { color: #dc3545; font-weight: 600; }
+  .ticker-neutral{ color: #9A9080; font-weight: 600; }
+
+  /* ── App header ── */
+  .app-header {
+    position: sticky; top: 0; z-index: 999;
+    background: linear-gradient(90deg, #0A0C14, #10131F);
+    border-bottom: 1px solid #1E2235;
+    padding: 14px 32px;
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 24px;
+  }
+  .app-header-left { display: flex; align-items: center; gap: 12px; }
+  .app-header-logo { font-size: 1.4rem; }
+  .app-header-title { font-size: 1.05rem; font-weight: 700; color: #F5F0E8; letter-spacing: 0.02em; }
+  .app-header-subtitle { font-size: 0.72rem; color: #9A9080; margin-top: 1px; }
+  .app-header-badge {
+    font-size: 0.7rem;
+    background-color: rgba(201,168,76,0.12);
+    border: 1px solid rgba(201,168,76,0.35);
+    color: #C9A84C; border-radius: 20px;
+    padding: 4px 12px; font-weight: 500; letter-spacing: 0.04em;
+  }
+
+  /* ── Footer ── */
+  .app-footer {
+    margin-top: 48px; border-top: 1px solid #1E2235;
+    padding: 20px 32px;
+    display: flex; align-items: center; justify-content: space-between;
+    flex-wrap: wrap; gap: 8px;
+  }
+  .app-footer-left  { font-size: 0.78rem; color: #5A5450; }
+  .app-footer-left span { color: #C9A84C; font-weight: 600; }
+  .app-footer-right { font-size: 0.72rem; color: #3A3830; }
+</style>
+""", unsafe_allow_html=True)
+
+# ── NAV Ticker ────────────────────────────────────────────────────────────────
+def _build_ticker_html() -> str:
+    nav_file = ROOT / "data" / "nav_snapshot.json"
+    try:
+        data = json.loads(nav_file.read_text())
+        funds = data["funds"]
+        as_of = data.get("as_of", "")
+    except Exception:
+        return ""
+    items_html = ""
+    for f in funds:
+        nav  = f["nav"]; prev = f["prev_nav"]
+        pct  = (nav - prev) / prev * 100 if prev else 0
+        arrow = "▲" if pct > 0 else ("▼" if pct < 0 else "—")
+        cls   = "ticker-up" if pct > 0 else ("ticker-down" if pct < 0 else "ticker-neutral")
+        sign  = "+" if pct > 0 else ""
+        items_html += (
+            f'<div class="ticker-item">'
+            f'<span class="ticker-symbol">{f["name"]}</span>'
+            f'<span class="ticker-nav">₹{nav:,.2f}</span>'
+            f'<span class="{cls}">{arrow} {sign}{pct:.2f}%</span>'
+            f'</div>'
+        )
+    track = f'<div class="ticker-track">{items_html}{items_html}</div>'
+    as_of_label = f'<span style="font-size:0.65rem;color:#3A3830;padding-left:8px;">NAV as of {as_of}</span>' if as_of else ""
+    return f'<div class="ticker-wrap">{track}{as_of_label}</div>'
+
+_ticker = _build_ticker_html()
+if _ticker:
+    st.markdown(_ticker, unsafe_allow_html=True)
+
+# ── App Header ────────────────────────────────────────────────────────────────
+st.markdown("""
+<div class="app-header">
+  <div class="app-header-left">
+    <div class="app-header-logo">📊</div>
+    <div>
+      <div class="app-header-title">Investor Ops & Intelligence Suite by Dalal Street Advisors</div>
+      <div class="app-header-subtitle">Weekly Review Pulse — Phase 3 Pipeline</div>
+    </div>
+  </div>
+  <div class="app-header-badge">📋 Review Intelligence</div>
+</div>
+""", unsafe_allow_html=True)
+
+# ── Page CSS: dark cards ──────────────────────────────────────────────────────
 st.markdown("""
 <style>
 .phase-badge {
@@ -391,7 +527,7 @@ if st.session_state["rp_pulse"] is not None:
 
     if st.button("💰 Fetch Fee Context", type="primary"):
         from phase3_review_pillar_b.fee_explainer import explain
-        with st.spinner(f"Retrieving fee context for "{top_theme_now}"…"):
+        with st.spinner(f"Retrieving fee context for '{top_theme_now}'..."):
             fee = explain(top_theme_now, st.session_state)
         st.session_state["rp_fee"]           = fee
         st.session_state["fee_bullets"]      = fee["bullets"]
@@ -512,3 +648,16 @@ if st.session_state["rp_fee"] is not None:
         "The **Voice Agent** in the main app can book an advisor call "
         "using this week's top theme."
     )
+
+# ── Footer ────────────────────────────────────────────────────────────────────
+st.markdown("""
+<div class="app-footer">
+  <div class="app-footer-left">
+    Built by <span>Dalal Street Advisors</span> · AI Bootcamp Capstone &nbsp;|&nbsp;
+    Powered by <span>Claude Sonnet</span> + <span>ChromaDB</span>
+  </div>
+  <div class="app-footer-right">
+    Facts only · No investment advice · SBI Mutual Fund data
+  </div>
+</div>
+""", unsafe_allow_html=True)

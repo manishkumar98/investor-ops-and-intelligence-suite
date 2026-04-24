@@ -1,16 +1,18 @@
 import hashlib
-import os
+import json
 from pathlib import Path
 
 import chromadb
 
 from config import CHROMA_PERSIST_DIR
 from .url_loader import fetch_url
-from .chunker import chunk_text
+from .chunker import chunk_text, make_structured_chunk
 from .embedder import get_embeddings
+from .structured_extractor import extract as extract_fields, to_summary_text, fund_name_from_filename
 
-_INDEX_HASH_FILE = Path("data/.index_hash")
-_RAW_DIR = Path("data/raw")
+_INDEX_HASH_FILE  = Path("data/.index_hash")
+_RAW_DIR          = Path("data/raw")
+_SNAPSHOT_FILE    = Path("data/fund_snapshot.json")
 
 
 def get_collection(name: str):
@@ -61,6 +63,7 @@ def ingest_local_files(raw_dir: Path = _RAW_DIR) -> dict:
 
     col_faq = get_collection("mf_faq_corpus")
     col_fee = get_collection("fee_corpus")
+    snapshot = _load_snapshot()
     mf_faq_added = fee_added = 0
 
     for txt_file in sorted(raw_dir.glob("*.txt")):
@@ -71,32 +74,72 @@ def ingest_local_files(raw_dir: Path = _RAW_DIR) -> dict:
         if not source_url:
             source_url = f"file://{txt_file.name}"
 
+        # ── Structured extraction ──────────────────────────────────────────
+        fund_name = fund_name_from_filename(txt_file.stem)
+        fields = extract_fields(source_url, text, fund_name=fund_name)
+        summary = to_summary_text(fields)
+
+        existing = snapshot["funds"].get(fund_name, {})
+        merged = {**existing, **{k: v for k, v in fields.items() if v}}
+        snapshot["funds"][fund_name] = merged
+
+        if summary:
+            print(f"[ingest_local]   structured fields extracted for {fund_name}")
+        else:
+            print(f"[ingest_local]   no structured fields found for {fund_name}")
+
         is_official = "official" in txt_file.name.lower()
         targets = ["mf_faq_corpus", "fee_corpus"] if is_official else ["mf_faq_corpus"]
 
         for corpus in targets:
-            chunks = chunk_text(text, source_url, corpus)
-            if not chunks:
+            all_chunks: list[dict] = []
+            if summary:
+                sc = make_structured_chunk(summary, source_url, corpus)
+                if sc:
+                    all_chunks.append(sc)
+            all_chunks.extend(chunk_text(text, source_url, corpus))
+            if not all_chunks:
                 continue
-            embeddings = get_embeddings([c["text"] for c in chunks])
-            col = col_faq if corpus == "mf_faq_corpus" else col_fee
-            col.upsert(
-                ids=[c["chunk_id"] for c in chunks],
-                embeddings=embeddings,
-                documents=[c["text"] for c in chunks],
-                metadatas=[{
-                    "source_url": c["source_url"],
-                    "corpus":     c["corpus"],
-                    "loaded_at":  c["loaded_at"],
-                } for c in chunks],
-            )
+            _upsert_chunks(col_faq if corpus == "mf_faq_corpus" else col_fee, all_chunks)
             if corpus == "mf_faq_corpus":
-                mf_faq_added += len(chunks)
+                mf_faq_added += len(all_chunks)
             else:
-                fee_added += len(chunks)
-            print(f"[ingest_local] {txt_file.name} → {corpus}: {len(chunks)} chunks")
+                fee_added += len(all_chunks)
+            print(f"[ingest_local] {txt_file.name} → {corpus}: {len(all_chunks)} chunks ({1 if summary else 0} structured)")
 
+    _save_snapshot(snapshot)
+    print(f"[ingest_local] fund snapshot saved → {_SNAPSHOT_FILE}  ({len(snapshot['funds'])} funds)")
     return {"mf_faq_added": mf_faq_added, "fee_added": fee_added}
+
+
+def _load_snapshot() -> dict:
+    if _SNAPSHOT_FILE.exists():
+        try:
+            return json.loads(_SNAPSHOT_FILE.read_text())
+        except json.JSONDecodeError:
+            pass
+    return {"funds": {}}
+
+
+def _save_snapshot(snapshot: dict) -> None:
+    _SNAPSHOT_FILE.parent.mkdir(parents=True, exist_ok=True)
+    _SNAPSHOT_FILE.write_text(json.dumps(snapshot, indent=2))
+
+
+def _upsert_chunks(col, chunks: list[dict]) -> None:
+    if not chunks:
+        return
+    embeddings = get_embeddings([c["text"] for c in chunks])
+    col.upsert(
+        ids=[c["chunk_id"] for c in chunks],
+        embeddings=embeddings,
+        documents=[c["text"] for c in chunks],
+        metadatas=[{
+            "source_url": c["source_url"],
+            "corpus":     c["corpus"],
+            "loaded_at":  c["loaded_at"],
+        } for c in chunks],
+    )
 
 
 def ingest_corpus(manifest_path: str = "SOURCE_MANIFEST.md", force: bool = False) -> dict:
@@ -117,6 +160,7 @@ def ingest_corpus(manifest_path: str = "SOURCE_MANIFEST.md", force: bool = False
 
     col_faq = get_collection("mf_faq_corpus")
     col_fee = get_collection("fee_corpus")
+    snapshot = _load_snapshot()
 
     mf_faq_total = 0
     fee_total = 0
@@ -133,29 +177,46 @@ def ingest_corpus(manifest_path: str = "SOURCE_MANIFEST.md", force: bool = False
             print(f"[ingest] SKIP {url}: empty content")
             continue
 
-        chunks = chunk_text(text, url, corpus)
-        if not chunks:
+        # ── Structured extraction ──────────────────────────────────────────
+        fields = extract_fields(url, text)
+        summary = to_summary_text(fields)
+
+        # Persist to snapshot (merge: later URL for same fund keeps richer data)
+        fund_name = fields["fund_name"]
+        existing = snapshot["funds"].get(fund_name, {})
+        merged = {**existing, **{k: v for k, v in fields.items() if v}}
+        snapshot["funds"][fund_name] = merged
+
+        if summary:
+            print(f"[ingest]   structured fields extracted for {fund_name}")
+        else:
+            print(f"[ingest]   no structured fields found for {fund_name}")
+
+        # ── Build chunks: structured summary first, then regular chunks ───
+        col = col_faq if corpus == "mf_faq_corpus" else col_fee
+        all_chunks: list[dict] = []
+
+        if summary:
+            sc = make_structured_chunk(summary, url, corpus)
+            if sc:
+                all_chunks.append(sc)
+
+        all_chunks.extend(chunk_text(text, url, corpus))
+
+        if not all_chunks:
             continue
 
-        embeddings = get_embeddings([c["text"] for c in chunks])
+        _upsert_chunks(col, all_chunks)
 
-        col = col_faq if corpus == "mf_faq_corpus" else col_fee
-        col.upsert(
-            ids=[c["chunk_id"] for c in chunks],
-            embeddings=embeddings,
-            documents=[c["text"] for c in chunks],
-            metadatas=[{
-                "source_url": c["source_url"],
-                "corpus":     c["corpus"],
-                "loaded_at":  c["loaded_at"],
-            } for c in chunks],
-        )
-
+        count = len(all_chunks)
         if corpus == "mf_faq_corpus":
-            mf_faq_total += len(chunks)
+            mf_faq_total += count
         else:
-            fee_total += len(chunks)
-        print(f"[ingest] upserted {len(chunks)} chunks")
+            fee_total += count
+        print(f"[ingest] upserted {count} chunks ({1 if summary else 0} structured + {count - (1 if summary else 0)} text)")
+
+    _save_snapshot(snapshot)
+    print(f"[ingest] fund snapshot saved → {_SNAPSHOT_FILE}  ({len(snapshot['funds'])} funds)")
 
     _INDEX_HASH_FILE.parent.mkdir(parents=True, exist_ok=True)
     _INDEX_HASH_FILE.write_text(new_hash)

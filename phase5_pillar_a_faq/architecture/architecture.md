@@ -102,7 +102,7 @@ mf_faq_corpus fee_corpus  both (parallel)
 ## Key Interfaces
 
 ```python
-# pillar_a/safety_filter.py
+# phase5_pillar_a_faq/safety_filter.py
 def is_safe(query: str) -> tuple[bool, str | None]:
     """
     Returns (True, None) if query is allowed.
@@ -110,7 +110,7 @@ def is_safe(query: str) -> tuple[bool, str | None]:
     Called first — before any other step.
     """
 
-# pillar_a/query_router.py
+# phase5_pillar_a_faq/query_router.py
 def route(query: str) -> str:
     """
     Returns: "factual_only" | "fee_only" | "compound"
@@ -119,7 +119,7 @@ def route(query: str) -> str:
       "llm"               — 1-shot claude-sonnet-4-6 classifier
     """
 
-# pillar_a/retriever.py
+# phase5_pillar_a_faq/retriever.py
 def retrieve(query: str, query_type: str) -> list[dict]:
     """
     Embeds query with same model used during ingest.
@@ -128,14 +128,14 @@ def retrieve(query: str, query_type: str) -> list[dict]:
     Returns: list of {text, source_url, corpus, distance}
     """
 
-# pillar_a/llm_fusion.py
+# phase5_pillar_a_faq/llm_fusion.py
 def fuse(query: str, chunks: list[dict], query_type: str) -> FaqResponse:
     """
     Builds context from chunks, calls claude-sonnet-4-6 with system prompt.
     Returns structured FaqResponse.
     """
 
-# pillar_a/faq_engine.py
+# phase5_pillar_a_faq/faq_engine.py
 def query(user_input: str, session: dict) -> FaqResponse:
     """
     Full pipeline: safety_filter → route → retrieve → fuse → write history.
@@ -202,13 +202,20 @@ Setting `ROUTER_MODE=llm` in `.env` switches to a 1-shot Claude classifier — u
 
 | Query Type | Collections Queried | n_results | Distance Threshold |
 |---|---|---|---|
-| `factual_only` | `mf_faq_corpus` only | 4 | 0.75 (discard above) |
-| `fee_only` | `fee_corpus` only | 4 | 0.75 |
-| `compound` | Both in parallel | 4 from faq + 2 from fee | 0.75 |
+| `factual_only` | `mf_faq_corpus` only | 4 | 1.2 (discard above) |
+| `fee_only` | `fee_corpus` only | 2 | 1.2 |
+| `compound` | Both in parallel | 4 from faq + 2 from fee | 1.2 |
+
+**Note on threshold:** The distance threshold is `1.2` (not `0.75`). Local `all-MiniLM-L6-v2` embeddings use a 0–2 cosine distance scale; `0.75` was calibrated for OpenAI's 1536-dim embeddings. `1.2` allows relevant chunks through on the local model while still filtering noise.
 
 **Deduplication:** After merging results from both collections for compound queries, deduplicate by `chunk_id`. This prevents the same passage appearing twice if it was somehow indexed in both collections.
 
 **No-context handling:** If after the distance filter, zero chunks remain, `fuse()` is called with an empty context list. The system prompt instructs Claude to respond: *"This information is not available in our knowledge base. Please check https://www.amfiindia.com"* — it never hallucinates an answer from empty context.
+
+**Allowed source domains for citation:**
+`sbimf.com` · `amfiindia.com` · `sebi.gov.in` · `indmoney.com` · `camsonline.com` · `mfcentral.com`
+
+Only source URLs from these domains are surfaced in `FaqResponse.sources`. `camsonline.com` and `mfcentral.com` were added to support capital gains statement queries (data ingested from `data/raw/capital_gains_statements_(official).txt`).
 
 ---
 
@@ -282,19 +289,19 @@ Question: {user_query}
 
 ## Step-by-Step Build Order
 
-**1. `pillar_a/safety_filter.py`**
+**1. `phase5_pillar_a_faq/safety_filter.py`**
 Function: `is_safe(query: str) -> tuple[bool, str | None]`
 - Iterate `BLOCK_PATTERNS` with `re.search(pattern, query, re.IGNORECASE)`
 - On first match: return `(False, refusal_message_with_sebi_link)`
 - No match: return `(True, None)`
 
-**2. `pillar_a/query_router.py`**
+**2. `phase5_pillar_a_faq/query_router.py`**
 Function: `route(query: str) -> str`
 - Read `ROUTER_MODE` from `config.py`
 - Keyword mode: implement as described above; no API calls
 - LLM mode: 1-shot Claude call with a classification prompt; parse response to one of 3 valid strings
 
-**3. `pillar_a/retriever.py`**
+**3. `phase5_pillar_a_faq/retriever.py`**
 Function: `retrieve(query: str, query_type: str) -> list[dict]`
 - Embed query: `openai.embeddings.create(model="text-embedding-3-small", input=[query])`
 - Based on `query_type`, query one or both collections
@@ -303,7 +310,7 @@ Function: `retrieve(query: str, query_type: str) -> list[dict]`
 - Deduplicate by `chunk_id`
 - Return `[{text, source_url, corpus, distance}]`
 
-**4. `pillar_a/llm_fusion.py`**
+**4. `phase5_pillar_a_faq/llm_fusion.py`**
 Function: `fuse(query: str, chunks: list[dict], query_type: str) -> FaqResponse`
 - Build `context_text = "\n\n".join([c["text"] for c in chunks])`
 - If `chunks` is empty: return `FaqResponse(refused=False, prose="This information is not available...", sources=[], last_updated=today)`
@@ -311,7 +318,7 @@ Function: `fuse(query: str, chunks: list[dict], query_type: str) -> FaqResponse`
 - Parse response into `FaqResponse` — detect bullet format vs prose based on numbered lines
 - Extract source URLs from chunk metadata
 
-**5. `pillar_a/faq_engine.py`**
+**5. `phase5_pillar_a_faq/faq_engine.py`**
 Function: `query(user_input: str, session: dict) -> FaqResponse`
 - Call `is_safe(user_input)` → if not safe, return `FaqResponse(refused=True, refusal_msg=...)`
 - Call `route(user_input)` → `query_type`

@@ -1,0 +1,11 @@
+{
+  "last_ingest": {
+    "timestamp": "2026-04-24T06:43:07.979171+00:00",
+    "force": true,
+    "duration_seconds": 40.44,
+    "mf_faq_count": 141,
+    "fee_count": 61,
+    "url_skipped": false,
+    "local_files_added": 71
+  }
+}
