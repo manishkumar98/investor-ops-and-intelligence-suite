@@ -34,6 +34,7 @@ SESSION_KEYS: dict = {
     "booking_code":    None,       # str — NL-A742 format
     "booking_detail":  None,       # dict — topic, slot, date, time, tz
     "call_completed":  False,      # bool — set on BOOKED state
+    "analytics_data":  None,       # dict — keywords, sentiment, rating_dist, negative_reviews
 }
 
 # Convenience exports

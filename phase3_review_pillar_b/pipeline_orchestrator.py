@@ -4,7 +4,7 @@ from typing import Union
 import pandas as pd
 
 from .pii_scrubber import scrub
-from .theme_clusterer import cluster
+from .theme_clusterer import cluster, generate_analytics
 from .quote_extractor import extract
 from .pulse_writer import write
 from .fee_explainer import explain
@@ -68,15 +68,19 @@ def run_pipeline(csv_source: Union[str, io.IOBase], session: dict) -> dict:
     # ── 6. Fee explainer ────────────────────────────────────────────────────
     fee_result = explain(top_theme, session)
 
-    # ── 7. Write session state ──────────────────────────────────────────────
+    # ── 7. Analytics (word cloud, sentiment, rating distribution) ───────────
+    analytics = generate_analytics(clean_reviews)
+
+    # ── 8. Write session state ──────────────────────────────────────────────
     session["weekly_pulse"]    = pulse
     session["top_theme"]       = top_theme
     session["top_3_themes"]    = top_3
     session["fee_bullets"]     = fee_result["bullets"]
     session["fee_sources"]     = fee_result["sources"]
     session["pulse_generated"] = True
+    session["analytics_data"]  = analytics
 
-    # ── 8. Enqueue MCP actions ──────────────────────────────────────────────
+    # ── 9. Enqueue MCP actions ──────────────────────────────────────────────
     from phase7_pillar_c_hitl.mcp_client import enqueue_action
     from datetime import date
 
@@ -120,4 +124,5 @@ def run_pipeline(csv_source: Union[str, io.IOBase], session: dict) -> dict:
         "fee_bullets":  fee_result["bullets"],
         "fee_sources":  fee_result["sources"],
         "fee_checked":  fee_result["checked"],
+        "analytics":    analytics,
     }

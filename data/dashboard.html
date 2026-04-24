@@ -1,0 +1,1433 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Investor Ops &amp; Intelligence Suite — Review Pulse</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Outfit', sans-serif; }
+
+        body {
+            min-height: 100vh;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 50%, #151a30 100%);
+            color: #fff;
+            padding: 30px 20px;
+        }
+
+        .blob { position: fixed; border-radius: 50%; filter: blur(80px); z-index: 0; pointer-events: none; }
+        .blob-1 { background: rgba(255,99,132,0.3); width: 400px; height: 400px; top: -100px; left: -100px; animation: move-x 10s infinite alternate; }
+        .blob-2 { background: rgba(54,162,235,0.3); width: 300px; height: 300px; bottom: -50px; right: -50px; animation: move-y 8s infinite alternate; }
+        @keyframes move-x { 100% { transform: translateX(200px); } }
+        @keyframes move-y { 100% { transform: translateY(-150px); } }
+
+        .container { max-width: 960px; margin: 0 auto; position: relative; z-index: 10; }
+
+        header { text-align: center; margin-bottom: 30px; }
+        header h1 { font-size: 32px; font-weight: 700; background: linear-gradient(135deg, #fff, #b3c5e7); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        header p { color: rgba(255,255,255,0.6); margin-top: 8px; font-size: 15px; }
+        header a { color: rgba(255,255,255,0.5); font-size: 13px; text-decoration: none; display: inline-block; margin-top: 8px; }
+        header a:hover { color: #fff; }
+
+        .header-meta { display: flex; align-items: center; justify-content: center; gap: 12px; margin-top: 10px; flex-wrap: wrap; }
+        .status-pill { display: inline-flex; align-items: center; gap: 6px; background: rgba(74,222,128,0.15); border: 1px solid rgba(74,222,128,0.4); color: #4ade80; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; }
+        .status-dot { width: 7px; height: 7px; border-radius: 50%; background: #4ade80; animation: pulse-dot 2s infinite; }
+        @keyframes pulse-dot { 0%,100%{opacity:1} 50%{opacity:0.4} }
+        .review-badge { display: inline-flex; align-items: center; gap: 6px; background: rgba(67,97,238,0.2); border: 1px solid rgba(67,97,238,0.4); color: #a5b4fc; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; }
+
+        .tabs { display: flex; gap: 6px; margin-bottom: 20px; background: rgba(255,255,255,0.05); padding: 6px; border-radius: 14px; border: 1px solid rgba(255,255,255,0.1); flex-wrap: wrap; }
+        .tab-btn { flex: 1; min-width: 100px; padding: 10px 8px; border: none; border-radius: 10px; background: transparent; color: rgba(255,255,255,0.6); font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.3s; font-family: 'Outfit', sans-serif; white-space: nowrap; }
+        .tab-btn.active { background: linear-gradient(135deg, #4361ee, #3a0ca3); color: #fff; box-shadow: 0 4px 15px rgba(67,97,238,0.4); }
+        .tab-btn:hover:not(.active) { color: #fff; background: rgba(255,255,255,0.08); }
+
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+
+        .glass-card { background: rgba(255,255,255,0.05); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.1); border-radius: 20px; padding: 30px; margin-bottom: 20px; }
+
+        .draft-box { background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 20px; font-family: monospace; font-size: 13px; line-height: 1.8; color: rgba(255,255,255,0.85); white-space: pre-wrap; overflow-x: auto; max-height: 500px; overflow-y: auto; }
+
+        .markdown-box { line-height: 1.8; color: rgba(255,255,255,0.9); }
+        .markdown-box h1, .markdown-box h2, .markdown-box h3 { color: #fff; margin: 20px 0 10px; }
+        .markdown-box p { margin-bottom: 12px; color: rgba(255,255,255,0.8); }
+        .markdown-box ul, .markdown-box ol { padding-left: 20px; margin-bottom: 12px; color: rgba(255,255,255,0.8); }
+        .markdown-box li { margin-bottom: 6px; }
+        .markdown-box strong { color: #fff; }
+        .markdown-box code { background: rgba(255,255,255,0.1); padding: 2px 6px; border-radius: 4px; font-size: 13px; }
+        .markdown-box blockquote { border-left: 3px solid #4361ee; padding-left: 16px; margin: 12px 0; color: rgba(255,255,255,0.7); font-style: italic; }
+
+        .poster-section { margin-bottom: 28px; }
+        .poster-section h3 { font-size: 13px; font-weight: 600; letter-spacing: 1.5px; text-transform: uppercase; color: rgba(255,255,255,0.5); margin-bottom: 14px; }
+        .theme-pills { display: flex; flex-wrap: wrap; gap: 8px; }
+        .pill { background: rgba(67,97,238,0.3); border: 1px solid rgba(67,97,238,0.5); color: #a5b4fc; padding: 6px 14px; border-radius: 20px; font-size: 13px; font-weight: 600; }
+        .quote-card { background: rgba(255,255,255,0.05); border-left: 3px solid #4361ee; border-radius: 10px; padding: 16px 20px; margin-bottom: 12px; font-size: 15px; color: rgba(255,255,255,0.85); line-height: 1.6; font-style: italic; }
+        .note-text { font-size: 15px; line-height: 1.8; color: rgba(255,255,255,0.8); }
+        .action-item { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 12px; }
+        .action-num { background: linear-gradient(135deg, #4361ee, #3a0ca3); width: 26px; height: 26px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; flex-shrink: 0; margin-top: 2px; }
+        .action-text { font-size: 14px; color: rgba(255,255,255,0.85); line-height: 1.6; }
+
+        .send-section { margin-top: 10px; }
+        .send-section h3 { font-size: 16px; font-weight: 600; margin-bottom: 16px; color: rgba(255,255,255,0.9); }
+        .input-row { display: flex; gap: 10px; flex-wrap: wrap; }
+        .input-row input { flex: 1; min-width: 180px; padding: 14px 18px; background: rgba(0,0,0,0.25); border: 1px solid rgba(255,255,255,0.15); border-radius: 12px; color: #fff; font-size: 15px; outline: none; font-family: 'Outfit', sans-serif; }
+        .input-row input::placeholder { color: rgba(255,255,255,0.3); }
+        .input-row input:focus { border-color: rgba(255,255,255,0.4); }
+        .send-btn { padding: 14px 28px; background: linear-gradient(135deg, #4361ee, #3a0ca3); border: none; border-radius: 12px; color: #fff; font-size: 15px; font-weight: 600; cursor: pointer; transition: all 0.3s; font-family: 'Outfit', sans-serif; white-space: nowrap; }
+        .send-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(67,97,238,0.4); }
+        .send-btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+        .status-msg { margin-top: 12px; font-size: 14px; font-weight: 500; }
+        .status-msg.success { color: #4ade80; }
+        .status-msg.error { color: #f87171; }
+
+        .week-label { font-size: 12px; color: rgba(255,255,255,0.4); margin-bottom: 20px; }
+        .spinner-inline { display: inline-block; width: 16px; height: 16px; border: 2px solid rgba(255,255,255,0.3); border-top-color: #fff; border-radius: 50%; animation: spin 1s linear infinite; margin-left: 8px; vertical-align: middle; }
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+
+        /* Approval Gate styles */
+        .checklist { list-style: none; margin-bottom: 24px; }
+        .checklist li { display: flex; align-items: center; gap: 12px; padding: 12px 0; border-bottom: 1px solid rgba(255,255,255,0.06); font-size: 14px; color: rgba(255,255,255,0.8); }
+        .checklist li:last-child { border-bottom: none; }
+        .check-icon { width: 26px; height: 26px; border-radius: 50%; background: rgba(74,222,128,0.2); border: 1px solid rgba(74,222,128,0.5); color: #4ade80; display: flex; align-items: center; justify-content: center; font-size: 13px; flex-shrink: 0; }
+        .check-date { margin-left: auto; font-size: 12px; color: rgba(255,255,255,0.35); }
+
+        .section-title { font-size: 13px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; color: rgba(255,255,255,0.45); margin-bottom: 12px; margin-top: 24px; }
+        .section-title:first-child { margin-top: 0; }
+
+        .editable-summary { width: 100%; background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.12); border-radius: 12px; padding: 16px; color: rgba(255,255,255,0.85); font-size: 14px; line-height: 1.8; resize: vertical; min-height: 100px; font-family: 'Outfit', sans-serif; outline: none; }
+        .editable-summary:focus { border-color: rgba(67,97,238,0.6); }
+
+        .accordion { border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; overflow: hidden; margin-bottom: 8px; }
+        .accordion-header { display: flex; align-items: center; justify-content: space-between; padding: 14px 18px; cursor: pointer; background: rgba(255,255,255,0.04); transition: background 0.2s; user-select: none; }
+        .accordion-header:hover { background: rgba(255,255,255,0.08); }
+        .accordion-header span { font-size: 14px; font-weight: 600; color: #fff; }
+        .accordion-arrow { font-size: 12px; color: rgba(255,255,255,0.4); transition: transform 0.25s; }
+        .accordion.open .accordion-arrow { transform: rotate(180deg); }
+        .accordion-body { display: none; padding: 16px 18px; border-top: 1px solid rgba(255,255,255,0.06); }
+        .accordion.open .accordion-body { display: block; }
+        .accordion-quote { font-size: 13px; font-style: italic; color: rgba(255,255,255,0.7); border-left: 3px solid #4361ee; padding-left: 12px; margin-top: 8px; line-height: 1.6; }
+        .accordion-desc { font-size: 13px; color: rgba(255,255,255,0.6); line-height: 1.6; }
+
+        .action-row { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 20px; }
+        .gate-btn { padding: 12px 20px; border: none; border-radius: 12px; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.3s; font-family: 'Outfit', sans-serif; white-space: nowrap; }
+        .gate-btn.primary { background: linear-gradient(135deg, #4361ee, #3a0ca3); color: #fff; }
+        .gate-btn.secondary { background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15); color: rgba(255,255,255,0.85); }
+        .gate-btn.success-btn { background: linear-gradient(135deg, #059669, #047857); color: #fff; }
+        .gate-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(0,0,0,0.3); }
+        .gate-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+        .collapsible-section { border: 1px solid rgba(255,255,255,0.08); border-radius: 14px; overflow: hidden; margin-top: 20px; }
+        .collapsible-header { display: flex; align-items: center; justify-content: space-between; padding: 16px 20px; cursor: pointer; background: rgba(255,255,255,0.04); }
+        .collapsible-header:hover { background: rgba(255,255,255,0.08); }
+        .collapsible-header h4 { font-size: 14px; font-weight: 700; color: #fff; }
+        .collapsible-arrow { font-size: 12px; color: rgba(255,255,255,0.4); transition: transform 0.25s; }
+        .collapsible-section.open .collapsible-arrow { transform: rotate(180deg); }
+        .collapsible-body { display: none; padding: 20px; border-top: 1px solid rgba(255,255,255,0.06); }
+        .collapsible-section.open .collapsible-body { display: block; }
+
+        .fee-bullet { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 10px; font-size: 14px; color: rgba(255,255,255,0.82); line-height: 1.6; }
+        .fee-dot { width: 7px; height: 7px; border-radius: 50%; background: #a5b4fc; flex-shrink: 0; margin-top: 7px; }
+        .fee-links { margin-top: 14px; display: flex; flex-direction: column; gap: 6px; }
+        .fee-link { color: #a5b4fc; font-size: 13px; word-break: break-all; text-decoration: none; }
+        .fee-link:hover { text-decoration: underline; }
+        .fee-meta { margin-top: 10px; font-size: 12px; color: rgba(255,255,255,0.35); }
+
+        .meta-row { display: flex; align-items: center; gap: 16px; margin-top: 20px; flex-wrap: wrap; }
+        .no-pii-badge { display: inline-flex; align-items: center; gap: 6px; background: rgba(250,204,21,0.12); border: 1px solid rgba(250,204,21,0.3); color: #fbbf24; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; }
+        .gen-time { font-size: 12px; color: rgba(255,255,255,0.35); }
+
+        /* Analytics styles */
+        .stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 14px; margin-bottom: 24px; }
+        .stat-card { background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); border-radius: 14px; padding: 20px; text-align: center; }
+        .stat-num { font-size: 36px; font-weight: 700; background: linear-gradient(135deg, #a5b4fc, #818cf8); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .stat-label { font-size: 12px; color: rgba(255,255,255,0.45); margin-top: 4px; text-transform: uppercase; letter-spacing: 0.8px; }
+
+        .theme-bar-list { list-style: none; }
+        .theme-bar-item { margin-bottom: 14px; }
+        .theme-bar-label { display: flex; justify-content: space-between; font-size: 13px; color: rgba(255,255,255,0.8); margin-bottom: 6px; }
+        .theme-bar-track { height: 8px; background: rgba(255,255,255,0.08); border-radius: 10px; overflow: hidden; }
+        .theme-bar-fill { height: 100%; border-radius: 10px; background: linear-gradient(90deg, #4361ee, #7c3aed); transition: width 1s ease; }
+
+        /* Analytics enhanced */
+        .chart-toggle { display: flex; gap: 8px; margin-bottom: 20px; }
+        .chart-toggle-btn { padding: 7px 18px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.2); background: transparent; color: rgba(255,255,255,0.6); font-size: 13px; font-weight: 600; cursor: pointer; font-family: 'Outfit', sans-serif; transition: all 0.2s; }
+        .chart-toggle-btn.active { background: #fff; color: #1e3c72; border-color: #fff; }
+        .chart-toggle-btn:hover:not(.active) { background: rgba(255,255,255,0.1); color: #fff; }
+        .chart-wrap { position: relative; height: 280px; background: rgba(255,255,255,0.04); border-radius: 14px; padding: 16px; }
+
+        .tracker-table { width: 100%; border-collapse: collapse; margin-top: 8px; }
+        .tracker-table th { font-size: 11px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: rgba(255,255,255,0.35); padding: 10px 12px; text-align: left; border-bottom: 1px solid rgba(255,255,255,0.08); }
+        .tracker-table td { padding: 14px 12px; border-bottom: 1px solid rgba(255,255,255,0.06); vertical-align: top; }
+        .tracker-table tr:last-child td { border-bottom: none; }
+        .cat-name { font-size: 14px; font-weight: 700; color: #fff; }
+        .cat-sub  { font-size: 11px; color: rgba(255,255,255,0.35); margin-top: 2px; }
+        .cat-vol  { font-size: 20px; font-weight: 700; color: #a5b4fc; }
+        .cat-desc { font-size: 13px; color: rgba(255,255,255,0.65); line-height: 1.5; max-width: 220px; }
+        .priority-badge { display: inline-block; padding: 3px 10px; border-radius: 6px; font-size: 11px; font-weight: 700; letter-spacing: 0.5px; }
+        .priority-HIGH   { background: rgba(239,68,68,0.2);  color: #f87171; border: 1px solid rgba(239,68,68,0.4); }
+        .priority-MEDIUM { background: rgba(234,179,8,0.2);  color: #fbbf24; border: 1px solid rgba(234,179,8,0.4); }
+        .priority-LOW    { background: rgba(148,163,184,0.2); color: #94a3b8; border: 1px solid rgba(148,163,184,0.4); }
+        .ticket-chips { display: flex; flex-wrap: wrap; gap: 6px; min-height: 28px; }
+        .ticket-chip { display: inline-flex; align-items: center; gap: 4px; background: rgba(67,97,238,0.25); border: 1px solid rgba(67,97,238,0.4); color: #a5b4fc; border-radius: 6px; padding: 3px 8px; font-size: 12px; font-weight: 600; }
+        .ticket-chip button { background: none; border: none; color: #a5b4fc; cursor: pointer; font-size: 13px; padding: 0 0 0 2px; line-height: 1; }
+        .no-tickets { font-size: 12px; color: rgba(255,255,255,0.25); font-style: italic; }
+        .add-ticket-row { display: flex; gap: 6px; align-items: center; }
+        .add-ticket-input { background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.12); border-radius: 8px; color: #fff; padding: 6px 10px; font-size: 12px; width: 110px; font-family: 'Outfit', sans-serif; outline: none; }
+        .add-ticket-input::placeholder { color: rgba(255,255,255,0.2); }
+        .add-ticket-btn { width: 28px; height: 28px; border-radius: 8px; border: none; background: linear-gradient(135deg,#4361ee,#3a0ca3); color: #fff; font-size: 16px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+
+        /* Word Cloud */
+        .wc-stats { display: grid; grid-template-columns: repeat(3,1fr); gap: 14px; margin-bottom: 24px; }
+        .wc-stat { background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); border-radius: 14px; padding: 18px 20px; }
+        .wc-stat-label { font-size: 11px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: rgba(255,255,255,0.4); margin-bottom: 8px; }
+        .wc-stat-num { font-size: 32px; font-weight: 700; color: #fff; }
+        .wc-cloud { min-height: 180px; display: flex; flex-wrap: wrap; gap: 10px 16px; align-items: center; justify-content: center; padding: 20px 0; }
+        .wc-word { cursor: pointer; font-weight: 600; transition: opacity 0.2s; line-height: 1.2; }
+        .wc-word:hover { opacity: 0.7; text-decoration: underline; }
+        .kw-list { list-style: none; }
+        .kw-item { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .kw-item:last-child { border-bottom: none; }
+        .kw-rank { font-size: 12px; color: rgba(255,255,255,0.3); width: 20px; flex-shrink: 0; }
+        .kw-word { font-size: 14px; font-weight: 600; color: #fff; width: 90px; flex-shrink: 0; }
+        .kw-bar-track { flex: 1; height: 6px; background: rgba(255,255,255,0.07); border-radius: 10px; overflow: hidden; }
+        .kw-bar-fill { height: 100%; border-radius: 10px; }
+        .kw-count { font-size: 13px; color: rgba(255,255,255,0.5); width: 36px; text-align: right; flex-shrink: 0; }
+        .review-card { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 14px; padding: 16px; margin-bottom: 12px; }
+        .rc-header { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+        .rc-avatar { width: 36px; height: 36px; border-radius: 50%; background: rgba(67,97,238,0.3); display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 700; color: #a5b4fc; flex-shrink: 0; }
+        .rc-name { font-size: 14px; font-weight: 700; color: #fff; }
+        .rc-meta { font-size: 12px; color: rgba(255,255,255,0.35); }
+        .rc-stars { margin-left: auto; display: flex; gap: 2px; }
+        .star-filled { color: #f59e0b; font-size: 13px; }
+        .star-empty { color: rgba(255,255,255,0.2); font-size: 13px; }
+        .rc-body { font-size: 14px; color: rgba(255,255,255,0.75); line-height: 1.6; }
+        .rc-tags { display: flex; gap: 6px; margin-top: 10px; flex-wrap: wrap; }
+        .rc-tag { background: rgba(67,97,238,0.2); border: 1px solid rgba(67,97,238,0.3); color: #a5b4fc; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; }
+        .rc-footer { display: flex; align-items: center; gap: 12px; margin-top: 10px; font-size: 12px; color: rgba(255,255,255,0.3); }
+        .sentiment-chip { padding: 2px 8px; border-radius: 6px; font-size: 11px; font-weight: 700; }
+        .sent-Positive { background: rgba(74,222,128,0.15); color: #4ade80; }
+        .sent-Negative { background: rgba(239,68,68,0.15); color: #f87171; }
+        .sent-Neutral  { background: rgba(250,204,21,0.15); color: #fbbf24; }
+        .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        @media(max-width:640px){ .two-col{ grid-template-columns:1fr; } .wc-stats{ grid-template-columns:1fr 1fr; } }
+
+        /* Categories */
+        .cat-cards { display: grid; grid-template-columns: repeat(auto-fit,minmax(180px,1fr)); gap: 14px; margin-bottom: 24px; }
+        .cat-card { background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; padding: 20px; }
+        .cat-card-icon { font-size: 22px; margin-bottom: 10px; }
+        .cat-card-name { font-size: 15px; font-weight: 700; color: #fff; }
+        .cat-card-count { font-size: 28px; font-weight: 700; color: #a5b4fc; margin: 6px 0 4px; }
+        .cat-card-sub { font-size: 12px; color: rgba(255,255,255,0.35); }
+        .cat-pct-bar { height: 4px; border-radius: 10px; margin-top: 10px; }
+        .cat-stat-row { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .cat-stat-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+        .cat-stat-name { flex: 1; font-size: 14px; color: rgba(255,255,255,0.8); }
+        .cat-stat-count { font-size: 14px; font-weight: 600; color: #fff; }
+        .cat-stat-pct { font-size: 12px; color: rgba(255,255,255,0.35); width: 40px; text-align: right; }
+        .cat-stat-bar { height: 3px; border-radius: 10px; margin-top: 3px; }
+
+        /* Ideation */
+        .idea-panel { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 16px; padding: 20px; height: 100%; }
+        .idea-panel-title { font-size: 15px; font-weight: 700; color: #fff; margin-bottom: 4px; }
+        .idea-panel-sub { font-size: 13px; color: rgba(255,255,255,0.4); margin-bottom: 16px; }
+        .idea-card { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; padding: 14px; margin-bottom: 10px; }
+        .idea-card-title { font-size: 14px; font-weight: 700; color: #a5b4fc; margin-bottom: 6px; }
+        .idea-card-body { font-size: 13px; color: rgba(255,255,255,0.7); line-height: 1.6; }
+        .idea-card-impact { display: inline-block; margin-top: 8px; font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 6px; }
+        .impact-High { background: rgba(74,222,128,0.15); color: #4ade80; }
+        .impact-Medium { background: rgba(250,204,21,0.15); color: #fbbf24; }
+        .bug-search { width: 100%; background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.12); border-radius: 10px; padding: 10px 14px; color: #fff; font-size: 14px; font-family: 'Outfit', sans-serif; outline: none; margin-bottom: 14px; }
+        .bug-search::placeholder { color: rgba(255,255,255,0.3); }
+        .bug-review-list { max-height: 340px; overflow-y: auto; }
+        .bug-review-item { display: flex; align-items: flex-start; gap: 10px; padding: 12px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.06); margin-bottom: 8px; cursor: pointer; transition: background 0.2s; }
+        .bug-review-item:hover { background: rgba(255,255,255,0.05); }
+        .bug-review-item.selected { background: rgba(67,97,238,0.15); border-color: rgba(67,97,238,0.4); }
+        .bug-cb { width: 16px; height: 16px; border-radius: 4px; border: 1.5px solid rgba(255,255,255,0.3); flex-shrink: 0; margin-top: 2px; display: flex; align-items: center; justify-content: center; }
+        .bug-cb.checked { background: #4361ee; border-color: #4361ee; }
+        .bug-rev-name { font-size: 13px; font-weight: 700; color: #fff; }
+        .bug-rev-text { font-size: 12px; color: rgba(255,255,255,0.55); margin-top: 2px; line-height: 1.5; }
+        .gen-report-btn { width: 100%; padding: 14px; border-radius: 12px; border: none; background: linear-gradient(135deg,#ef4444,#b91c1c); color: #fff; font-size: 14px; font-weight: 700; cursor: pointer; margin-top: 14px; font-family:'Outfit',sans-serif; transition: opacity 0.2s; }
+        .gen-report-btn:hover { opacity: 0.85; }
+        .select-all-btn { float: right; font-size: 12px; font-weight: 600; color: #a5b4fc; background: none; border: none; cursor: pointer; padding: 0; font-family:'Outfit',sans-serif; }
+    </style>
+<style>
+/* Capstone theme override — charcoal + gold */
+body { background: #0A0C14 !important; }
+.blob-1, .blob-2 { display: none !important; }
+.tab-btn.active {
+  background: linear-gradient(135deg, #C9A84C, #A8863C) !important;
+  color: #0A0C14 !important;
+  box-shadow: 0 4px 15px rgba(201,168,76,0.35) !important;
+}
+.tab-btn:hover:not(.active) { background: rgba(201,168,76,0.08) !important; }
+.send-btn {
+  background: linear-gradient(135deg, #C9A84C, #A8863C) !important;
+  color: #0A0C14 !important;
+}
+.send-btn:hover { box-shadow: 0 8px 20px rgba(201,168,76,0.4) !important; }
+header h1 {
+  background: linear-gradient(135deg, #F5F0E8, #C9A84C) !important;
+  -webkit-background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
+}
+.status-pill {
+  background: rgba(201,168,76,0.12) !important;
+  border-color: rgba(201,168,76,0.40) !important;
+  color: #C9A84C !important;
+}
+.status-dot { background: #C9A84C !important; }
+.review-badge { border-color: rgba(201,168,76,0.4) !important; color: #C9A84C !important; }
+.check-icon { background: rgba(201,168,76,0.15) !important; border-color: rgba(201,168,76,0.4) !important; color: #C9A84C !important; }
+.action-num { background: linear-gradient(135deg, #C9A84C, #A8863C) !important; color: #0A0C14 !important; }
+</style>
+</head>
+<body>
+    <div class="blob blob-1"></div>
+    <div class="blob blob-2"></div>
+
+    <div class="container">
+        <header>
+            <h1>INDmoney Pulse Dashboard</h1>
+            <p>Weekly review insights, approval gate, analytics and email delivery</p>
+            <div class="header-meta">
+                <span class="status-pill"><span class="status-dot"></span>Pipeline Active</span>
+                <span class="review-badge" id="review-count-badge">📊 Loading...</span>
+            </div>
+            <a href="/">← Back to Subscribe</a>
+        </header>
+
+        <div class="tabs">
+            <button class="tab-btn active" onclick="switchTab('gate', this)">🔒 Approval Gate</button>
+            <button class="tab-btn" onclick="switchTab('draft', this)">📧 Email Draft</button>
+            <button class="tab-btn" onclick="switchTab('notes', this)">📝 Markdown Report</button>
+            <button class="tab-btn" onclick="switchTab('poster', this)">🖼️ Pulse Poster</button>
+            <button class="tab-btn" onclick="switchTab('analytics', this)">📊 Analytics</button>
+            <button class="tab-btn" onclick="switchTab('wordcloud', this)">☁️ Word Cloud</button>
+            <button class="tab-btn" onclick="switchTab('categories', this)">🏷️ Categories</button>
+            <button class="tab-btn" onclick="switchTab('ideation', this)">⚡ Ideation</button>
+        </div>
+
+        <!-- Tab 1: Approval Gate -->
+        <div id="tab-gate" class="tab-content active">
+            <div class="glass-card">
+                <div class="section-title">Review Weekly Pulse</div>
+                <p style="font-size:14px;color:rgba(255,255,255,0.55);margin-bottom:20px">AI-generated analysis for this week — review before team distribution.</p>
+
+                <!-- Checklist -->
+                <ul class="checklist" id="gate-checklist"></ul>
+
+                <!-- Editable summary -->
+                <div class="section-title">Weekly Summary</div>
+                <textarea class="editable-summary" id="gate-summary" rows="4"></textarea>
+
+                <!-- Theme accordions -->
+                <div class="section-title" style="margin-top:20px">Categorised Themes</div>
+                <div id="gate-themes"></div>
+
+                <!-- Action Ideas -->
+                <div class="section-title" style="margin-top:20px">Action Ideas</div>
+                <div id="gate-actions"></div>
+
+                <!-- Action buttons -->
+                <div class="action-row">
+                    <button class="gate-btn secondary" onclick="gateAction('notes')">📎 Send to Notes</button>
+                    <button class="gate-btn primary" onclick="gateAction('email')">📧 Create Email Draft</button>
+                    <button class="gate-btn success-btn" id="both-btn" onclick="gateAction('both')">✅ Do Both &amp; Finish</button>
+                </div>
+                <div class="status-msg" id="gate-status" style="margin-top:14px"></div>
+
+                <!-- Fee Explainer collapsible -->
+                <div class="collapsible-section" id="fee-collapsible">
+                    <div class="collapsible-header" onclick="toggleCollapsible('fee-collapsible')">
+                        <h4>💡 AI Fee Explainer — Exit Load</h4>
+                        <span class="collapsible-arrow">▼</span>
+                    </div>
+                    <div class="collapsible-body" id="fee-body"></div>
+                </div>
+
+                <!-- Footer meta -->
+                <div class="meta-row">
+                    <span class="no-pii-badge">🔒 No PII included</span>
+                    <span class="gen-time" id="gen-timestamp"></span>
+                </div>
+            </div>
+
+            <!-- Send Email card -->
+            <div class="glass-card send-section">
+                <h3>✉️ Send Pulse Email</h3>
+                <div class="input-row">
+                    <input type="text" id="gate-send-name" placeholder="Recipient name" />
+                    <input type="email" id="gate-send-email" placeholder="recipient@example.com" />
+                    <button class="send-btn" id="gate-send-btn" onclick="sendEmailFrom('gate')">Send Email 🚀</button>
+                </div>
+                <div class="status-msg" id="gate-send-status"></div>
+            </div>
+        </div>
+
+        <!-- Tab 2: Email Draft -->
+        <div id="tab-draft" class="tab-content">
+            <div class="glass-card">
+                <div class="week-label" id="draft-week-label"></div>
+                <div class="draft-box" id="draft-content"></div>
+            </div>
+            <div class="glass-card send-section">
+                <h3>✉️ Send Pulse Email</h3>
+                <div class="input-row">
+                    <input type="text" id="send-name" placeholder="Recipient name" />
+                    <input type="email" id="send-email" placeholder="recipient@example.com" />
+                    <button class="send-btn" id="send-btn" onclick="sendEmailFrom('draft')">Send Email 🚀</button>
+                </div>
+                <div class="status-msg" id="send-status"></div>
+            </div>
+        </div>
+
+        <!-- Tab 3: Markdown Notes -->
+        <div id="tab-notes" class="tab-content">
+            <div class="glass-card">
+                <div class="markdown-box" id="notes-content"></div>
+            </div>
+        </div>
+
+        <!-- Tab 4: Pulse Poster -->
+        <div id="tab-poster" class="tab-content">
+            <div class="glass-card" id="poster-content"></div>
+        </div>
+
+        <!-- Tab 5: Analytics -->
+        <div id="tab-analytics" class="tab-content">
+            <!-- Stat cards -->
+            <div class="stat-grid" id="stat-grid"></div>
+
+            <!-- Chart card -->
+            <div class="glass-card">
+                <div style="margin-bottom:14px">
+                    <div style="font-size:16px;font-weight:700;color:#fff" id="chart-title">Week-wise Issues by Category</div>
+                    <div style="font-size:13px;color:rgba(255,255,255,0.4);margin-top:3px" id="chart-subtitle">Number of issues reported per category each week</div>
+                </div>
+                <div class="chart-toggle">
+                    <button class="chart-toggle-btn active" onclick="setChartType('bar', this)">Bar Chart</button>
+                    <button class="chart-toggle-btn" onclick="setChartType('line', this)">Trend Line</button>
+                </div>
+                <div class="chart-wrap">
+                    <canvas id="analyticsChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Category tracking table -->
+            <div class="glass-card">
+                <div style="font-size:16px;font-weight:700;color:#fff;margin-bottom:4px">Category Tracking &amp; Ticket Management</div>
+                <div style="font-size:13px;color:rgba(255,255,255,0.4);margin-bottom:20px">Track identified analytics issues and their associated tickets</div>
+                <div style="overflow-x:auto">
+                    <table class="tracker-table" id="tracker-table">
+                        <thead>
+                            <tr>
+                                <th>Category</th>
+                                <th>Volume</th>
+                                <th>Description</th>
+                                <th>Priority</th>
+                                <th>Tickets</th>
+                                <th>Add Ticket</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tracker-body"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab 6: Word Cloud -->
+        <div id="tab-wordcloud" class="tab-content">
+            <div class="glass-card">
+                <div class="wc-stats" id="wc-stats"></div>
+                <div style="font-size:16px;font-weight:700;color:#fff;margin-bottom:16px">Word Cloud</div>
+                <div class="wc-cloud" id="wc-cloud"></div>
+                <p style="text-align:center;font-size:12px;color:rgba(255,255,255,0.25);margin-top:14px">Click any word to filter reviews containing it.</p>
+            </div>
+            <div class="two-col">
+                <div class="glass-card">
+                    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+                        <div style="font-size:16px;font-weight:700;color:#fff">Top Keywords</div>
+                        <div style="font-size:12px;color:rgba(255,255,255,0.4)" id="kw-count-label"></div>
+                    </div>
+                    <ul class="kw-list" id="kw-list"></ul>
+                </div>
+                <div class="glass-card">
+                    <div style="font-size:16px;font-weight:700;color:#fff;margin-bottom:4px">Top Upvoted Reviews</div>
+                    <div style="font-size:12px;color:rgba(255,255,255,0.4);margin-bottom:16px" id="upvote-count-label"></div>
+                    <div id="upvoted-reviews"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab 7: Categories -->
+        <div id="tab-categories" class="tab-content">
+            <div class="cat-cards" id="cat-cards"></div>
+            <div class="two-col">
+                <div class="glass-card">
+                    <div style="font-size:16px;font-weight:700;color:#fff;margin-bottom:4px">Category Distribution</div>
+                    <div style="font-size:13px;color:rgba(255,255,255,0.4);margin-bottom:16px">Horizontal view of review volumes</div>
+                    <div style="position:relative;height:320px"><canvas id="catDistChart"></canvas></div>
+                </div>
+                <div class="glass-card">
+                    <div style="font-size:16px;font-weight:700;color:#fff;margin-bottom:16px">Category Stats</div>
+                    <div id="cat-stats-list"></div>
+                </div>
+            </div>
+            <div class="two-col">
+                <div class="glass-card">
+                    <div style="font-size:16px;font-weight:700;color:#fff;margin-bottom:4px">Sentiment Analysis</div>
+                    <div style="font-size:13px;color:rgba(255,255,255,0.4);margin-bottom:16px">Positive / Neutral / Negative split</div>
+                    <div style="position:relative;height:220px"><canvas id="sentimentChart"></canvas></div>
+                </div>
+                <div class="glass-card">
+                    <div style="font-size:16px;font-weight:700;color:#fff;margin-bottom:4px">Rating Distribution</div>
+                    <div style="font-size:13px;color:rgba(255,255,255,0.4);margin-bottom:16px">Reviews by star rating</div>
+                    <div style="position:relative;height:220px"><canvas id="ratingChart"></canvas></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab 8: Ideation -->
+        <div id="tab-ideation" class="tab-content">
+            <div style="margin-bottom:20px">
+                <div style="font-size:24px;font-weight:700;color:#fff">⚡ Ideation</div>
+                <div style="font-size:14px;color:rgba(255,255,255,0.5);margin-top:4px">AI-powered product ideas, bug reports, and reply generation from user reviews</div>
+            </div>
+            <div class="two-col">
+                <div class="idea-panel">
+                    <div class="idea-panel-title">💡 AI Idea Recommender</div>
+                    <div class="idea-panel-sub">Analyses negative reviews to suggest product improvements</div>
+                    <div id="idea-list"></div>
+                </div>
+                <div class="idea-panel">
+                    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
+                        <div class="idea-panel-title">🐛 Bug Reporter</div>
+                        <button class="select-all-btn" onclick="bugSelectAll()">Select All</button>
+                    </div>
+                    <div class="idea-panel-sub">Select reviews to generate structured bug reports</div>
+                    <input class="bug-search" placeholder="🔍 Search negative reviews..." oninput="filterBugReviews(this.value)" />
+                    <div class="bug-review-list" id="bug-review-list"></div>
+                    <button class="gen-report-btn" id="gen-report-btn" onclick="generateBugReport()">Generate Report from <span id="selected-count">0</span> Reviews</button>
+                </div>
+            </div>
+            <div class="glass-card" id="bug-report-output" style="display:none;margin-top:20px">
+                <div style="font-size:16px;font-weight:700;color:#fff;margin-bottom:14px">🐛 Generated Bug Report</div>
+                <div id="bug-report-content" style="font-size:14px;color:rgba(255,255,255,0.8);line-height:1.8;white-space:pre-wrap;font-family:monospace;background:rgba(0,0,0,0.2);border-radius:10px;padding:16px"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API = '';
+
+        // ── Baked-in data (updated by pipeline each week) ──────────────────
+        const EMAIL_DRAFT = `============================================================
+  EMAIL DRAFT — 2026-04-17 16:14
+============================================================
+To      : Product Team
+Subject : Weekly Pulse + Fee Explainer — 2026-04-17
+------------------------------------------------------------
+
+Section 1 — WEEKLY PULSE: The top themes for this week are user-friendly interface, trading features, and glitches and latency. Some user quotes include: Bahut hii achcha aur saral, easy way to learn fno, very nice app in india. The weekly note states that the app has received mostly positive reviews, but some users have reported glitches and latency issues. The action ideas are to improve customer support, add more investment options, and fix glitches and latency issues. Section 2 — FEE EXPLAINER: The fee scenario is SBI Mutual Funds — Exit Load. The explanation bullets are: SBI Large Cap Fund: 1% exit load if redeemed within 365 days from the date of allotment., SBI Flexicap Fund: Nil exit load., SBI ELSS Tax Saver Fund: Nil exit load., SBI Small Cap Fund: 1% exit load if redeemed within 18 months from the date of allotment., SBI Midcap Fund: 1% exit load if redeemed within 18 months from the date of allotment., SBI Focused Equity Fund: Nil exit load. The source links are https://www.sbimf.com/en-us/investor-corner and https://www.sbimf.com/sbimf-scheme-details/sbi-large-cap-fund-(formerly-known-as-sbi-bluechip-fund)-43. The last checked date is April 17, 2026.
+
+------------------------------------------------------------
+[DRAFT — Pending human review before sending]
+============================================================`;
+
+        const NOTES_MD = `---
+
+## 📅 Week of March 17, 2026
+*Appended at 2026-03-17 22:55*
+
+### Weekly Note
+The users have mixed reviews about the app, with some praising its user-friendly interface, trading features, and customer support, while others have raised concerns about technical issues, brokerage charges, and customer support. The INDmoney app has received mixed reviews from users. While some users have praised the app's user experience, features, and performance, others have reported technical issues, scams, and frustration with the app's performance.
+
+### Themes Identified
+- User Interface
+- Trading Features
+- Technical Issues
+- Brokerage Charges
+- Customer Support
+
+### Top 3 Themes
+1. User Interface
+2. Trading Features
+3. Technical Issues
+
+### User Quotes
+> "Fundamental analysis is crucial prior to investment."
+> "INDstocks is the best platform for Stock market thata I had every used in my life."
+> "This INDstocks is the best platform for Stock market thata I had every used in my life. It is very lovely to use and trade n invest in one user friendly application itself."
+
+### Action Ideas
+- [ ] Improve the user interface to make it more intuitive and user-friendly.
+- [ ] Enhance the trading features to include more advanced options and tools.
+- [ ] Address the technical issues and ensure that the app is stable and reliable.
+
+
+---
+
+## 📅 Week of March 18, 2026
+*Appended at 2026-03-18 00:13*
+
+### Weekly Note
+The INDmoney app has received both positive and negative reviews. Users praise its user-friendly interface, trading features, and broad range of financial features. However, some users have reported issues with customer support, data accuracy, and withdrawal problems. To improve the app, INDmoney should focus on addressing these concerns and enhancing its features to meet the needs of its users. The app has also received mixed reviews from users, with some praising its user-friendly interface and features, while others have experienced technical issues and expressed dissatisfaction with certain features. To improve the app, the developers should focus on addressing technical issues, enhancing user experience, and adding more features to meet the diverse needs of its users.
+
+### Themes Identified
+- User Interface
+- Trading Features
+- Customer Support
+- Data Accuracy
+- Withdrawal Issues
+
+### Top 3 Themes
+1. User Interface
+2. Trading Features
+3. Customer Support
+
+### User Quotes
+> "Fundamental analysis is crucial prior to investment."
+> "This app is very nice and very seckure"
+> "best F & O Option"
+
+### Action Ideas
+- [ ] Improve customer support by responding to user complaints and providing timely assistance.
+- [ ] Enhance data accuracy by verifying information and providing reliable data to users.
+- [ ] Simplify the withdrawal process to make it easier for users to access their funds.
+
+
+---
+
+## 📅 Week of March 21, 2026
+*Appended at 2026-03-21 23:10*
+
+### Weekly Note
+The INDmoney app has received mixed reviews from users, with some praising its user-friendly interface and trading features, while others have raised concerns about customer support, data accuracy, and fees and charges. To improve the app, INDmoney should focus on addressing these issues and providing a seamless user experience.
+
+### Themes Identified
+- User Interface
+- Trading Features
+- Customer Support
+- Data Accuracy
+- Fees and Charges
+
+### Top 3 Themes
+1. User Interface
+2. Trading Features
+3. Customer Support
+
+### User Quotes
+> "Fundamental analysis is crucial prior to investment."
+> "Best app for options trading. Very intuitive design and user interface."
+> "INDmoney Platform Bahut Achha hai lekin customer support achha nhi hai maine kitna baar bola ek problem solve krne ke liye lekin nhi kiya bola hamare developer is pe kaam kr rahe lekin aisa kuch nhi hai bas ticket closed krne ke liye bolta hai"
+
+### Action Ideas
+- [ ] Improve customer support by providing timely and effective solutions to user queries.
+- [ ] Enhance data accuracy by ensuring that the information provided is reliable and up-to-date.
+- [ ] Review and adjust fees and charges to make the app more competitive and user-friendly.
+
+
+---
+
+## 📅 Week of March 21, 2026
+*Appended at 2026-03-21 23:47*
+
+### Weekly Note
+The INDmoney app has received mixed reviews from users, with some praising its user-friendly interface and trading features, while others have raised concerns about customer support, data accuracy, and fees and charges. To improve the app, INDmoney should focus on addressing these issues and providing a seamless user experience.
+
+### Themes Identified
+- User Interface
+- Trading Features
+- Customer Support
+- Data Accuracy
+- Fees and Charges
+
+### Top 3 Themes
+1. User Interface
+2. Trading Features
+3. Customer Support
+
+### User Quotes
+> "Fundamental analysis is crucial prior to investment."
+> "Best app for options trading. Very intuitive design and user interface."
+> "INDmoney Platform Bahut Achha hai lekin customer support achha nhi hai maine kitna baar bola ek problem solve krne ke liye lekin nhi kiya bola hamare developer is pe kaam kr rahe lekin aisa kuch nhi hai bas ticket closed krne ke liye bolta hai"
+
+### Action Ideas
+- [ ] Improve customer support by providing timely and effective solutions to user queries.
+- [ ] Enhance data accuracy by ensuring that the information provided is reliable and up-to-date.
+- [ ] Review and adjust fees and charges to make the app more competitive and user-friendly.
+
+
+---
+
+## 📅 Week of March 21, 2026
+*Appended at 2026-03-21 23:49*
+
+### Weekly Note
+The INDmoney app has received mixed reviews from users, with some praising its user-friendly interface and trading features, while others have raised concerns about customer support, data accuracy, and fees and charges. To improve the app, INDmoney should focus on addressing these issues and providing a seamless user experience.
+
+### Themes Identified
+- User Interface
+- Trading Features
+- Customer Support
+- Data Accuracy
+- Fees and Charges
+
+### Top 3 Themes
+1. User Interface
+2. Trading Features
+3. Customer Support
+
+### User Quotes
+> "Fundamental analysis is crucial prior to investment."
+> "Best app for options trading. Very intuitive design and user interface."
+> "INDmoney Platform Bahut Achha hai lekin customer support achha nhi hai maine kitna baar bola ek problem solve krne ke liye lekin nhi kiya bola hamare developer is pe kaam kr rahe lekin aisa kuch nhi hai bas ticket closed krne ke liye bolta hai"
+
+### Action Ideas
+- [ ] Improve customer support by providing timely and effective solutions to user queries.
+- [ ] Enhance data accuracy by ensuring that the information provided is reliable and up-to-date.
+- [ ] Review and adjust fees and charges to make the app more competitive and user-friendly.
+
+
+---
+
+## 📅 Week of March 21, 2026
+*Appended at 2026-03-21 23:52*
+
+### Weekly Note
+The INDmoney app has received mixed reviews from users, with some praising its user-friendly interface and trading features, while others have raised concerns about customer support, data accuracy, and fees and charges. To improve the app, INDmoney should focus on addressing these issues and providing a seamless user experience.
+
+### Themes Identified
+- User Interface
+- Trading Features
+- Customer Support
+- Data Accuracy
+- Fees and Charges
+
+### Top 3 Themes
+1. User Interface
+2. Trading Features
+3. Customer Support
+
+### User Quotes
+> "Fundamental analysis is crucial prior to investment."
+> "Best app for options trading. Very intuitive design and user interface."
+> "INDmoney Platform Bahut Achha hai lekin customer support achha nhi hai maine kitna baar bola ek problem solve krne ke liye lekin nhi kiya bola hamare developer is pe kaam kr rahe lekin aisa kuch nhi hai bas ticket closed krne ke liye bolta hai"
+
+### Action Ideas
+- [ ] Improve customer support by providing timely and effective solutions to user queries.
+- [ ] Enhance data accuracy by ensuring that the information provided is reliable and up-to-date.
+- [ ] Review and adjust fees and charges to make the app more competitive and user-friendly.
+
+
+---
+
+## 📅 Week of March 27, 2026
+*Appended at 2026-03-27 15:04*
+
+### Weekly Note
+The INDmoney app has received mixed reviews from users. Some users have praised the app's user-friendly interface, features, and performance. However, others have raised concerns about the app's customer support, security, and performance issues. The app's features, such as its ability to provide real-time data and allow for easy trading, have been well-received by many users. However, some users have reported issues with the app's performance, such as lagging charts and frequent crashes. Overall, the app has the potential to be a valuable tool for traders and investors, but it needs to address its performance and customer support issues to meet the expectations of its users.
+
+### Themes Identified
+- User Interface
+- Features
+- Performance
+- Customer Support
+- Security
+
+### Top 3 Themes
+1. User Interface
+2. Features
+3. Performance
+
+### User Quotes
+> "very easy to pick up for the commoner to trade"
+> "Flash mode is very easy and beneficial for trading. Overall a very good platform ."
+> "Poor performance since some days Slow, price update issue in last 5-6days"
+
+### Action Ideas
+- [ ] Improve the app's performance by addressing lagging charts and frequent crashes
+- [ ] Enhance customer support by providing more responsive and helpful support
+- [ ] Add more features, such as premium chart scanners and letter viewing, to make the app more comprehensive
+
+
+---
+
+## 📅 Week of March 27, 2026
+*Appended at 2026-03-27 16:10*
+
+### Weekly Note
+The INDmoney app has received mixed reviews from users, with some praising its user-friendly interface and features, while others have reported performance issues, scams, and misleading information. To improve the app, the developers should focus on addressing these concerns and incorporating user feedback.
+
+### Themes Identified
+- User Interface
+- Features
+- Performance
+- Customer Support
+- Trading Experience
+
+### Top 3 Themes
+1. User Interface
+2. Features
+3. Performance
+
+### User Quotes
+> "very easy to pick up for the commoner to trade"
+> "Big scammed don't use this app other wise you lost all of your money in your account trust me we lost all of my money after using this app"
+> "Amazing App. Great trading app for genz as well as for traditional stock traders. the trading features are excellent."
+
+### Action Ideas
+- [ ] Improve customer support
+- [ ] Enhance trading experience
+- [ ] Optimize performance
+
+
+---
+
+## 📅 Week of April 03, 2026
+*Appended at 2026-04-03 15:55*
+
+### Weekly Note
+Overall, users are satisfied with the ease of use and user interface of the app. However, some users have reported issues with customer support and brokerage charges. The app's trading features are also a major point of discussion, with some users praising its simplicity and others requesting additional features. The INDmoney app has received mixed reviews from users. Some users have praised the app's features, user interface, and performance, while others have reported issues with chart crashing, missing features, and high brokerage charges. The app's performance has also been a concern for some users, with reports of frequent crashes and slow loading times.
+
+### Themes Identified
+- Ease of use
+- User interface
+- Trading features
+- Customer support
+- Brokerage charges
+
+### Top 3 Themes
+1. Ease of use
+2. User interface
+3. Trading features
+
+### User Quotes
+> "very good application ind stocks.. wow"
+> "Fast Intraday and FnO trading at Rs 5 per order is the best feature"
+> "very good app highly recommended,, trustable app,,"
+
+### Action Ideas
+- [ ] Improve customer support
+- [ ] Reduce brokerage charges
+- [ ] Add more trading features
+
+
+---
+
+## 📅 Week of April 10, 2026
+*Appended at 2026-04-10 16:09*
+
+### Weekly Note
+The users are generally satisfied with the app's user-friendly interface, ease of use, and good features. However, some users have reported issues with the app's performance, such as delays in placing orders and glitches. Additionally, some users have suggested features that are not currently available, such as stop loss triggers and mutual fund options.
+
+### Themes Identified
+- user-friendly interface
+- easy to use
+- good features
+- best app
+- good service
+
+### Top 3 Themes
+1. user-friendly interface
+2. easy to use
+3. good features
+
+### User Quotes
+> "Fundamental analysis is crucial prior to investment."
+> "You can track your all investments under one bucket."
+> "Informative and easy to use application, a must recommend for people who want to invest simply."
+
+### Action Ideas
+- [ ] Improve app performance to reduce delays and glitches
+- [ ] Add stop loss triggers and mutual fund options
+- [ ] Enhance user interface for better accessibility
+
+
+---
+
+## 📅 Week of April 17, 2026
+*Appended at 2026-04-17 16:14*
+
+### Weekly Note
+The INDmoney app has received mostly positive reviews from users, with many praising its user-friendly interface and trading features. However, some users have reported glitches and latency issues, which need to be addressed. The app also needs to improve its customer support and add more investment options. The users have mixed opinions about the app, with some praising its user interface, trading experience, and charting and analysis features, while others have complained about issues with customer support, brokerage charges, and technical problems. The app seems to be improving, with some users mentioning that their concerns have been addressed, but there are still some issues that need to be resolved.
+
+### Themes Identified
+- user-friendly interface
+- trading features
+- investment options
+- customer support
+- glitches and latency
+
+### Top 3 Themes
+1. user-friendly interface
+2. trading features
+3. glitches and latency
+
+### User Quotes
+> "Bahut hii achcha aur saral"
+> "easy way to learn fno"
+> "very nice app in india"
+
+### Action Ideas
+- [ ] Improve customer support
+- [ ] Add more investment options
+- [ ] Fix glitches and latency issues`;
+
+        const PULSE_DATA = {
+            "themes": [
+                        "user-friendly interface",
+                        "trading features",
+                        "investment options",
+                        "customer support",
+                        "glitches and latency"
+            ],
+            "top_3_themes": [
+                        "user-friendly interface",
+                        "trading features",
+                        "glitches and latency"
+            ],
+            "quotes": [
+                        "Bahut hii achcha aur saral",
+                        "easy way to learn fno",
+                        "very nice app in india"
+            ],
+            "weekly_note": "The INDmoney app has received mostly positive reviews from users, with many praising its user-friendly interface and trading features. However, some users have reported glitches and latency issues, which need to be addressed. The app also needs to improve its customer support and add more investment options. The users have mixed opinions about the app, with some praising its user interface, trading experience, and charting and analysis features, while others have complained about issues with customer support, brokerage charges, and technical problems. The app seems to be improving, with some users mentioning that their concerns have been addressed, but there are still some issues that need to be resolved.",
+            "action_ideas": [
+                        "Improve customer support",
+                        "Add more investment options",
+                        "Fix glitches and latency issues"
+            ]
+};
+        const ANALYTICS_META = {"review_count": 226, "sentiment": {"positive": 155, "neutral": 7, "negative": 64}, "rating_dist": {"5": 121, "4": 34, "3": 7, "2": 11, "1": 53}};
+        const FEE_DATA = {"scenario_name": "SBI Mutual Funds \u2014 Exit Load", "explanation_bullets": ["SBI Large Cap Fund: 1% exit load if redeemed within 365 days from the date of allotment.", "SBI Flexicap Fund: Nil exit load.", "SBI ELSS Tax Saver Fund: Nil exit load.", "SBI Small Cap Fund: 1% exit load if redeemed within 18 months from the date of allotment.", "SBI Midcap Fund: Nil exit load.", "SBI Focused Equity Fund: Nil exit load."], "source_links": ["https://www.sbimf.com/en-us/investor-corner", "https://www.sbimf.com/sbimf-scheme-details/sbi-large-cap-fund-(formerly-known-as-sbi-bluechip-fund)-43"], "last_checked": "March 21, 2026"};
+        // ───────────────────────────────────────────────────────────────────
+
+        window.addEventListener('DOMContentLoaded', () => {
+            // Extract week/date from draft
+            const dateMatch = EMAIL_DRAFT.match(/EMAIL DRAFT — (\d{4}-\d{2}-\d{2})/);
+            const runDate = dateMatch ? dateMatch[1] : '';
+            const weekLabel = runDate ? 'Week of ' + new Date(runDate).toLocaleDateString('en-US', {month:'long',day:'numeric',year:'numeric'}) : '';
+
+            // Review count badge
+            const reviewCount = ANALYTICS_META.review_count || PULSE_DATA.review_count || null;
+            document.getElementById('review-count-badge').textContent = reviewCount ? `📊 ${reviewCount} Reviews Analysed` : '📊 Reviews Analysed';
+
+            // ── Approval Gate ──
+            const checklistItems = [
+                { label: 'Weekly pulse generated', date: runDate },
+                { label: 'Notes appended to Google Doc', date: runDate },
+                { label: 'Email draft created', date: runDate },
+                { label: 'No PII in outputs verified', date: runDate },
+            ];
+            document.getElementById('gate-checklist').innerHTML = checklistItems.map(item => `
+                <li>
+                    <div class="check-icon">✓</div>
+                    <span>${escapeHtml(item.label)}</span>
+                    <span class="check-date">${escapeHtml(item.date)}</span>
+                </li>`).join('');
+
+            document.getElementById('gate-summary').value = PULSE_DATA.weekly_note || '';
+            document.getElementById('gen-timestamp').textContent = `Generated: ${runDate} by AI Pulse System`;
+
+            // Theme accordions (use all themes, show quote for each)
+            const themeAccordions = PULSE_DATA.themes.map((theme, i) => {
+                const quote = PULSE_DATA.quotes[i] || PULSE_DATA.quotes[0] || '';
+                const isTop = PULSE_DATA.top_3_themes.includes(theme);
+                return `<div class="accordion" id="acc-${i}">
+                    <div class="accordion-header" onclick="toggleAccordion('acc-${i}')">
+                        <span>${escapeHtml(theme)} ${isTop ? '<span style="font-size:11px;color:#a5b4fc;margin-left:6px">★ Top Theme</span>' : ''}</span>
+                        <span class="accordion-arrow">▼</span>
+                    </div>
+                    <div class="accordion-body">
+                        <p class="accordion-desc">User feedback cluster related to ${escapeHtml(theme.toLowerCase())} experiences in the INDmoney app.</p>
+                        ${quote ? `<div class="accordion-quote">"${escapeHtml(quote)}"</div>` : ''}
+                    </div>
+                </div>`;
+            }).join('');
+            document.getElementById('gate-themes').innerHTML = themeAccordions;
+
+            // Gate action ideas
+            document.getElementById('gate-actions').innerHTML = PULSE_DATA.action_ideas.map((a, i) => `
+                <div class="action-item">
+                    <div class="action-num">${i+1}</div>
+                    <div class="action-text">${escapeHtml(a)}</div>
+                </div>`).join('');
+
+            // Fee explainer collapsible body
+            if (FEE_DATA) {
+                const bullets = FEE_DATA.explanation_bullets.map(b =>
+                    `<div class="fee-bullet"><span class="fee-dot"></span><span>${escapeHtml(b)}</span></div>`
+                ).join('');
+                const links = FEE_DATA.source_links.map(l =>
+                    `<a class="fee-link" href="${l}" target="_blank" rel="noopener">${escapeHtml(l)}</a>`
+                ).join('');
+                document.getElementById('fee-body').innerHTML = `
+                    ${bullets}
+                    <div class="fee-links">${links}</div>
+                    <div class="fee-meta">Last checked: ${escapeHtml(FEE_DATA.last_checked)}</div>`;
+            }
+
+            // ── Email Draft tab ──
+            document.getElementById('draft-week-label').textContent = weekLabel;
+            document.getElementById('draft-content').textContent = EMAIL_DRAFT;
+
+            // ── Markdown Notes tab ──
+            document.getElementById('notes-content').innerHTML = marked.parse(NOTES_MD);
+
+            // ── Pulse Poster tab ──
+            const d = PULSE_DATA;
+            const themes = d.top_3_themes.map(t => `<span class="pill">${escapeHtml(t)}</span>`).join('');
+            const quotes = d.quotes.map(q => `<div class="quote-card">"${escapeHtml(q)}"</div>`).join('');
+            const actions = d.action_ideas.map((a, i) => `
+                <div class="action-item">
+                    <div class="action-num">${i+1}</div>
+                    <div class="action-text">${escapeHtml(a)}</div>
+                </div>`).join('');
+
+            document.getElementById('poster-content').innerHTML = `
+                <div class="poster-section">
+                    <h3>Top Themes</h3>
+                    <div class="theme-pills">${themes}</div>
+                </div>
+                <div class="poster-section">
+                    <h3>User Quotes</h3>
+                    ${quotes}
+                </div>
+                <div class="poster-section">
+                    <h3>Weekly Summary</h3>
+                    <p class="note-text">${escapeHtml(d.weekly_note)}</p>
+                </div>
+                <div class="poster-section">
+                    <h3>Action Ideas</h3>
+                    ${actions}
+                </div>
+                ${FEE_DATA ? `<div class="poster-section">
+                    <h3>Fee Explainer — ${escapeHtml(FEE_DATA.scenario_name)}</h3>
+                    <ul style="margin:0;padding-left:20px;color:rgba(255,255,255,0.85);line-height:1.8">
+                        ${FEE_DATA.explanation_bullets.map(b => `<li>${escapeHtml(b)}</li>`).join('')}
+                    </ul>
+                    <div style="margin-top:12px;font-size:13px;color:rgba(255,255,255,0.55)">Last checked: ${escapeHtml(FEE_DATA.last_checked)}</div>
+                    <div style="margin-top:8px;display:flex;flex-direction:column;gap:4px">
+                        ${FEE_DATA.source_links.map(l => `<a href="${l}" target="_blank" rel="noopener" style="color:#a5b4fc;font-size:13px;word-break:break-all">${escapeHtml(l)}</a>`).join('')}
+                    </div>
+                </div>` : ''}`;
+
+            // ── Analytics tab ──
+            const TRACKER_DATA = [
+                { name: 'Performance Issues', sub: 'Performance', vol: 20, desc: 'Repeated crashes and slow performance disrupt user experience, causing frustration and loss of trust.', priority: 'HIGH', tickets: ['PB-6307'] },
+                { name: 'Missing Features', sub: 'Features', vol: 15, desc: 'Many users requested additional features like mutual funds integration and improved UI elements for better usability.', priority: 'MEDIUM', tickets: [] },
+                { name: 'Performance Problems', sub: 'Performance', vol: 15, desc: 'Several reviews highlighted slow performance, crashes, and unresponsive support, impacting user experience.', priority: 'HIGH', tickets: [] },
+                { name: 'UI/UX Issues', sub: 'UI/UX', vol: 10, desc: 'The app\'s interface is generally user-friendly but requires optimization for tablets and smoother performance.', priority: 'LOW', tickets: [] },
+                { name: 'Chart Issues', sub: 'General', vol: 10, desc: 'Multiple users reported chart malfunctions in flash mode and missing option charts, hindering trading accuracy.', priority: 'LOW', tickets: [] },
+                { name: 'Feature Requests', sub: 'Features', vol: 8, desc: 'Users desire additional features like option charts, trailing stop loss, and improved performance.', priority: 'MEDIUM', tickets: [] },
+                { name: 'User Support Issues', sub: 'General', vol: 7, desc: 'Inconsistent support responses and unresolved issues lead to dissatisfaction and churn.', priority: 'LOW', tickets: [] },
+            ];
+
+            const totalIssues = TRACKER_DATA.reduce((s, r) => s + r.vol, 0);
+            const activeTickets = TRACKER_DATA.reduce((s, r) => s + r.tickets.length, 0);
+            const categories = [...new Set(TRACKER_DATA.map(r => r.sub))].length;
+
+            document.getElementById('stat-grid').innerHTML = [
+                { num: totalIssues, label: 'Total Issues', sub: 'Across all categories' },
+                { num: activeTickets, label: 'Active Tickets', sub: 'Currently tracked' },
+                { num: categories, label: 'Categories', sub: 'Being monitored' },
+            ].map(s => `<div class="stat-card">
+                <div style="font-size:12px;color:rgba(255,255,255,0.4);margin-bottom:8px;font-weight:600">${s.label}</div>
+                <div class="stat-num">${s.num}</div>
+                <div style="font-size:12px;color:rgba(255,255,255,0.3);margin-top:6px">${s.sub}</div>
+            </div>`).join('');
+
+            // Chart data
+            const weeks = ['Mar 12', 'Mar 22', 'Mar 27'];
+            const chartDatasets = [
+                { label: 'Performance', data: [5, 15, 14], color: '#ef4444' },
+                { label: 'Features',    data: [8, 10, 4],  color: '#f59e0b' },
+                { label: 'UI/UX',       data: [9, 7, 9],   color: '#818cf8' },
+                { label: 'General',     data: [0, 6, 10],  color: '#60a5fa' },
+            ];
+
+            const ctx = document.getElementById('analyticsChart').getContext('2d');
+            window._analyticsChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: weeks,
+                    datasets: chartDatasets.map(d => ({
+                        label: d.label,
+                        data: d.data,
+                        backgroundColor: d.color + '99',
+                        borderColor: d.color,
+                        borderWidth: 2,
+                        borderRadius: 6,
+                        pointBackgroundColor: d.color,
+                        pointRadius: 5,
+                        tension: 0.4,
+                    }))
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'bottom', labels: { color: 'rgba(255,255,255,0.6)', boxWidth: 12, padding: 16, font: { family: 'Outfit' } } },
+                        tooltip: { backgroundColor: 'rgba(0,0,0,0.75)', titleFont: { family: 'Outfit' }, bodyFont: { family: 'Outfit' } }
+                    },
+                    scales: {
+                        x: { ticks: { color: 'rgba(255,255,255,0.5)', font: { family: 'Outfit' } }, grid: { color: 'rgba(255,255,255,0.05)' } },
+                        y: { beginAtZero: true, ticks: { color: 'rgba(255,255,255,0.5)', font: { family: 'Outfit' } }, grid: { color: 'rgba(255,255,255,0.05)' } }
+                    }
+                }
+            });
+
+            // Tracker table
+            renderTrackerTable(TRACKER_DATA);
+        });
+
+        function switchTab(tab, btn) {
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById(`tab-${tab}`).classList.add('active');
+            btn.classList.add('active');
+            if (!_tabInited[tab]) {
+                _tabInited[tab] = true;
+                if (tab === 'wordcloud') initWordCloud();
+                if (tab === 'categories') initCategories();
+                if (tab === 'ideation') initIdeation();
+            }
+        }
+
+        function toggleAccordion(id) {
+            const el = document.getElementById(id);
+            el.classList.toggle('open');
+        }
+
+        function toggleCollapsible(id) {
+            document.getElementById(id).classList.toggle('open');
+        }
+
+        async function gateAction(type) {
+            const status = document.getElementById('gate-status');
+            const btn = document.getElementById('both-btn');
+            status.textContent = '';
+            if (type === 'notes') {
+                status.textContent = '✅ Notes marked as sent to Google Doc (re-run pipeline to append live data).';
+                status.className = 'status-msg success';
+            } else if (type === 'email') {
+                status.textContent = '✅ Email draft approved. Use the Send Email form below to deliver.';
+                status.className = 'status-msg success';
+            } else if (type === 'both') {
+                btn.disabled = true;
+                btn.textContent = 'Processing...';
+                await new Promise(r => setTimeout(r, 800));
+                status.textContent = '✅ Both actions approved. Notes logged & email draft ready to send.';
+                status.className = 'status-msg success';
+                btn.disabled = false;
+                btn.textContent = '✅ Do Both & Finish';
+            }
+        }
+
+        async function sendEmailFrom(source) {
+            const nameId = source === 'gate' ? 'gate-send-name' : 'send-name';
+            const emailId = source === 'gate' ? 'gate-send-email' : 'send-email';
+            const btnId = source === 'gate' ? 'gate-send-btn' : 'send-btn';
+            const statusId = source === 'gate' ? 'gate-send-status' : 'send-status';
+
+            const name = document.getElementById(nameId).value.trim();
+            const email = document.getElementById(emailId).value.trim();
+            const btn = document.getElementById(btnId);
+            const status = document.getElementById(statusId);
+
+            if (!name || !email) { status.textContent = 'Please enter both name and email.'; status.className = 'status-msg error'; return; }
+
+            btn.disabled = true;
+            btn.innerHTML = 'Sending... <span class="spinner-inline"></span>';
+            status.textContent = '';
+            status.className = 'status-msg';
+
+            try {
+                const res = await fetch(`${API}/api/send-email`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name, email })
+                });
+                const data = await res.json();
+                if (res.ok) {
+                    status.textContent = `✅ Email sent to ${email}!`;
+                    status.className = 'status-msg success';
+                    document.getElementById(nameId).value = '';
+                    document.getElementById(emailId).value = '';
+                } else {
+                    status.textContent = data.detail || 'Failed to send email.';
+                    status.className = 'status-msg error';
+                }
+            } catch (e) {
+                status.textContent = '❌ Failed to connect to server.';
+                status.className = 'status-msg error';
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Send Email 🚀';
+            }
+        }
+
+        // ── Word Cloud data ──────────────────────────────────────────────────
+        const KEYWORDS = [{"w": "trading", "n": 54, "c": "#4ade80"}, {"w": "best", "n": 35, "c": "#60a5fa"}, {"w": "option", "n": 31, "c": "#f59e0b"}, {"w": "you", "n": 27, "c": "#f472b6"}, {"w": "chart", "n": 24, "c": "#a78bfa"}, {"w": "please", "n": 23, "c": "#34d399"}, {"w": "stock", "n": 22, "c": "#fb923c"}, {"w": "loss", "n": 18, "c": "#818cf8"}, {"w": "stocks", "n": 18, "c": "#e879f9"}, {"w": "trade", "n": 17, "c": "#22d3ee"}, {"w": "your", "n": 17, "c": "#4ade80"}, {"w": "add", "n": 17, "c": "#f87171"}, {"w": "user", "n": 15, "c": "#fb923c"}, {"w": "ind", "n": 14, "c": "#60a5fa"}, {"w": "flash", "n": 13, "c": "#a5b4fc"}, {"w": "feature", "n": 13, "c": "#34d399"}, {"w": "features", "n": 13, "c": "#fbbf24"}, {"w": "market", "n": 12, "c": "#f87171"}, {"w": "don", "n": 12, "c": "#818cf8"}, {"w": "money", "n": 12, "c": "#e879f9"}];
+        const UPVOTED_REVIEWS = [
+            {name:'Manish Mathur',date:'21 Apr 2026',stars:4,sentiment:'Neutral',text:'easy to use and understand UI DESIGN, FAST & RELIABLE',tags:['UI/UX','Performance'],upvotes:141},
+            {name:'App User',date:'28 Mar 2026',stars:1,sentiment:'Negative',text:'On listing day the stock was not visible on the app for around 10 minutes after it went live on the exchange. Available on other brokerages during the same time.',tags:['Investment & Trading','Performance'],upvotes:828},
+            {name:'App User',date:'30 Mar 2026',stars:1,sentiment:'Neutral',text:'I have many reasons for not choosing INDmoney: 1. Brokerage on equity delivery. 2. Worst customer and product support. 3. Very less new feature updates.',tags:['Customer Support','Features'],upvotes:746},
+        ];
+
+        // ── Category data ─────────────────────────────────────────────────────
+        const CATEGORIES_DATA = [{"name": "user-friendly interface", "count": 120, "pct": 59.4, "color": "#4ade80"}, {"name": "trading features", "count": 27, "pct": 13.4, "color": "#60a5fa"}, {"name": "investment options", "count": 24, "pct": 11.9, "color": "#f59e0b"}, {"name": "customer support", "count": 16, "pct": 7.9, "color": "#f472b6"}, {"name": "glitches and latency", "count": 15, "pct": 7.4, "color": "#a78bfa"}];
+
+        // ── Ideation data ─────────────────────────────────────────────────────
+        const AI_IDEAS = [
+            {title:'Fix Chart Lag in Flash Mode',body:'Multiple users report lagging option charts and missing candlestick data during high-volatility sessions. Prioritise rendering optimisation for Flash Mode.',impact:'High'},
+            {title:'Improve Customer Support SLA',body:'Reviews frequently cite unresolved tickets closed without solution. Implement visible SLA timers and escalation paths for recurring issues.',impact:'High'},
+            {title:'Add Trailing Stop-Loss Feature',body:'Power traders explicitly request trailing stop-loss orders. This is a standard feature on competing platforms and would reduce churn.',impact:'Medium'},
+            {title:'Mutual Funds SIP Reminders',body:'Users want push notifications for SIP execution dates and confirmation of investment. Easy win for engagement and trust.',impact:'Medium'},
+        ];
+        const NEGATIVE_REVIEWS = [{"name": "App User", "stars": 1, "text": "Every day at 9:15 AM when I place an order, it shows “Execute the order after market open” even though the market is already open and LTP is changing. This major glitch has been happening for over a month. Also, in Scalper Mode there is no option to ", "tags": ["glitches and latency"]}, {"name": "App User", "stars": 1, "text": "Doing Fake Marketing to attract people. They published an ad showing brokerage charges as 5₹ per order in FnO. when I installed the app and checked the charges, it was showing 20₹ which is the same as other brokers. Completely Meaningless Marketing. ", "tags": ["glitches and latency"]}, {"name": "App User", "stars": 1, "text": "chart pattern detection timely notification required in app. without notification there is no use of chart Pattern. Lots of strike is index option each strike cannot check manuallly for chart pattern detection and trade.", "tags": ["glitches and latency"]}, {"name": "App User", "stars": 1, "text": "very poor app always hang today while trading it hang does not show any data and 1000 times I have tried to exit but app was totally fail and showing technical issue end I have lost my trade and I get loss after 1 hour the app get working and I exit ", "tags": ["trading features"]}, {"name": "App User", "stars": 1, "text": "ind flash trading app takes charges 20 rupees per order it is bad app now I closed permanently uninstalled this app and use groww zerodha and sahi app ,,, don't use aaltu faltu ind flash trading app.", "tags": ["trading features"]}];
+
+        let _bugSelected = new Set();
+
+        function initWordCloud() {
+            const totalWords = KEYWORDS.reduce((s,k)=>s+k.n,0);
+            const uniqueWords = KEYWORDS.length;
+            document.getElementById('wc-stats').innerHTML = [
+                {label:'REVIEWS ANALYZED',num:(ANALYTICS_META.review_count||1000).toLocaleString()},
+                {label:'TOTAL WORDS',num:totalWords.toLocaleString()},
+                {label:'UNIQUE WORDS',num:uniqueWords.toLocaleString()},
+            ].map(st => `<div class="wc-stat">
+                <div class="wc-stat-label">${st.label}</div>
+                <div class="wc-stat-num">${st.num}</div>
+            </div>`).join('');
+
+            const max = KEYWORDS[0].n;
+            document.getElementById('wc-cloud').innerHTML = KEYWORDS.map(k => {
+                const size = 13 + Math.round((k.n / max) * 38);
+                return `<span class="wc-word" style="font-size:${size}px;color:${k.c}" title="${k.n} occurrences">${k.w}</span>`;
+            }).join('');
+
+            document.getElementById('kw-count-label').textContent = `Show All (${KEYWORDS.length})`;
+            document.getElementById('kw-list').innerHTML = KEYWORDS.map((k,i) => `
+                <li class="kw-item">
+                    <span class="kw-rank">${i+1}</span>
+                    <span class="kw-word">${k.w}</span>
+                    <div class="kw-bar-track"><div class="kw-bar-fill" style="width:${Math.round(k.n/max*100)}%;background:${k.c}"></div></div>
+                    <span class="kw-count">${k.n}</span>
+                </li>`).join('');
+
+            document.getElementById('upvote-count-label').textContent = `${UPVOTED_REVIEWS.length} reviews`;
+            document.getElementById('upvoted-reviews').innerHTML = UPVOTED_REVIEWS.map(r => {
+                const stars = '★'.repeat(r.stars) + '☆'.repeat(5-r.stars);
+                const tags = r.tags.map(t=>`<span class="rc-tag">${t}</span>`).join('');
+                return `<div class="review-card">
+                    <div class="rc-header">
+                        <div class="rc-avatar">${r.name[0]}</div>
+                        <div><div class="rc-name">${escapeHtml(r.name)}</div><div class="rc-meta">Android · ${r.date}</div></div>
+                        <div style="margin-left:auto;display:flex;align-items:center;gap:8px">
+                            <span style="color:${r.stars>=4?'#f59e0b':'#f87171'}">${stars}</span>
+                            <span class="sentiment-chip sent-${r.sentiment}">${r.sentiment}</span>
+                        </div>
+                    </div>
+                    <div class="rc-body">${escapeHtml(r.text)}</div>
+                    <div class="rc-tags">${tags}</div>
+                    <div class="rc-footer"><span>👍 ${r.upvotes}</span></div>
+                </div>`;
+            }).join('');
+        }
+
+        function initCategories() {
+            const top3 = CATEGORIES_DATA.slice(0,3);
+            const icons = ['👍','🖥️','⚡'];
+            document.getElementById('cat-cards').innerHTML = top3.map((c,i) => `
+                <div class="cat-card">
+                    <div class="cat-card-icon">${icons[i]}</div>
+                    <div class="cat-card-name">${escapeHtml(c.name)}</div>
+                    <div class="cat-card-count">${c.count}</div>
+                    <div class="cat-card-sub">reviews — ${c.pct}%</div>
+                    <div class="cat-pct-bar" style="background:${c.color};width:${Math.min(c.pct*8,100)}%"></div>
+                </div>`).join('');
+
+            const catCtx = document.getElementById('catDistChart').getContext('2d');
+            new Chart(catCtx,{type:'bar',data:{
+                labels: CATEGORIES_DATA.map(c=>c.name),
+                datasets:[{label:'Reviews',data:CATEGORIES_DATA.map(c=>c.count),
+                    backgroundColor:CATEGORIES_DATA.map(c=>c.color+'cc'),
+                    borderColor:CATEGORIES_DATA.map(c=>c.color),
+                    borderWidth:1,borderRadius:5}]
+            },options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,
+                plugins:{legend:{display:false},tooltip:{backgroundColor:'rgba(0,0,0,0.75)',bodyFont:{family:'Outfit'}}},
+                scales:{x:{ticks:{color:'rgba(255,255,255,0.5)',font:{family:'Outfit'}},grid:{color:'rgba(255,255,255,0.05)'}},
+                        y:{ticks:{color:'rgba(255,255,255,0.7)',font:{family:'Outfit',size:11}},grid:{display:false}}}}});
+
+            const totalCat = CATEGORIES_DATA.reduce((s,c)=>s+c.count,0);
+            document.getElementById('cat-stats-list').innerHTML = CATEGORIES_DATA.map(c => `
+                <div class="cat-stat-row">
+                    <div class="cat-stat-dot" style="background:${c.color}"></div>
+                    <div><div class="cat-stat-name">${escapeHtml(c.name)}</div>
+                    <div class="cat-stat-bar" style="background:${c.color};width:${Math.round(c.count/CATEGORIES_DATA[0].count*120)}px"></div></div>
+                    <div class="cat-stat-count">${c.count}</div>
+                    <div class="cat-stat-pct">${c.pct}%</div>
+                </div>`).join('');
+
+            const s = ANALYTICS_META.sentiment;
+            const sentCtx = document.getElementById('sentimentChart').getContext('2d');
+            new Chart(sentCtx,{type:'bar',data:{
+                labels:['Positive','Neutral','Negative'],
+                datasets:[{data:[s.positive,s.neutral,s.negative],backgroundColor:['#4ade8099','#fbbf2499','#f8717199'],borderColor:['#4ade80','#fbbf24','#f87171'],borderWidth:2,borderRadius:8}]
+            },options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},
+                scales:{x:{ticks:{color:'rgba(255,255,255,0.6)',font:{family:'Outfit'}},grid:{display:false}},
+                        y:{ticks:{color:'rgba(255,255,255,0.4)',font:{family:'Outfit'}},grid:{color:'rgba(255,255,255,0.05)'}}}}});
+
+            const rd = ANALYTICS_META.rating_dist;
+            const ratingCtx = document.getElementById('ratingChart').getContext('2d');
+            new Chart(ratingCtx,{type:'bar',data:{
+                labels:['5★','4★','3★','2★','1★'],
+                datasets:[{data:[rd['5'],rd['4'],rd['3'],rd['2'],rd['1']],backgroundColor:['#4ade8099','#4ade8099','#fbbf2499','#fb923c99','#f8717199'],borderColor:['#4ade80','#4ade80','#fbbf24','#fb923c','#f87171'],borderWidth:2,borderRadius:8}]
+            },options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},
+                scales:{x:{ticks:{color:'rgba(255,255,255,0.6)',font:{family:'Outfit'}},grid:{display:false}},
+                        y:{ticks:{color:'rgba(255,255,255,0.4)',font:{family:'Outfit'}},grid:{color:'rgba(255,255,255,0.05)'}}}}});
+        }
+
+        function initIdeation() {
+            document.getElementById('idea-list').innerHTML = AI_IDEAS.map(idea => `
+                <div class="idea-card">
+                    <div class="idea-card-title">${escapeHtml(idea.title)}</div>
+                    <div class="idea-card-body">${escapeHtml(idea.body)}</div>
+                    <span class="idea-card-impact impact-${idea.impact}">${idea.impact} Impact</span>
+                </div>`).join('');
+
+            renderBugList(NEGATIVE_REVIEWS);
+        }
+
+        function renderBugList(reviews) {
+            document.getElementById('bug-review-list').innerHTML = reviews.map((r,i) => {
+                const isSelected = _bugSelected.has(i);
+                const stars = '★'.repeat(r.stars)+'☆'.repeat(5-r.stars);
+                return `<div class="bug-review-item${isSelected?' selected':''}" onclick="toggleBugReview(${i},this)">
+                    <div class="bug-cb${isSelected?' checked':''}">${isSelected?'✓':''}</div>
+                    <div>
+                        <div style="display:flex;gap:8px;align-items:center">
+                            <span class="bug-rev-name">${escapeHtml(r.name)}</span>
+                            <span style="color:#f59e0b;font-size:11px">${stars}</span>
+                        </div>
+                        <div class="bug-rev-text">${escapeHtml(r.text)}</div>
+                    </div>
+                </div>`;
+            }).join('');
+            document.getElementById('selected-count').textContent = _bugSelected.size;
+        }
+
+        function toggleBugReview(idx, el) {
+            if (_bugSelected.has(idx)) _bugSelected.delete(idx); else _bugSelected.add(idx);
+            el.classList.toggle('selected');
+            el.querySelector('.bug-cb').classList.toggle('checked');
+            el.querySelector('.bug-cb').textContent = _bugSelected.has(idx)?'✓':'';
+            document.getElementById('selected-count').textContent = _bugSelected.size;
+        }
+
+        function bugSelectAll() {
+            NEGATIVE_REVIEWS.forEach((_,i)=>_bugSelected.add(i));
+            renderBugList(NEGATIVE_REVIEWS);
+        }
+
+        function filterBugReviews(query) {
+            const filtered = NEGATIVE_REVIEWS.filter(r=>r.text.toLowerCase().includes(query.toLowerCase())||r.name.toLowerCase().includes(query.toLowerCase()));
+            renderBugList(filtered);
+        }
+
+        function generateBugReport() {
+            if (_bugSelected.size === 0) return;
+            const selected = [..._bugSelected].map(i=>NEGATIVE_REVIEWS[i]);
+            const report = `BUG REPORT — Generated ${new Date().toLocaleDateString('en-IN')}
+${'='.repeat(60)}
+
+Total Reviews Selected: ${selected.length}
+Generated by: INDmoney AI Pulse System
+
+${selected.map((r,i)=>`ISSUE #${i+1}
+  Reporter : ${r.name}
+  Rating   : ${'★'.repeat(r.stars)}${'☆'.repeat(5-r.stars)}
+  Tags     : ${r.tags.join(', ')}
+  Feedback : ${r.text}
+  Priority : ${r.stars === 1 ? 'HIGH' : 'MEDIUM'}
+`).join('\n')}
+${'='.repeat(60)}
+[Pending triage and ticket assignment]`;
+            document.getElementById('bug-report-content').textContent = report;
+            document.getElementById('bug-report-output').style.display = 'block';
+            document.getElementById('bug-report-output').scrollIntoView({behavior:'smooth'});
+        }
+
+        // Lazy-init tabs on first click
+        const _tabInited = {};
+        const _origSwitchTab = switchTab;
+
+        function setChartType(type, btn) {
+            document.querySelectorAll('.chart-toggle-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            const c = window._analyticsChart;
+            const isLine = type === 'line';
+            c.config.type = type;
+            c.data.datasets.forEach(ds => {
+                ds.fill = isLine ? false : undefined;
+                ds.borderRadius = isLine ? 0 : 6;
+            });
+            document.getElementById('chart-title').textContent = isLine ? 'Category Issue Trend' : 'Week-wise Issues by Category';
+            document.getElementById('chart-subtitle').textContent = isLine ? 'Number of issues per category over time' : 'Number of issues reported per category each week';
+            c.update();
+        }
+
+        function renderTrackerTable(data) {
+            document.getElementById('tracker-body').innerHTML = data.map((row, ri) => `
+                <tr>
+                    <td><div class="cat-name">${escapeHtml(row.name)}</div><div class="cat-sub">${escapeHtml(row.sub)}</div></td>
+                    <td><div class="cat-vol">${row.vol}</div></td>
+                    <td><div class="cat-desc">${escapeHtml(row.desc)}</div></td>
+                    <td><span class="priority-badge priority-${row.priority}">${row.priority}</span></td>
+                    <td>
+                        <div class="ticket-chips" id="chips-${ri}">
+                            ${row.tickets.length ? row.tickets.map(t => ticketChip(t, ri)).join('') : '<span class="no-tickets">No tickets</span>'}
+                        </div>
+                    </td>
+                    <td>
+                        <div class="add-ticket-row">
+                            <input class="add-ticket-input" id="ticket-input-${ri}" placeholder="e.g., ANAL-104" />
+                            <button class="add-ticket-btn" onclick="addTicket(${ri})">+</button>
+                        </div>
+                    </td>
+                </tr>`).join('');
+        }
+
+        function ticketChip(label, ri) {
+            return `<span class="ticket-chip">${escapeHtml(label)}<button onclick="removeTicket(this, ${ri})" title="Remove">×</button></span>`;
+        }
+
+        function addTicket(ri) {
+            const input = document.getElementById(`ticket-input-${ri}`);
+            const val = input.value.trim();
+            if (!val) return;
+            const chips = document.getElementById(`chips-${ri}`);
+            const noTix = chips.querySelector('.no-tickets');
+            if (noTix) noTix.remove();
+            chips.insertAdjacentHTML('beforeend', ticketChip(val, ri));
+            input.value = '';
+        }
+
+        function removeTicket(btn, ri) {
+            const chip = btn.closest('.ticket-chip');
+            const chips = document.getElementById(`chips-${ri}`);
+            chip.remove();
+            if (!chips.querySelector('.ticket-chip')) {
+                chips.innerHTML = '<span class="no-tickets">No tickets</span>';
+            }
+        }
+
+        function escapeHtml(text) {
+            return String(text).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+        }
+    </script>
+</body>
+</html>

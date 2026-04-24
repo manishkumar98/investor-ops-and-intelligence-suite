@@ -2,8 +2,26 @@
 import json
 import os
 import re
+from collections import Counter
 
 import anthropic
+
+# English + Hindi stopwords for word-cloud filtering (M2 addition for Indian audience)
+STOPWORDS: set[str] = {
+    "the", "a", "an", "is", "it", "in", "on", "at", "to", "for", "of", "and",
+    "or", "but", "with", "this", "that", "they", "their", "there", "very",
+    "just", "app", "indmoney", "fund", "sbi", "use", "using", "used",
+    "good", "great", "nice", "bad", "not", "no", "yes", "can", "get",
+    "have", "has", "had", "been", "was", "are", "were", "will", "would",
+    "my", "me", "we", "us", "you", "your", "our", "its", "be", "do",
+    "did", "does", "from", "also", "all", "more", "most", "some", "any",
+    # Hindi transliterations common in Indian app reviews
+    "bhi", "se", "ka", "ki", "hai", "he", "ko", "kya", "nahi", "kar",
+    "mein", "ke", "aur", "koi", "ek", "toh", "par", "tha", "main",
+}
+
+_WORD_COLORS = ["#4ade80", "#60a5fa", "#f59e0b", "#c084fc", "#fb7185",
+                "#34d399", "#818cf8", "#facc15", "#f87171", "#2dd4bf"]
 
 _client = None
 
@@ -45,6 +63,19 @@ Output only valid JSON. Partial analyses:
 
 def _count_words(text: str) -> int:
     return len(text.split()) if isinstance(text, str) else 0
+
+
+def _sample_reviews(reviews: list[dict], max_words: int = 9000) -> list[dict]:
+    """From M2 sample_data — cap total word count to avoid LLM token overflow."""
+    total = 0
+    sampled = []
+    for r in reviews:
+        wc = _count_words(r.get("review_text", ""))
+        if total + wc > max_words:
+            break
+        sampled.append(r)
+        total += wc
+    return sampled if sampled else reviews[:50]
 
 
 def _validate(data: dict) -> list[str]:
@@ -121,13 +152,15 @@ def cluster(reviews: list[dict]) -> dict:
 
     For ≤15 reviews: single LLM call.
     For >15 reviews: split in half, process each, synthesize.
+    Applies smart sampling (9 000-word cap) per half before each LLM call.
     Returns: {themes, top_3, quotes, weekly_note, action_ideas}
     """
     if not reviews:
         return _fallback()
 
     if len(reviews) <= 15:
-        text = _build_reviews_text(reviews)
+        sampled = _sample_reviews(reviews)
+        text = _build_reviews_text(sampled)
         result = _call_llm(_CHUNK_PROMPT.format(reviews_text=text))
         return result or _fallback()
 
@@ -138,15 +171,59 @@ def cluster(reviews: list[dict]) -> dict:
 
     print(f"[theme_clusterer] 2-pass: {len(first_half)} + {len(second_half)} reviews")
 
-    result1 = _call_llm(_CHUNK_PROMPT.format(reviews_text=_build_reviews_text(first_half)))
+    result1 = _call_llm(_CHUNK_PROMPT.format(
+        reviews_text=_build_reviews_text(_sample_reviews(first_half))
+    ))
     if not result1:
         result1 = _fallback()
 
-    result2 = _call_llm(_CHUNK_PROMPT.format(reviews_text=_build_reviews_text(second_half)))
+    result2 = _call_llm(_CHUNK_PROMPT.format(
+        reviews_text=_build_reviews_text(_sample_reviews(second_half))
+    ))
     if not result2:
         return result1
 
     return _synthesize(result1, result2)
+
+
+def generate_analytics(reviews: list[dict]) -> dict:
+    """From M2 generate_analytics_data — derives word cloud, sentiment, rating distribution.
+
+    Returns dict with: keywords (top 20), sentiment, rating_dist, negative_reviews, total.
+    """
+    # Sentiment split
+    positive = sum(1 for r in reviews if float(r.get("rating", 3)) >= 4)
+    neutral  = sum(1 for r in reviews if float(r.get("rating", 3)) == 3)
+    negative = sum(1 for r in reviews if float(r.get("rating", 3)) <= 2)
+
+    # Rating distribution
+    rating_dist: dict[str, int] = {}
+    for r in reviews:
+        star = str(max(1, min(5, int(float(r.get("rating", 3))))))
+        rating_dist[star] = rating_dist.get(star, 0) + 1
+
+    # Top 20 keywords (filtered by STOPWORDS, min 3 chars)
+    all_text = " ".join(r.get("review_text", "") for r in reviews).lower()
+    words = re.findall(r"\b[a-z]{3,}\b", all_text)
+    freq = Counter(w for w in words if w not in STOPWORDS)
+    keywords = [
+        {"word": w, "count": c, "color": _WORD_COLORS[i % len(_WORD_COLORS)]}
+        for i, (w, c) in enumerate(freq.most_common(20))
+    ]
+
+    # Sample of negative reviews for inspection
+    neg_reviews = [
+        {"text": r.get("review_text", "")[:150], "rating": r.get("rating", 1)}
+        for r in reviews if float(r.get("rating", 3)) <= 2
+    ][:5]
+
+    return {
+        "keywords":       keywords,
+        "sentiment":      {"positive": positive, "neutral": neutral, "negative": negative},
+        "rating_dist":    rating_dist,
+        "negative_reviews": neg_reviews,
+        "total":          len(reviews),
+    }
 
 
 def _fallback() -> dict:

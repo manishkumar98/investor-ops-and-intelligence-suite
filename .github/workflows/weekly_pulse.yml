@@ -1,0 +1,85 @@
+name: Weekly Review Pulse
+
+on:
+  schedule:
+    # Every Friday at 8:40 PM IST (15:10 UTC) — same as M2
+    - cron: '10 15 * * 5'
+  workflow_dispatch:   # Allow manual trigger from GitHub UI
+
+jobs:
+  run-weekly-pulse:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+          python -m spacy download en_core_web_sm
+
+      - name: Create .env from GitHub Secrets
+        run: |
+          cat > .env << EOF
+          ANTHROPIC_API_KEY=${{ secrets.ANTHROPIC_API_KEY }}
+          OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}
+          CHROMA_PERSIST_DIR=./data/chroma
+          MCP_MODE=mock
+          EOF
+
+      - name: Log run start
+        run: |
+          mkdir -p logs
+          echo "========================================" >> logs/scheduler.log
+          echo "Run Date     : $(TZ='Asia/Kolkata' date '+%Y-%m-%d %H:%M:%S IST')" >> logs/scheduler.log
+          echo "Triggered by : ${{ github.event_name }}" >> logs/scheduler.log
+          echo "Commit SHA   : ${{ github.sha }}" >> logs/scheduler.log
+          echo "Status       : STARTED" >> logs/scheduler.log
+
+      - name: Run full pipeline
+        id: pipeline
+        run: python scripts/run_review_pipeline.py
+
+      - name: Log run result
+        if: always()
+        run: |
+          if [ "${{ steps.pipeline.outcome }}" == "success" ]; then
+            echo "Pipeline     : SUCCESS" >> logs/scheduler.log
+            echo "Result       : COMPLETED" >> logs/scheduler.log
+          else
+            echo "Pipeline     : ${{ steps.pipeline.outcome }}" >> logs/scheduler.log
+            echo "Result       : FAILED" >> logs/scheduler.log
+          fi
+          echo "========================================" >> logs/scheduler.log
+          echo "" >> logs/scheduler.log
+
+      - name: Commit updated dashboard and data
+        if: steps.pipeline.outcome == 'success'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add data/dashboard.html data/pulse_latest.json data/analytics_latest.json data/fee_latest.json data/pulse_notes.md data/system_state.json
+          git diff --staged --quiet || git commit -m "chore: update dashboard with weekly pulse data $(date '+%Y-%m-%d')"
+          git push
+
+      - name: Upload pipeline outputs as artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: weekly-pulse-outputs
+          path: |
+            data/pulse_latest.json
+            data/analytics_latest.json
+            data/fee_latest.json
+            data/dashboard.html
+            logs/scheduler.log
+          retention-days: 30

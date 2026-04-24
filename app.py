@@ -7,15 +7,17 @@ import re
 from pathlib import Path
 
 import streamlit as st
+import streamlit.components.v1 as components
 
 from config import load_env, MCP_MODE
 from session_init import init_session_state
 from phase5_pillar_a_faq.faq_engine import query as faq_query
 from phase2_corpus_pillar_a.ingest import get_collection
-from phase3_review_pillar_b.pipeline_orchestrator import run_pipeline
 from phase4_voice_pillar_b.voice_agent import VoiceAgent
 from phase7_pillar_c_hitl.mcp_client import MCPClient
 from phase7_pillar_c_hitl.hitl_panel import render as render_hitl
+
+from scripts.run_review_pipeline import run_pipeline as _run_full_pipeline
 
 _DOMAIN_LABELS = {
     "sbimf.com":      "SBI Mutual Fund",
@@ -598,45 +600,85 @@ with tab1:
 # Tab 2 — Review Pulse & Voice Agent
 # ══════════════════════════════════════════════════════════════════════════════
 with tab2:
-    st.markdown("### Review Pulse & Voice Agent")
-
-    # ── Review Pipeline section ──────────────────────────────────────────────
-    st.markdown("#### Weekly Review Pulse")
-    uploaded_file = st.file_uploader("Upload reviews CSV", type="csv")
-
-    if uploaded_file and st.button("▶ Run Pipeline"):
-        with st.spinner("Processing reviews..."):
+    # ── Header row ──────────────────────────────────────────────────────────
+    _col_title, _col_btn = st.columns([5, 1])
+    with _col_title:
+        st.markdown("### Review Pulse & Voice Agent")
+        _state_file = Path("data/system_state.json")
+        if _state_file.exists():
             try:
-                result = run_pipeline(uploaded_file, st.session_state)
-                st.success("Pipeline complete!")
+                _st = json.loads(_state_file.read_text())
+                if _st.get("last_pipeline_run"):
+                    from datetime import datetime as _dt
+                    _ts = _dt.fromisoformat(_st["last_pipeline_run"]).strftime("%d %b %Y, %I:%M %p")
+                    st.caption(f"Last run: {_ts} · {_st.get('last_review_count','—')} reviews")
+            except Exception:
+                pass
+    with _col_btn:
+        st.markdown("<br>", unsafe_allow_html=True)
+        _run_pipeline = st.button("▶ Run Pipeline", key="run_pipeline_tab2", type="primary")
 
-                col1, col2, col3 = st.columns(3)
-                with col1:
-                    st.subheader("Top Themes")
-                    for theme in result["top_3"]:
-                        st.markdown(f"- {theme}")
-                with col2:
-                    st.subheader("User Quotes")
-                    for q in result["quotes"]:
-                        st.markdown(f"*\"{q['quote']}\"*  — Rating: {q['rating']}/5")
-                with col3:
-                    st.subheader("Weekly Pulse")
-                    st.write(result["pulse"])
-                    st.caption(f"Word count: {result['word_count']}")
+    # ── Run pipeline inline ──────────────────────────────────────────────────
+    if _run_pipeline:
+        _log_area = st.empty()
+        _logs: list[str] = []
 
-                if result.get("action_ideas"):
-                    st.markdown("#### Action Ideas")
-                    for idea in result["action_ideas"]:
-                        st.markdown(f"- {idea}")
+        def _pipeline_cb(msg: str) -> None:
+            _logs.append(msg)
+            _log_area.info("\n\n".join(_logs))
 
-                st.markdown("#### Fee Context")
-                for bullet in result["fee_bullets"]:
-                    st.markdown(f"- {bullet}")
-                for src in result["fee_sources"]:
-                    st.caption(f"Source: {src}")
-                st.caption(f"Last checked: {result['fee_checked']}")
-            except Exception as exc:
-                st.error(f"Pipeline error: {exc}")
+        with st.spinner("Scraping reviews and running pipeline…"):
+            try:
+                _result = _run_full_pipeline(status_cb=_pipeline_cb)
+                _pulse = _result["pulse"]
+                _top3  = _pulse.get("top_3_themes", [])
+                st.session_state["weekly_pulse"]    = _pulse.get("weekly_note", "")
+                st.session_state["top_theme"]       = _top3[0] if _top3 else "General Feedback"
+                st.session_state["top_3_themes"]    = _top3
+                st.session_state["fee_bullets"]     = _result["fee"].get("bullets", [])
+                st.session_state["fee_sources"]     = _result["fee"].get("sources", [])
+                st.session_state["pulse_generated"] = True
+                st.session_state["analytics_data"]  = _result["analytics"]
+                _log_area.empty()
+                st.success(f"✅ Pipeline complete — {_pulse.get('review_count','?')} reviews processed.")
+                st.rerun()
+            except Exception as _exc:
+                _log_area.empty()
+                st.error(f"Pipeline failed: {_exc}")
+
+    # ── Dashboard embed ──────────────────────────────────────────────────────
+    _dashboard = Path("data/dashboard.html")
+    if _dashboard.exists():
+        # Seed session state from saved JSONs (so voice agent works after reload)
+        if not st.session_state.get("pulse_generated"):
+            try:
+                _p = json.loads(Path("data/pulse_latest.json").read_text())
+                _f = json.loads(Path("data/fee_latest.json").read_text()) if Path("data/fee_latest.json").exists() else {}
+                _top3 = _p.get("top_3_themes", [])
+                st.session_state["weekly_pulse"]    = _p.get("weekly_note", "")
+                st.session_state["top_theme"]       = _top3[0] if _top3 else "General Feedback"
+                st.session_state["top_3_themes"]    = _top3
+                st.session_state["fee_bullets"]     = _f.get("bullets", [])
+                st.session_state["fee_sources"]     = _f.get("sources", [])
+                st.session_state["pulse_generated"] = True
+            except Exception:
+                pass
+        components.html(_dashboard.read_text(encoding="utf-8"), height=960, scrolling=True)
+    else:
+        st.markdown("""
+        <div style="text-align:center;padding:80px 20px;color:#5A5450;">
+          <div style="font-size:3rem">📭</div>
+          <h3 style="color:#9A9080 !important;font-size:1.3rem;">No dashboard data yet</h3>
+          <p style="color:#5A5450;">Click <strong style="color:#C9A84C;">▶ Run Pipeline</strong> above
+          to scrape this week's INDMoney reviews and generate the full dashboard.</p>
+          <p style="font-size:0.8rem;color:#3A3830;margin-top:20px;">
+            Or from the terminal:<br>
+            <code style="background:#10131F;padding:4px 10px;border-radius:4px;color:#C9A84C;">
+              python scripts/run_review_pipeline.py
+            </code>
+          </p>
+        </div>
+        """, unsafe_allow_html=True)
 
     # ── Voice Agent section ──────────────────────────────────────────────────
     st.markdown("---")
