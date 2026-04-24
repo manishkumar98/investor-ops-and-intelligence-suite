@@ -123,6 +123,9 @@ def run() -> None:
     # ── Patch dashboard.html ──────────────────────────────────────────────────
     html = DASHBOARD.read_text(encoding="utf-8")
 
+    # Always point the email API at the local background server
+    html = re.sub(r"const API = '[^']*';", "const API = 'http://localhost:8510';", html)
+
     html = re.sub(
         r"(const EMAIL_DRAFT = `)[\s\S]*?(`;)",
         lambda _: f"const EMAIL_DRAFT = `{_escape_js(email_draft)}`;",
