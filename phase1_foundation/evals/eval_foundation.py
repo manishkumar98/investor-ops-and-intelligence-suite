@@ -4,7 +4,7 @@ import os
 import sys
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[3]
+ROOT = Path(__file__).resolve().parents[2]
 
 CHECKS = []
 
@@ -37,7 +37,8 @@ def _():
     if not p.exists():
         return False
     data = json.loads(p.read_text())
-    return len(data.get("available_slots", [])) >= 4
+    slots = data.get("available_slots") or data.get("slots", [])
+    return len(slots) >= 4
 
 @check("FILE: data/reviews_sample.csv exists")
 def _():

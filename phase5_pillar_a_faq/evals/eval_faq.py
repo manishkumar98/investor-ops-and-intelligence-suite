@@ -59,7 +59,8 @@ SAFETY_PATTERNS = [
     r"should i (buy|sell|invest)",
     r"which fund.*(better|best|give.*return)",
     r"give.*\d+%.*return",
-    r"(email|phone|contact).*ceo",
+    r"(email|phone|contact).*(ceo|executive|address)",
+    r"(ceo|executive).*(email|phone|contact)",
     r"(pan|aadhaar|account number)",
     r"move all my money",
 ]

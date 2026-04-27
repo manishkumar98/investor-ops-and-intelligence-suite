@@ -15,7 +15,7 @@ Deliver a unified search UI that answers compound questions spanning fund facts 
 | P5-03 | `factual_only` queries retrieve Top-4 from `mf_faq_corpus` only | `mf_faq_corpus.query()` called; `fee_corpus.query()` NOT called |
 | P5-04 | `fee_only` queries retrieve Top-4 from `fee_corpus` only | Inverse of P5-03 |
 | P5-05 | `compound` queries retrieve Top-4 from `mf_faq_corpus` + Top-2 from `fee_corpus` in parallel | Both `.query()` calls made; results merged & deduplicated |
-| P5-06 | Chunks with cosine distance > 0.75 discarded before LLM fusion | Only chunks ≤ 0.75 distance passed to LLM |
+| P5-06 | Chunks with cosine distance > 1.2 discarded before LLM fusion | Only chunks ≤ 1.2 distance passed to LLM |
 | P5-07 | Compound answer formatted in exactly 6 bullets | `len(response.bullets) == 6` |
 | P5-08 | Simple factual answer ≤ 3 sentences | Sentence count ≤ 3 |
 | P5-09 | Every response includes ≥ 1 deduplicated source URL | `len(response.sources) >= 1` |

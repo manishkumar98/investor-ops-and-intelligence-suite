@@ -6,7 +6,7 @@ Phase 4 is the conversational voice agent — the part of the system that can ha
 
 What makes this agent different from a generic scheduling bot is that it is **theme-aware**: before it says a single word, it reads this week's `top_theme` from session state (written by Phase 3). If the top customer concern this week is "Nominee Updates", the agent opens with *"I see many users are asking about nominee updates this week — I can help you book a call about that!"* This is a direct, tangible output of the cross-pillar integration. The agent knows what customers care about before the call begins.
 
-The agent follows a **7-state Finite State Machine (FSM)** — a predetermined flow of conversation states where each state has a clear entry condition, a specific action, and a defined exit. This design ensures the conversation is always predictable, testable, and can never get stuck in an undefined state. At the end of a successful booking, the agent generates a unique booking code (like `NL-A742`), queues 3 MCP actions for human approval, and provides the user with a secure link to complete their details.
+The agent follows an **8-state Finite State Machine (FSM)** — a predetermined flow of conversation states where each state has a clear entry condition, a specific action, and a defined exit. This design ensures the conversation is always predictable, testable, and can never get stuck in an undefined state. At the end of a successful booking, the agent generates a unique booking code (like `NL-A742`), queues 4 MCP actions for human approval (calendar_hold, notes_append with M2 context, email_draft, sheet_entry), and provides the user with a secure link to complete their details.
 
 **The voice technology stack:**
 - Text-to-Speech: OpenAI `tts-1`, voice=`alloy` (locked — do not change)
@@ -64,7 +64,7 @@ The agent follows a **7-state Finite State Machine (FSM)** — a predetermined f
          │          │  write session["booking_code"]
          │          │  write session["booking_detail"]
          │          │  enqueue: calendar_hold, notes_append,
-         │          │           email_draft → mcp_queue (+3)
+         │          │           email_draft, sheet_entry → mcp_queue (+4)
          │          │  read booking code + secure URL to user
          └──────────┘
 ```
@@ -153,7 +153,7 @@ For text-mode (no microphone): skip Whisper; user types in `st.text_input()` dir
 | TIMEPREF | After topic confirmed | Parse weekday + AM/PM from utterance using regex | None (regex) | OFFERSLOTS |
 | OFFERSLOTS | After time preference | Filter `mock_calendar.json`; offer best 2 matching slots | None (lookup) | CONFIRM (user picks) or WAITLIST (no match) |
 | CONFIRM | After slot pick | Read back: topic + slot date/time in IST; ask "Is that right?" | None (scripted) | BOOKED (yes) or TIMEPREF (no) |
-| BOOKED | After confirmation | Generate code; write session; enqueue 3 MCP actions; deliver secure URL via TTS | None (scripted) | END |
+| BOOKED | After confirmation | Generate code; write session; enqueue 4 MCP actions (calendar_hold, notes_append with M2 context, email_draft, sheet_entry); deliver secure URL via TTS | None (scripted) | END |
 | WAITLIST | No slots matched | Generate WL-prefix code; enqueue 2 MCP actions; inform user | None (scripted) | END |
 
 ---
@@ -310,7 +310,7 @@ Function: `match_slots(calendar: list[dict], day_pref: str | None, period: str |
 Function: `book(slot: dict, topic: str, session: dict) -> dict`
 - Generate booking code
 - Write to session: `booking_code`, `booking_detail`
-- Call `enqueue_action()` x3: calendar_hold, notes_append, email_draft
+- Call `enqueue_action()` x4: calendar_hold, notes_append (with M2 context: top_3_themes, weekly_pulse[:300], fee_scenario), email_draft, sheet_entry
 - Return `{"booking_code": str, "slot": dict, "topic": str, "secure_url": str}`
 
 **4. `pillar_b/voice_agent.py`**
@@ -329,7 +329,7 @@ Class: `VoiceAgent`
 | `session["booking_code"]` | `NL-A742` format string | Phase 7 notes payload + email subject + secure link | Notes entry incomplete; email subject has no code |
 | `session["booking_detail"]` | `{topic, slot, date, time, IST}` dict | Phase 7 email builder | Email has no booking summary section |
 | `session["call_completed"]` | `True` | Phase 9 Tab 2 UI (shows confirmation) | Confirmation banner not shown after booking |
-| `session["mcp_queue"]` | +3 pending actions added | Phase 7 HITL panel | Approval center shows 3 fewer items |
+| `session["mcp_queue"]` | +4 pending actions added (calendar_hold, notes_append, email_draft, sheet_entry) | Phase 7 HITL panel | Approval center shows 4 fewer items |
 
 ---
 
@@ -364,11 +364,12 @@ pytest phase4_voice_agent/tests/test_voice_agent.py -v
 #        fallback generic greeting when top_theme=None,
 #        WAITLIST triggered on no slot match,
 #        safety_refusal returns string on advice query,
-#        3 MCP actions queued on BOOKED
+#        4 MCP actions queued on BOOKED (calendar_hold, notes_append, email_draft, sheet_entry)
 
-python phase4_voice_agent/evals/eval_voice.py
+python phase4_voice_pillar_b/evals/eval_voice.py
 # Expected:
 #   Booking code format (NL-[A-Z]\d{3}): ✓
-#   MCP actions queued on BOOKED: 3       ✓
+#   MCP actions queued on BOOKED: 4       ✓  (calendar_hold, notes_append, email_draft, sheet_entry)
 #   Top theme appears in greeting: ✓
+#   Notes payload contains M2 context (top_3_themes, weekly_pulse): ✓
 ```

@@ -1,7 +1,7 @@
 {
   "funds": {
-    "SBI Large Cap Fund (Bluechip)": {
-      "fund_name": "SBI Large Cap Fund (Bluechip)",
+    "SBI Large Cap Fund": {
+      "fund_name": "SBI Large Cap Fund",
       "source_url": "https://www.sbimf.com/sbimf-scheme-details/sbi-large-cap-fund-(formerly-known-as-sbi-bluechip-fund)-43",
       "last_scraped": "2026-04-24",
       "exit_load": "0.2%",
@@ -35,7 +35,7 @@
     },
     "SBI ELSS Tax Saver Fund": {
       "fund_name": "SBI ELSS Tax Saver Fund",
-      "source_url": "https://www.indmoney.com/mutual-funds/sbi-long-term-equity-fund-direct-growth-2754",
+      "source_url": "https://www.sbimf.com/sbimf-scheme-details/SBI-ELSS-Tax-Saver-Fund-(formerly-known-as-SBI-Long-Term-Equity-Fund)-3",
       "last_scraped": "2026-04-24",
       "exit_load": "0%",
       "expense_ratio": "0.99%",

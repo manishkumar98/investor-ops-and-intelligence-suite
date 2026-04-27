@@ -48,3 +48,14 @@ htmlcov/
 # Logs
 *.log
 data/backups/
+
+# ── Google Cloud service account (NEVER commit private keys) ──────────────
+config/service_account.json
+config/*.json
+voiceagent-*.json
+
+# TTS cache (regenerated on demand)
+data/tts_cache/
+
+# Voice agent logs
+data/logs/

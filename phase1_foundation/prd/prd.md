@@ -11,7 +11,7 @@ Stand up the shared runtime that every pillar depends on: environment variables,
 | ID | Requirement | Acceptance Criteria |
 |---|---|---|
 | P1-01 | `.env` loaded on startup with all required keys | App starts; missing key raises `EnvironmentError` with the key name |
-| P1-02 | `st.session_state` initialised with full schema on first load | All 11 keys present with correct default types after init |
+| P1-02 | `st.session_state` initialised with full schema on first load | All 11 session keys present with correct default types after init (weekly_pulse, top_theme, top_3_themes, fee_bullets, fee_sources, booking_code, booking_detail, mcp_queue, chat_history, pulse_generated, call_completed) |
 | P1-03 | ChromaDB `PersistentClient` created at `CHROMA_PERSIST_DIR` | Client created; directory exists on disk |
 | P1-04 | `mf_faq_corpus` collection created/opened | `collection.count()` returns an integer (may be 0) |
 | P1-05 | `fee_corpus` collection created/opened | Same as above |

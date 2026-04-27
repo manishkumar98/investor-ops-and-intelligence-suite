@@ -53,7 +53,8 @@ app.py  /  test_dashboard.py
        │
        ▼
 ┌──────────────────────────────────────┐
-│  MCPClient (pillar_c/mcp_client.py)  │
+│  MCPClient (phase7_pillar_c_hitl/    │
+│             mcp_client.py)           │
 │  mode = os.getenv("MCP_MODE","mock") │
 │  mock: in-process dict store         │
 │  live:  POST to MCP_SERVER_URL       │
@@ -68,7 +69,7 @@ app.py  /  test_dashboard.py
 |---|---|
 | `config.py` | `load_env()` — validate and expose all env vars |
 | `session_init.py` | `init_session_state(state)` — idempotent schema init |
-| `phase2_corpus_pillar_a/ingest.py` | `get_collection(name)` — shared ChromaDB accessor |
+| `phase2_corpus_pillar_a/ingest.py` | `get_collection(name)` — shared ChromaDB accessor (used by Phase 3 fee_explainer and Phase 5 retriever) |
 | `phase7_pillar_c_hitl/mcp_client.py` | `MCPClient` class with mock/live modes |
 | `data/mock_calendar.json` | Static slot list for voice agent |
 | `data/fund_snapshot.json` | Structured fund fields written on every ingest (Phase 2) |

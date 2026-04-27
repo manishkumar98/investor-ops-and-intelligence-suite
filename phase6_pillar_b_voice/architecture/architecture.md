@@ -63,9 +63,9 @@ The core integration question is: **how does the voice agent know about this wee
               │  On BOOKED state:          │
               │  session["call_completed"] │
               │    = True                  │
-              │  mcp_queue now has 5 items │
-              │    (2 from M2 + 3 from M3) │
-              │  Tab 3 shows all 5         │
+              │  mcp_queue now has 4 items │
+              │    (all from M3 voice)     │
+              │  Tab 3 shows all 4         │
               └────────────────────────────┘
 ```
 
@@ -216,7 +216,7 @@ Write tests that verify:
 | Output | Consumed By |
 |---|---|
 | `session["call_completed"] = True` | Phase 9 Tab 2 — shows booking confirmation banner |
-| `session["mcp_queue"]` grows to 3–5 items | Phase 7 HITL panel renders all pending actions |
+| `session["mcp_queue"]` grows to 4 items (from M3 only — M2 no longer enqueues) | Phase 7 HITL panel renders all pending actions |
 | Tab 2 renders correctly | Demo scene 2 (voice call sequence) |
 | Theme badge in Tab 2 | Demonstrates the M2→M3 integration visually |
 
@@ -231,7 +231,7 @@ The `VoiceAgent` falls back to a generic greeting (Phase 4 handles this). The UI
 The UI guard prevents this entirely — the button is not rendered. No defensive coding needed in the VoiceAgent for this case; the UI prevents it from happening.
 
 **Voice call abandoned mid-flow (user navigates away or reloads):**
-`call_completed` stays `False`. `mcp_queue` may have partial entries (e.g., 2 from M2 pipeline only). Phase 7 HITL panel will still show those 2 as pending — that is correct behaviour. The voice agent object in `session["voice_agent"]` is stale but harmless on reload (session state is cleared on full page reload in Streamlit by default).
+`call_completed` stays `False`. `mcp_queue` will be empty (M3 only enqueues at BOOKED state — partial flow produces no actions). Phase 7 HITL panel shows "No pending actions." The voice agent object in `session["voice_agent"]` is stale but harmless on reload (session state is cleared on full page reload in Streamlit by default).
 
 **TTS audio fails for one turn:**
 Phase 4's `VoiceAgent.step()` returns `audio=None` on TTS failure. The UI loop checks `if response_audio:` before calling `st.audio()`. The text response is still displayed — users can continue the conversation in text mode.
@@ -252,5 +252,5 @@ python phase6_pillar_b_voice/evals/eval_integration.py
 #   Top theme appears in VoiceAgent greeting: ✓
 #   UI guard blocks call before pulse:         ✓
 #   Post-call: call_completed = True:          ✓
-#   Post-call: mcp_queue has ≥3 items:         ✓
+#   Post-call: mcp_queue has 4 items:          ✓  (M3 only)
 ```

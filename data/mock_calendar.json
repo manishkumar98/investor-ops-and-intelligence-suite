@@ -1,19 +1,547 @@
 {
-  "available_slots": [
-    {"id": "S1", "date": "2026-04-24", "time": "10:00", "tz": "IST", "advisor": "Advisor A", "booked": false},
-    {"id": "S2", "date": "2026-04-24", "time": "15:00", "tz": "IST", "advisor": "Advisor A", "booked": false},
-    {"id": "S3", "date": "2026-04-25", "time": "11:00", "tz": "IST", "advisor": "Advisor B", "booked": false},
-    {"id": "S4", "date": "2026-04-25", "time": "14:00", "tz": "IST", "advisor": "Advisor B", "booked": false},
-    {"id": "S5", "date": "2026-04-26", "time": "10:00", "tz": "IST", "advisor": "Advisor A", "booked": false},
-    {"id": "S6", "date": "2026-04-26", "time": "16:00", "tz": "IST", "advisor": "Advisor C", "booked": false},
-    {"id": "S7", "date": "2026-04-28", "time": "09:00", "tz": "IST", "advisor": "Advisor B", "booked": false},
-    {"id": "S8", "date": "2026-04-28", "time": "13:00", "tz": "IST", "advisor": "Advisor C", "booked": false}
-  ],
-  "topics": [
-    "KYC / Onboarding",
-    "SIP / Mandates",
-    "Statements / Tax Documents",
-    "Withdrawals & Timelines",
-    "Account Changes / Nominee"
+  "advisor_id": "ADV-001",
+  "advisor_name": "Advisor (display name not used on call)",
+  "timezone": "Asia/Kolkata",
+  "slots": [
+    {
+      "slot_id": "SLOT-20260427-1000",
+      "start": "2026-04-27T10:00:00",
+      "end": "2026-04-27T10:30:00",
+      "status": "AVAILABLE",
+      "topic_affinity": [
+        "kyc_onboarding",
+        "account_changes"
+      ]
+    },
+    {
+      "slot_id": "SLOT-20260427-1400",
+      "start": "2026-04-27T14:00:00",
+      "end": "2026-04-27T14:30:00",
+      "status": "AVAILABLE",
+      "topic_affinity": []
+    },
+    {
+      "slot_id": "SLOT-20260427-1530",
+      "start": "2026-04-27T15:30:00",
+      "end": "2026-04-27T16:00:00",
+      "status": "AVAILABLE",
+      "topic_affinity": [
+        "sip_mf",
+        "tax_planning"
+      ]
+    },
+    {
+      "slot_id": "SLOT-20260428-1000",
+      "start": "2026-04-28T10:00:00",
+      "end": "2026-04-28T10:30:00",
+      "status": "AVAILABLE",
+      "topic_affinity": [
+        "kyc_onboarding",
+        "account_changes"
+      ]
+    },
+    {
+      "slot_id": "SLOT-20260428-1400",
+      "start": "2026-04-28T14:00:00",
+      "end": "2026-04-28T14:30:00",
+      "status": "AVAILABLE",
+      "topic_affinity": []
+    },
+    {
+      "slot_id": "SLOT-20260428-1530",
+      "start": "2026-04-28T15:30:00",
+      "end": "2026-04-28T16:00:00",
+      "status": "AVAILABLE",
+      "topic_affinity": [
+        "sip_mf",
+        "tax_planning"
+      ]
+    },
+    {
+      "slot_id": "SLOT-20260429-1000",
+      "start": "2026-04-29T10:00:00",
+      "end": "2026-04-29T10:30:00",
+      "status": "AVAILABLE",
+      "topic_affinity": [
+        "kyc_onboarding",
+        "account_changes"
+      ]
+    },
+    {
+      "slot_id": "SLOT-20260429-1400",
+      "start": "2026-04-29T14:00:00",
+      "end": "2026-04-29T14:30:00",
+      "status": "AVAILABLE",
+      "topic_affinity": []
+    },
+    {
+      "slot_id": "SLOT-20260429-1530",
+      "start": "2026-04-29T15:30:00",
+      "end": "2026-04-29T16:00:00",
+      "status": "AVAILABLE",
+      "topic_affinity": [
+        "sip_mf",
+        "tax_planning"
+      ]
+    },
+    {
+      "slot_id": "SLOT-20260430-1000",
+      "start": "2026-04-30T10:00:00",
+      "end": "2026-04-30T10:30:00",
+      "status": "AVAILABLE",
+      "topic_affinity": [
+        "kyc_onboarding",
+        "account_changes"
+      ]
+    },
+    {
+      "slot_id": "SLOT-20260430-1400",
+      "start": "2026-04-30T14:00:00",
+      "end": "2026-04-30T14:30:00",
+      "status": "AVAILABLE",
+      "topic_affinity": []
+    },
+    {
+      "slot_id": "SLOT-20260430-1530",
+      "start": "2026-04-30T15:30:00",
+      "end": "2026-04-30T16:00:00",
+      "status": "AVAILABLE",
+      "topic_affinity": [
+        "sip_mf",
+        "tax_planning"
+      ]
+    },
+    {
+      "slot_id": "SLOT-20260501-1000",
+      "start": "2026-05-01T10:00:00",
+      "end": "2026-05-01T10:30:00",
+      "status": "AVAILABLE",
+      "topic_affinity": [
+        "kyc_onboarding",
+        "account_changes"
+      ]
+    },
+    {
+      "slot_id": "SLOT-20260501-1400",
+      "start": "2026-05-01T14:00:00",
+      "end": "2026-05-01T14:30:00",
+      "status": "AVAILABLE",
+      "topic_affinity": []
+    },
+    {
+      "slot_id": "SLOT-20260501-1530",
+      "start": "2026-05-01T15:30:00",
+      "end": "2026-05-01T16:00:00",
+      "status": "AVAILABLE",
+      "topic_affinity": [
+        "sip_mf",
+        "tax_planning"
+      ]
+    },
+    {
+      "slot_id": "SLOT-20260504-1000",
+      "start": "2026-05-04T10:00:00",
+      "end": "2026-05-04T10:30:00",
+      "status": "AVAILABLE",
+      "topic_affinity": [
+        "kyc_onboarding",
+        "account_changes"
+      ]
+    },
+    {
+      "slot_id": "SLOT-20260504-1400",
+      "start": "2026-05-04T14:00:00",
+      "end": "2026-05-04T14:30:00",
+      "status": "AVAILABLE",
+      "topic_affinity": []
+    },
+    {
+      "slot_id": "SLOT-20260504-1530",
+      "start": "2026-05-04T15:30:00",
+      "end": "2026-05-04T16:00:00",
+      "status": "AVAILABLE",
+      "topic_affinity": [
+        "sip_mf",
+        "tax_planning"
+      ]
+    },
+    {
+      "slot_id": "SLOT-20260505-1000",
+      "start": "2026-05-05T10:00:00",
+      "end": "2026-05-05T10:30:00",
+      "status": "AVAILABLE",
+      "topic_affinity": [
+        "kyc_onboarding",
+        "account_changes"
+      ]
+    },
+    {
+      "slot_id": "SLOT-20260505-1400",
+      "start": "2026-05-05T14:00:00",
+      "end": "2026-05-05T14:30:00",
+      "status": "AVAILABLE",
+      "topic_affinity": []
+    },
+    {
+      "slot_id": "SLOT-20260505-1530",
+      "start": "2026-05-05T15:30:00",
+      "end": "2026-05-05T16:00:00",
+      "status": "AVAILABLE",
+      "topic_affinity": [
+        "sip_mf",
+        "tax_planning"
+      ]
+    },
+    {
+      "slot_id": "SLOT-20260506-1000",
+      "start": "2026-05-06T10:00:00",
+      "end": "2026-05-06T10:30:00",
+      "status": "AVAILABLE",
+      "topic_affinity": [
+        "kyc_onboarding",
+        "account_changes"
+      ]
+    },
+    {
+      "slot_id": "SLOT-20260506-1400",
+      "start": "2026-05-06T14:00:00",
+      "end": "2026-05-06T14:30:00",
+      "status": "AVAILABLE",
+      "topic_affinity": []
+    },
+    {
+      "slot_id": "SLOT-20260506-1530",
+      "start": "2026-05-06T15:30:00",
+      "end": "2026-05-06T16:00:00",
+      "status": "AVAILABLE",
+      "topic_affinity": [
+        "sip_mf",
+        "tax_planning"
+      ]
+    },
+    {
+      "slot_id": "SLOT-20260507-1000",
+      "start": "2026-05-07T10:00:00",
+      "end": "2026-05-07T10:30:00",
+      "status": "AVAILABLE",
+      "topic_affinity": [
+        "kyc_onboarding",
+        "account_changes"
+      ]
+    },
+    {
+      "slot_id": "SLOT-20260507-1400",
+      "start": "2026-05-07T14:00:00",
+      "end": "2026-05-07T14:30:00",
+      "status": "AVAILABLE",
+      "topic_affinity": []
+    },
+    {
+      "slot_id": "SLOT-20260507-1530",
+      "start": "2026-05-07T15:30:00",
+      "end": "2026-05-07T16:00:00",
+      "status": "AVAILABLE",
+      "topic_affinity": [
+        "sip_mf",
+        "tax_planning"
+      ]
+    },
+    {
+      "slot_id": "SLOT-20260508-1000",
+      "start": "2026-05-08T10:00:00",
+      "end": "2026-05-08T10:30:00",
+      "status": "AVAILABLE",
+      "topic_affinity": [
+        "kyc_onboarding",
+        "account_changes"
+      ]
+    },
+    {
+      "slot_id": "SLOT-20260508-1400",
+      "start": "2026-05-08T14:00:00",
+      "end": "2026-05-08T14:30:00",
+      "status": "AVAILABLE",
+      "topic_affinity": []
+    },
+    {
+      "slot_id": "SLOT-20260508-1530",
+      "start": "2026-05-08T15:30:00",
+      "end": "2026-05-08T16:00:00",
+      "status": "AVAILABLE",
+      "topic_affinity": [
+        "sip_mf",
+        "tax_planning"
+      ]
+    },
+    {
+      "slot_id": "SLOT-20260511-1000",
+      "start": "2026-05-11T10:00:00",
+      "end": "2026-05-11T10:30:00",
+      "status": "AVAILABLE",
+      "topic_affinity": [
+        "kyc_onboarding",
+        "account_changes"
+      ]
+    },
+    {
+      "slot_id": "SLOT-20260511-1400",
+      "start": "2026-05-11T14:00:00",
+      "end": "2026-05-11T14:30:00",
+      "status": "AVAILABLE",
+      "topic_affinity": []
+    },
+    {
+      "slot_id": "SLOT-20260511-1530",
+      "start": "2026-05-11T15:30:00",
+      "end": "2026-05-11T16:00:00",
+      "status": "AVAILABLE",
+      "topic_affinity": [
+        "sip_mf",
+        "tax_planning"
+      ]
+    },
+    {
+      "slot_id": "SLOT-20260512-1000",
+      "start": "2026-05-12T10:00:00",
+      "end": "2026-05-12T10:30:00",
+      "status": "AVAILABLE",
+      "topic_affinity": [
+        "kyc_onboarding",
+        "account_changes"
+      ]
+    },
+    {
+      "slot_id": "SLOT-20260512-1400",
+      "start": "2026-05-12T14:00:00",
+      "end": "2026-05-12T14:30:00",
+      "status": "AVAILABLE",
+      "topic_affinity": []
+    },
+    {
+      "slot_id": "SLOT-20260512-1530",
+      "start": "2026-05-12T15:30:00",
+      "end": "2026-05-12T16:00:00",
+      "status": "AVAILABLE",
+      "topic_affinity": [
+        "sip_mf",
+        "tax_planning"
+      ]
+    },
+    {
+      "slot_id": "SLOT-20260513-1000",
+      "start": "2026-05-13T10:00:00",
+      "end": "2026-05-13T10:30:00",
+      "status": "AVAILABLE",
+      "topic_affinity": [
+        "kyc_onboarding",
+        "account_changes"
+      ]
+    },
+    {
+      "slot_id": "SLOT-20260513-1400",
+      "start": "2026-05-13T14:00:00",
+      "end": "2026-05-13T14:30:00",
+      "status": "AVAILABLE",
+      "topic_affinity": []
+    },
+    {
+      "slot_id": "SLOT-20260513-1530",
+      "start": "2026-05-13T15:30:00",
+      "end": "2026-05-13T16:00:00",
+      "status": "AVAILABLE",
+      "topic_affinity": [
+        "sip_mf",
+        "tax_planning"
+      ]
+    },
+    {
+      "slot_id": "SLOT-20260514-1000",
+      "start": "2026-05-14T10:00:00",
+      "end": "2026-05-14T10:30:00",
+      "status": "AVAILABLE",
+      "topic_affinity": [
+        "kyc_onboarding",
+        "account_changes"
+      ]
+    },
+    {
+      "slot_id": "SLOT-20260514-1400",
+      "start": "2026-05-14T14:00:00",
+      "end": "2026-05-14T14:30:00",
+      "status": "AVAILABLE",
+      "topic_affinity": []
+    },
+    {
+      "slot_id": "SLOT-20260514-1530",
+      "start": "2026-05-14T15:30:00",
+      "end": "2026-05-14T16:00:00",
+      "status": "AVAILABLE",
+      "topic_affinity": [
+        "sip_mf",
+        "tax_planning"
+      ]
+    },
+    {
+      "slot_id": "SLOT-20260515-1000",
+      "start": "2026-05-15T10:00:00",
+      "end": "2026-05-15T10:30:00",
+      "status": "AVAILABLE",
+      "topic_affinity": [
+        "kyc_onboarding",
+        "account_changes"
+      ]
+    },
+    {
+      "slot_id": "SLOT-20260515-1400",
+      "start": "2026-05-15T14:00:00",
+      "end": "2026-05-15T14:30:00",
+      "status": "AVAILABLE",
+      "topic_affinity": []
+    },
+    {
+      "slot_id": "SLOT-20260515-1530",
+      "start": "2026-05-15T15:30:00",
+      "end": "2026-05-15T16:00:00",
+      "status": "AVAILABLE",
+      "topic_affinity": [
+        "sip_mf",
+        "tax_planning"
+      ]
+    },
+    {
+      "slot_id": "SLOT-20260518-1000",
+      "start": "2026-05-18T10:00:00",
+      "end": "2026-05-18T10:30:00",
+      "status": "AVAILABLE",
+      "topic_affinity": [
+        "kyc_onboarding",
+        "account_changes"
+      ]
+    },
+    {
+      "slot_id": "SLOT-20260518-1400",
+      "start": "2026-05-18T14:00:00",
+      "end": "2026-05-18T14:30:00",
+      "status": "AVAILABLE",
+      "topic_affinity": []
+    },
+    {
+      "slot_id": "SLOT-20260518-1530",
+      "start": "2026-05-18T15:30:00",
+      "end": "2026-05-18T16:00:00",
+      "status": "AVAILABLE",
+      "topic_affinity": [
+        "sip_mf",
+        "tax_planning"
+      ]
+    },
+    {
+      "slot_id": "SLOT-20260519-1000",
+      "start": "2026-05-19T10:00:00",
+      "end": "2026-05-19T10:30:00",
+      "status": "AVAILABLE",
+      "topic_affinity": [
+        "kyc_onboarding",
+        "account_changes"
+      ]
+    },
+    {
+      "slot_id": "SLOT-20260519-1400",
+      "start": "2026-05-19T14:00:00",
+      "end": "2026-05-19T14:30:00",
+      "status": "AVAILABLE",
+      "topic_affinity": []
+    },
+    {
+      "slot_id": "SLOT-20260519-1530",
+      "start": "2026-05-19T15:30:00",
+      "end": "2026-05-19T16:00:00",
+      "status": "AVAILABLE",
+      "topic_affinity": [
+        "sip_mf",
+        "tax_planning"
+      ]
+    },
+    {
+      "slot_id": "SLOT-20260520-1000",
+      "start": "2026-05-20T10:00:00",
+      "end": "2026-05-20T10:30:00",
+      "status": "AVAILABLE",
+      "topic_affinity": [
+        "kyc_onboarding",
+        "account_changes"
+      ]
+    },
+    {
+      "slot_id": "SLOT-20260520-1400",
+      "start": "2026-05-20T14:00:00",
+      "end": "2026-05-20T14:30:00",
+      "status": "AVAILABLE",
+      "topic_affinity": []
+    },
+    {
+      "slot_id": "SLOT-20260520-1530",
+      "start": "2026-05-20T15:30:00",
+      "end": "2026-05-20T16:00:00",
+      "status": "AVAILABLE",
+      "topic_affinity": [
+        "sip_mf",
+        "tax_planning"
+      ]
+    },
+    {
+      "slot_id": "SLOT-20260521-1000",
+      "start": "2026-05-21T10:00:00",
+      "end": "2026-05-21T10:30:00",
+      "status": "AVAILABLE",
+      "topic_affinity": [
+        "kyc_onboarding",
+        "account_changes"
+      ]
+    },
+    {
+      "slot_id": "SLOT-20260521-1400",
+      "start": "2026-05-21T14:00:00",
+      "end": "2026-05-21T14:30:00",
+      "status": "AVAILABLE",
+      "topic_affinity": []
+    },
+    {
+      "slot_id": "SLOT-20260521-1530",
+      "start": "2026-05-21T15:30:00",
+      "end": "2026-05-21T16:00:00",
+      "status": "AVAILABLE",
+      "topic_affinity": [
+        "sip_mf",
+        "tax_planning"
+      ]
+    },
+    {
+      "slot_id": "SLOT-20260522-1000",
+      "start": "2026-05-22T10:00:00",
+      "end": "2026-05-22T10:30:00",
+      "status": "AVAILABLE",
+      "topic_affinity": [
+        "kyc_onboarding",
+        "account_changes"
+      ]
+    },
+    {
+      "slot_id": "SLOT-20260522-1400",
+      "start": "2026-05-22T14:00:00",
+      "end": "2026-05-22T14:30:00",
+      "status": "AVAILABLE",
+      "topic_affinity": []
+    },
+    {
+      "slot_id": "SLOT-20260522-1530",
+      "start": "2026-05-22T15:30:00",
+      "end": "2026-05-22T16:00:00",
+      "status": "AVAILABLE",
+      "topic_affinity": [
+        "sip_mf",
+        "tax_planning"
+      ]
+    }
   ]
 }

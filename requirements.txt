@@ -1,6 +1,7 @@
 # Core AI
 anthropic>=0.40.0
 openai>=1.50.0
+groq>=0.9.0            # Whisper STT + LLM fallback (voice agent)
 
 # Vector DB
 chromadb>=0.5.0
@@ -10,15 +11,36 @@ langchain>=0.3.0
 langchain-community>=0.3.0
 langchain-openai>=0.2.0
 
+# RAG Embeddings (phase6 voice RAG injector)
+sentence-transformers>=2.7.0
+
 # NLP / PII scrubbing
 spacy>=3.7.0
 # after install: python -m spacy download en_core_web_sm
 
-# Voice
+# Voice — STT
 deepgram-sdk>=3.0.0
+google-cloud-speech>=2.26.0
+
+# Voice — TTS (phase6)
+gTTS>=2.5.1             # free fallback TTS (no API key needed)
+pyttsx3>=2.90           # offline last-resort TTS
+
+# Voice — audio I/O
+sounddevice>=0.4.6
+soundfile>=0.12.1
+
+# Google APIs (Calendar, Sheets, Gmail — phase6 MCP tools)
+google-api-python-client>=2.130.0
+google-auth>=2.29.0
+google-auth-httplib2>=0.2.0
+google-auth-oauthlib>=1.2.0
 
 # UI
 streamlit>=1.40.0
+
+# Timezone (IST — used throughout voice agent)
+pytz>=2024.1
 
 # Data
 pandas>=2.2.0

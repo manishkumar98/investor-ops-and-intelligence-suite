@@ -68,7 +68,7 @@ def explain(top_theme: str, session: dict) -> dict:
         # Hardcoded fallback when corpus is empty
         context = (
             "SBI ELSS Tax Advantage Fund has an exit load of 0% (3-year lock-in period). "
-            "Expense ratio for SBI Bluechip Direct Plan is typically 0.5–0.8% per annum. "
+            "Expense ratio for SBI Large Cap Fund Direct Plan is typically 0.5–0.9% per annum. "
             "Regular plans have a higher expense ratio than direct plans due to distributor commission. "
             "STT (Securities Transaction Tax) of 0.001% applies on equity fund redemptions. "
             "SEBI mandates TER (Total Expense Ratio) disclosure for all mutual fund schemes."

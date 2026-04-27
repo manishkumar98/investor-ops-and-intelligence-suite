@@ -18,6 +18,7 @@ TOPIC_LABELS: dict[str, str] = {
     "statements_tax":  "Statements and Tax Documents",
     "withdrawals":     "Withdrawals and Timelines",
     "account_changes": "Account Changes and Nominee",
+    "fee_inquiry":     "Fee and Expense Enquiry",
 }
 VALID_TOPICS: set[str] = set(TOPIC_LABELS.keys())
 

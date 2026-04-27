@@ -17,6 +17,9 @@ Deliver two Streamlit apps: (1) `app.py` — the end-user Ops Dashboard with thr
 | P9-03 | Sidebar shows system status: corpus loaded, pulse status, MCP pending count | Status updates when actions taken |
 | P9-04 | Session state persisted to `data/mcp_state.json` as fallback on each action | File written after approve/reject |
 | P9-05 | App recovers session from `data/mcp_state.json` on reload if session lost | Pending actions visible after Streamlit rerun |
+| P9-06 | NAV ticker in header/sidebar: shows NAV and % change for each fund from `data/nav_snapshot.json` | Ticker updates on page load |
+| P9-07 | Light/dark theme toggle using CSS custom properties (`--bg-base` etc.) | Theme switches without page reload |
+| P9-08 | `pages/2_Voice_Agent.py` is a standalone Streamlit page for voice agent | Accessible as separate page in multipage app |
 
 ---
 

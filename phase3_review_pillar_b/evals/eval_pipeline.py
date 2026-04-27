@@ -125,6 +125,17 @@ def _(s):
             return False, f"PII pattern matched: {p}"
     return True, "clean"
 
+@check("PII: scrubber replaces with [REDACTED]")
+def _(_s):
+    from phase3_review_pillar_b.pii_scrubber import scrub
+    test_input  = "User called from 9876543210 and emailed at user@example.com about KYC"
+    cleaned, cnt = scrub(test_input)
+    has_tag  = "[REDACTED]" in cleaned
+    no_phone = "9876543210" not in cleaned
+    no_email = "user@example.com" not in cleaned
+    ok = has_tag and no_phone and no_email
+    return ok, f"redactions={cnt} sample='{cleaned[:55]}'"
+
 
 if __name__ == "__main__":
     results = run()

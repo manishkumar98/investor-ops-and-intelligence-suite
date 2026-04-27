@@ -13,9 +13,7 @@ mf_faq: https://www.sbimf.com/sbimf-scheme-details/sbi-magnum-midcap-fund-34
 mf_faq: https://www.sbimf.com/en-us/sip-calculator
 
 # ── INDMoney — Fund Detail Pages ────────────────────────────────────────────
-mf_faq: https://www.indmoney.com/mutual-funds/sbi-bluechip-fund-direct-growth-3046
 mf_faq: https://www.indmoney.com/mutual-funds/sbi-flexicap-fund-direct-growth-3249
-mf_faq: https://www.indmoney.com/mutual-funds/sbi-long-term-equity-fund-direct-growth-2754
 mf_faq: https://www.indmoney.com/mutual-funds/sbi-small-cap-fund-direct-plan-growth-3603
 mf_faq: https://www.indmoney.com/mutual-funds/sbi-midcap-fund-direct-growth-3129
 mf_faq: https://www.indmoney.com/mutual-funds/sbi-focused-equity-fund-direct-growth-3532
@@ -29,6 +27,4 @@ fee: https://www.sbimf.com/sbimf-scheme-details/sbi-large-cap-fund-(formerly-kno
 fee: https://www.sbimf.com/sbimf-scheme-details/SBI-Small-Cap-Fund-329
 fee: https://www.sbimf.com/sbimf-scheme-details/SBI-Flexicap-Fund-39
 fee: https://www.sbimf.com/sbimf-scheme-details/SBI-Midcap-Fund-34
-fee: https://www.indmoney.com/mutual-funds/sbi-bluechip-fund-direct-growth-3046
-fee: https://www.indmoney.com/mutual-funds/sbi-long-term-equity-fund-direct-growth-2754
 fee: https://www.indmoney.com/mutual-funds/sbi-small-cap-fund-direct-plan-growth-3603

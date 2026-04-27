@@ -22,5 +22,5 @@ Wire `top_theme` from the M2 Review Pipeline into the M3 Voice Agent greeting. T
 - [ ] Start Call blocked when no pulse in session
 - [ ] Greeting contains `top_theme` value after pulse generated
 - [ ] `session["call_completed"]` is True after booking
-- [ ] MCP queue has 3 items after call ends
+- [ ] MCP queue has 4 items after call ends (calendar_hold, notes_append, email_draft, sheet_entry)
 - [ ] `pytest phase6_pillar_b_voice/tests/ -v` exits 0

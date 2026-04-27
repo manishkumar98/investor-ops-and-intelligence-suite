@@ -30,8 +30,9 @@ User quotes:
 {quotes}
 
 Requirements:
-- Maximum 250 words total
+- Maximum 250 words total (strictly enforced — count every word)
 - End with exactly 3 numbered action ideas (format: "1. ...", "2. ...", "3. ...")
+- Each action idea must be ONE short sentence, maximum 15 words
 - No PII in the output
 - Neutral, facts-only tone
 - Do NOT include a header or title"""
@@ -64,10 +65,22 @@ def write(themes: list[str], quotes: list[dict]) -> str:
         if attempt < MAX_RETRIES:
             continue
 
-    # Hard-truncate to MAX_WORDS and ensure 3 action lines exist
-    words = pulse.split()
-    pulse = " ".join(words[:MAX_WORDS])
-    if len(re.findall(r"^\d+\.", pulse, re.MULTILINE)) < 3:
-        pulse += "\n1. Improve login reliability.\n2. Simplify nominee update flow.\n3. Enhance SIP failure notifications."
+    # Hard-truncate: trim each action line to ≤15 words, then fit narrative in remaining budget
+    action_lines = re.findall(r"(?m)^[1-3]\. .+$", pulse)
+    narrative    = re.sub(r"(?m)^[1-3]\. .+$\n?", "", pulse).strip()
 
-    return pulse
+    if len(action_lines) >= 3:
+        trimmed_actions = [
+            " ".join(line.split()[:16])   # "1. " prefix + 15 content words
+            for line in action_lines[:3]
+        ]
+        action_word_count = sum(len(a.split()) for a in trimmed_actions)
+        narrative_limit   = MAX_WORDS - action_word_count - 3   # -3 for newline tokens
+        narrative         = " ".join(narrative.split()[:max(30, narrative_limit)])
+        return narrative + "\n" + "\n".join(trimmed_actions)
+
+    return (narrative.rsplit(" ", max(0, len(narrative.split()) - (MAX_WORDS - 20)))[0]
+            + "\n1. Improve login reliability."
+            + "\n2. Simplify nominee update flow."
+            + "\n3. Enhance SIP failure notifications.")
+

@@ -281,36 +281,6 @@ header h1 {
 .check-icon { background: rgba(201,168,76,0.15) !important; border-color: rgba(201,168,76,0.4) !important; color: #C9A84C !important; }
 .action-num { background: linear-gradient(135deg, #C9A84C, #A8863C) !important; color: #0A0C14 !important; }
 </style>
-<style>
-/* Capstone theme override — charcoal + gold */
-body { background: #0A0C14 !important; }
-.blob-1, .blob-2 { display: none !important; }
-.tab-btn.active {
-  background: linear-gradient(135deg, #C9A84C, #A8863C) !important;
-  color: #0A0C14 !important;
-  box-shadow: 0 4px 15px rgba(201,168,76,0.35) !important;
-}
-.tab-btn:hover:not(.active) { background: rgba(201,168,76,0.08) !important; }
-.send-btn {
-  background: linear-gradient(135deg, #C9A84C, #A8863C) !important;
-  color: #0A0C14 !important;
-}
-.send-btn:hover { box-shadow: 0 8px 20px rgba(201,168,76,0.4) !important; }
-header h1 {
-  background: linear-gradient(135deg, #F5F0E8, #C9A84C) !important;
-  -webkit-background-clip: text !important;
-  -webkit-text-fill-color: transparent !important;
-}
-.status-pill {
-  background: rgba(201,168,76,0.12) !important;
-  border-color: rgba(201,168,76,0.40) !important;
-  color: #C9A84C !important;
-}
-.status-dot { background: #C9A84C !important; }
-.review-badge { border-color: rgba(201,168,76,0.4) !important; color: #C9A84C !important; }
-.check-icon { background: rgba(201,168,76,0.15) !important; border-color: rgba(201,168,76,0.4) !important; color: #C9A84C !important; }
-.action-num { background: linear-gradient(135deg, #C9A84C, #A8863C) !important; color: #0A0C14 !important; }
-</style>
 </head>
 <body>
     <div class="blob blob-1"></div>
@@ -383,15 +353,15 @@ header h1 {
                 </div>
             </div>
 
-            <!-- Send Email card -->
-            <div class="glass-card send-section">
-                <h3>✉️ Send Pulse Email</h3>
-                <div class="input-row">
-                    <input type="text" id="gate-send-name" placeholder="Recipient name" />
-                    <input type="email" id="gate-send-email" placeholder="recipient@example.com" />
-                    <button class="send-btn" id="gate-send-btn" onclick="sendEmailFrom('gate')">Send Email 🚀</button>
+            <!-- HITL notice — email is queued for approval in Tab 3 -->
+            <div class="glass-card send-section" style="display:flex;align-items:center;gap:14px;padding:18px 22px;">
+                <span style="font-size:1.5rem;">✅</span>
+                <div>
+                    <div style="font-weight:700;font-size:0.95rem;color:#C9A84C;">Email draft queued for approval</div>
+                    <div style="font-size:0.82rem;color:rgba(255,255,255,0.5);margin-top:3px;">
+                        Review and send from the <strong style="color:rgba(255,255,255,0.75);">Super-Agent MCP Workflow</strong> tab — all outbound actions require human approval.
+                    </div>
                 </div>
-                <div class="status-msg" id="gate-send-status"></div>
             </div>
         </div>
 
@@ -401,14 +371,15 @@ header h1 {
                 <div class="week-label" id="draft-week-label"></div>
                 <div class="draft-box" id="draft-content"></div>
             </div>
-            <div class="glass-card send-section">
-                <h3>✉️ Send Pulse Email</h3>
-                <div class="input-row">
-                    <input type="text" id="send-name" placeholder="Recipient name" />
-                    <input type="email" id="send-email" placeholder="recipient@example.com" />
-                    <button class="send-btn" id="send-btn" onclick="sendEmailFrom('draft')">Send Email 🚀</button>
+            <!-- HITL notice — email is queued for approval in Tab 3 -->
+            <div class="glass-card send-section" style="display:flex;align-items:center;gap:14px;padding:18px 22px;">
+                <span style="font-size:1.5rem;">✅</span>
+                <div>
+                    <div style="font-weight:700;font-size:0.95rem;color:#C9A84C;">Email draft queued for approval</div>
+                    <div style="font-size:0.82rem;color:rgba(255,255,255,0.5);margin-top:3px;">
+                        Review and send from the <strong style="color:rgba(255,255,255,0.75);">Super-Agent MCP Workflow</strong> tab — all outbound actions require human approval.
+                    </div>
                 </div>
-                <div class="status-msg" id="send-status"></div>
             </div>
         </div>
 
@@ -549,8 +520,6 @@ header h1 {
     </div>
 
     <script>
-        const API = 'http://localhost:8510';
-
         // ── Baked-in data (updated by pipeline each week) ──────────────────
         const EMAIL_DRAFT = `WEEKLY INDMONEY PRODUCT PULSE
 ============================================================
@@ -853,62 +822,19 @@ Reviews this week present a polarised but telling picture of INDmoney's trading 
             const btn = document.getElementById('both-btn');
             status.textContent = '';
             if (type === 'notes') {
-                status.textContent = '✅ Notes marked as sent to Google Doc (re-run pipeline to append live data).';
+                status.textContent = '✅ Notes entry queued — approve it in the Super-Agent MCP Workflow tab.';
                 status.className = 'status-msg success';
             } else if (type === 'email') {
-                status.textContent = '✅ Email draft approved. Use the Send Email form below to deliver.';
+                status.textContent = '✅ Email draft queued for approval — review and send from the Super-Agent MCP Workflow tab.';
                 status.className = 'status-msg success';
             } else if (type === 'both') {
                 btn.disabled = true;
                 btn.textContent = 'Processing...';
                 await new Promise(r => setTimeout(r, 800));
-                status.textContent = '✅ Both actions approved. Notes logged & email draft ready to send.';
+                status.textContent = '✅ Both actions queued. Go to the Super-Agent MCP Workflow tab to approve and execute.';
                 status.className = 'status-msg success';
                 btn.disabled = false;
                 btn.textContent = '✅ Do Both & Finish';
-            }
-        }
-
-        async function sendEmailFrom(source) {
-            const nameId = source === 'gate' ? 'gate-send-name' : 'send-name';
-            const emailId = source === 'gate' ? 'gate-send-email' : 'send-email';
-            const btnId = source === 'gate' ? 'gate-send-btn' : 'send-btn';
-            const statusId = source === 'gate' ? 'gate-send-status' : 'send-status';
-
-            const name = document.getElementById(nameId).value.trim();
-            const email = document.getElementById(emailId).value.trim();
-            const btn = document.getElementById(btnId);
-            const status = document.getElementById(statusId);
-
-            if (!name || !email) { status.textContent = 'Please enter both name and email.'; status.className = 'status-msg error'; return; }
-
-            btn.disabled = true;
-            btn.innerHTML = 'Sending... <span class="spinner-inline"></span>';
-            status.textContent = '';
-            status.className = 'status-msg';
-
-            try {
-                const res = await fetch(`${API}/api/send-email`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ name, email })
-                });
-                const data = await res.json();
-                if (res.ok) {
-                    status.textContent = `✅ Email sent to ${email}!`;
-                    status.className = 'status-msg success';
-                    document.getElementById(nameId).value = '';
-                    document.getElementById(emailId).value = '';
-                } else {
-                    status.textContent = data.detail || 'Failed to send email.';
-                    status.className = 'status-msg error';
-                }
-            } catch (e) {
-                status.textContent = '❌ Failed to connect to server.';
-                status.className = 'status-msg error';
-            } finally {
-                btn.disabled = false;
-                btn.textContent = 'Send Email 🚀';
             }
         }
 

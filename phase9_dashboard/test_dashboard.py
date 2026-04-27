@@ -13,7 +13,7 @@ from pathlib import Path
 
 import streamlit as st
 
-ROOT = Path(__file__).parent
+ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 
 st.set_page_config(

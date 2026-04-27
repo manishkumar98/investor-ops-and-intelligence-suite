@@ -4,8 +4,8 @@ from config import ROUTER_MODE
 
 FACT_KEYWORDS = [
     "nav", "aum", "lock-in", "lock in", "exit load", "fund", "elss", "sip",
-    "sbi", "bluechip", "smallcap", "small cap", "flexi", "midcap", "nfo",
-    "riskometer", "benchmark", "minimum", "redemption", "statement",
+    "sbi", "large cap", "largecap", "bluechip", "smallcap", "small cap",
+    "flexi", "midcap", "nfo", "riskometer", "benchmark", "minimum", "redemption", "statement",
 ]
 FEE_KEYWORDS = [
     "charge", "expense ratio", "ter", "fee", "fees", "stt", "cost",

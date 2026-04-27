@@ -6,14 +6,15 @@ Phase 3 is where the system reads the voice of the customer. A product manager u
 
 More importantly, this phase writes the `top_theme` and `weekly_pulse` into shared session state. Those two values flow forward into everything else — the voice agent reads `top_theme` to personalise its greeting, and the advisor email includes `weekly_pulse` as market context. If Phase 3 doesn't run, the voice agent uses a generic greeting and the email has no market context.
 
-**The pipeline runs in 6 linear steps, each feeding the next:**
+**The pipeline runs in 5 linear steps, each feeding the next:**
 
 1. **PII Scrubbing** — Remove all personal information before any AI sees it
 2. **Theme Clustering** — Group reviews into themes using Claude
 3. **Quote Extraction** — Pick the best representative quote per theme
 4. **Pulse Writing** — Write the ≤250-word weekly note with exactly 3 action ideas
 5. **Fee Explaining** — Generate a fee context bullet list based on the top theme
-6. **MCP Queue** — Queue 2 outbound actions (notes entry + email draft) for human approval
+
+> **Note (as-built):** M2 pipeline does **not** enqueue any MCP actions. All 4 HITL actions (calendar_hold, notes_append, email_draft, sheet_entry) are generated exclusively by the M3 voice agent at booking time. The notes_append payload also embeds M2 context (top_3_themes, weekly_pulse, fee_scenario) to prove cross-pillar integration.
 
 ---
 
@@ -104,15 +105,9 @@ reviews_sample.csv
 └────────────┬─────────────────────────┘
              │
              ▼
-┌──────────────────────────────────────┐
-│  STEP 6: MCP Queue Enqueue           │
-│  enqueue_action() x2:                │
-│    {type:"notes_append", status:"pending", ...}
-│    {type:"email_draft",  status:"pending", ...}
-│  → session["mcp_queue"] (+2 items)   │
-│  These show up in Tab 3 for approval │
-└──────────────────────────────────────┘
 ```
+
+> Pipeline ends here. Session state now has `weekly_pulse`, `top_theme`, `top_3_themes`, `fee_bullets`, `fee_sources`, `pulse_generated=True`. No MCP actions are enqueued by M2.
 
 ---
 
@@ -127,10 +122,10 @@ def scrub(text: str) -> tuple[str, int]:
     redaction_count is the total replacements made (for audit log).
     """
 
-# pillar_b/pipeline_orchestrator.py  (was review_pipeline.py in early design)
+# phase3_review_pillar_b/pipeline_orchestrator.py
 def run_pipeline(csv_path: str, session: dict) -> dict:
     """
-    Runs all 6 steps in order.
+    Runs all 5 steps in order.
     Returns: {
         themes:      list[dict],    # [{label, count, review_ids}]
         top_3:       list[str],     # theme labels
@@ -140,7 +135,8 @@ def run_pipeline(csv_path: str, session: dict) -> dict:
         fee_bullets: list[str],
         fee_sources: list[str],
     }
-    Side-effects: writes 7 keys to session, appends 2 items to mcp_queue
+    Side-effects: writes 7 keys to session (weekly_pulse, top_theme, top_3_themes,
+    fee_bullets, fee_sources, pulse_generated, chat_history). Does NOT enqueue MCP actions.
     """
 ```
 
@@ -297,25 +293,12 @@ Function: `explain(scenario: str, session: dict) -> dict`
    "checked": datetime.utcnow().date().isoformat()}
   ```
 
-**6. `pillar_b/pipeline_orchestrator.py`**
+**6. `phase3_review_pillar_b/pipeline_orchestrator.py`**
 Function: `run_pipeline(csv_path: str, session: dict) -> dict`
 - Validate CSV has required columns; raise `ValueError` if not
 - Call Steps 1–5 in order
-- After Step 5, call `enqueue_action()` twice (imported from `pillar_c/mcp_client.py`):
-  ```python
-  from pillar_c.mcp_client import enqueue_action
-
-  enqueue_action(session, type="notes_append",
-      payload={"doc_title": "Advisor Pre-Bookings",
-               "entry": {"date": today, "top_theme": session["top_theme"],
-                         "pulse_summary": session["weekly_pulse"][:100]}},
-      source="m2_pipeline")
-
-  enqueue_action(session, type="email_draft",
-      payload=build_email(session),   # from pillar_c/email_builder.py
-      source="m2_pipeline")
-  ```
 - Write all session keys; return full result dict
+- **No MCP enqueue calls** — as-built M2 only writes session state; MCP actions are M3's responsibility
 
 ---
 
@@ -331,7 +314,7 @@ Everything Phase 3 writes to `session` is consumed by later phases. If Phase 3 d
 | `session["fee_bullets"]` | ≤6 fee bullet strings | Phase 7 email builder | Email has no fee explanation section |
 | `session["fee_sources"]` | 2 official source URLs | Phase 7 email builder | Email has no source citations |
 | `session["pulse_generated"]` | `True` | Phase 6 UI guard | "Start Call" button stays disabled |
-| `session["mcp_queue"]` | +2 pending actions appended | Phase 7 HITL panel | Approval center shows 2 fewer items |
+| `session["mcp_queue"]` | Not modified by M2 — all 4 MCP actions come from M3 voice agent | Phase 7 HITL panel | N/A (M3 handles this) |
 
 ---
 

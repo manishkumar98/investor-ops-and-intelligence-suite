@@ -54,7 +54,8 @@ def run(session: dict | None = None) -> list[dict]:
                  "payload": {"title": f"Advisor Q&A — {detail['topic']} — NL-A742"}},
                 {"action_id": "a2", "type": "notes_append",   "status": "pending",
                  "payload": {"entry": {"date": "2026-04-22", "topic": detail["topic"],
-                                       "slot": "2026-04-24 10:00 IST", "code": "NL-A742"}}},
+                                       "slot": "2026-04-24 10:00 IST", "booking_code": "NL-A742",
+                                       "status": "CONFIRMED"}}},
                 {"action_id": "a3", "type": "email_draft",    "status": "pending",
                  "payload": {"subject": subject, "body": body}},
             ],
@@ -87,8 +88,10 @@ def _(s):
     notes = next((a for a in s.get("mcp_queue", []) if a["type"] == "notes_append"), None)
     if not notes:
         return False, "no notes_append action"
-    code_in_entry = notes["payload"].get("entry", {}).get("code") == s.get("booking_code")
-    return code_in_entry, f"entry.code={notes['payload'].get('entry',{}).get('code')}"
+    entry = notes["payload"].get("entry", {})
+    code  = entry.get("booking_code") or entry.get("code", "")
+    ok    = code == s.get("booking_code")
+    return ok, f"entry.booking_code={code}"
 
 @check("Calendar: title contains booking_code")
 def _(s):

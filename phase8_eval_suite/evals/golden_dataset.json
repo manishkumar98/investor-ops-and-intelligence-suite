@@ -7,7 +7,7 @@
   },
   {
     "id": "GD-02",
-    "question": "What is the expense ratio of SBI Bluechip Direct plan?",
+    "question": "What is the expense ratio of SBI Large Cap Fund Direct plan?",
     "expected_sources": ["mf_faq_corpus", "fee_corpus"],
     "must_mention": ["expense ratio", "direct plan"]
   },
@@ -19,9 +19,9 @@
   },
   {
     "id": "GD-04",
-    "question": "What is the difference in expense ratio between SBI Small Cap regular and direct plan?",
+    "question": "What is the exit load and expense ratio for SBI Small Cap Fund?",
     "expected_sources": ["fee_corpus"],
-    "must_mention": ["regular", "direct", "expense ratio"]
+    "must_mention": ["exit load", "expense ratio", "small cap"]
   },
   {
     "id": "GD-05",

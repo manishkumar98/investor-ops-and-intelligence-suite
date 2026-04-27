@@ -45,7 +45,9 @@ evals/run_evals.py
              Check 1: len(session["weekly_pulse"].split()) <= 250
              Check 2: len(re.findall(r"^\d+\.", pulse, re.M)) == 3
              Check 3: session["top_theme"] in voice_agent.get_greeting()[0]
-             Score: X/3 (all 3 must pass)
+             Check 4: notes_append payload["booking_code"] == session["booking_code"]
+             Check 5: weekly_pulse[:100] substring present in email_draft payload["body"]
+             Score: X/5 (all 5 must pass)
                     │
                     ▼
              report_generator.py
@@ -84,13 +86,15 @@ Faithfulness: 5/5 ✓  |  Relevance: 4/5 ✓  (target: ≥4/5 both)
 Safety Score: 3/3 ✓  (HARD GATE — must be 3/3 to ship)
 
 ## 3. UX / Structure Eval
-| Check         | Criterion | Result       |
-|---------------|-----------|--------------|
-| Pulse Words   | ≤ 250     | 243 words ✓  |
-| Action Ideas  | == 3      | 3 found ✓    |
-| Theme Mention | In greeting| ✓ detected  |
+| Check           | Criterion            | Result          |
+|-----------------|----------------------|-----------------|
+| Pulse Words     | ≤ 250                | 243 words ✓     |
+| Action Ideas    | == 3                 | 3 found ✓       |
+| Theme Mention   | In greeting          | ✓ detected      |
+| Code in Notes   | booking_code present | NL-A742 ✓       |
+| Pulse in Email  | pulse[:100] in body  | ✓ detected      |
 
-UX Score: 3/3 ✓
+UX Score: 5/5 ✓
 
 ## Overall: PASS ✓
 All hard gates passed. System is shippable.
@@ -296,10 +300,18 @@ word_count   = len(pulse.split())
 action_count = len(re.findall(r"^\d+\.", pulse, re.MULTILINE))
 theme_in_greeting = top_theme.lower() in greeting.lower() if top_theme else False
 
+# Checks 4+5: verify M2↔M3 connection via mcp_queue
+notes_action  = next((a for a in session.get("mcp_queue", []) if a["type"] == "notes_append"), None)
+email_action  = next((a for a in session.get("mcp_queue", []) if a["type"] == "email_draft"), None)
+code_in_notes = notes_action and notes_action["payload"].get("booking_code") == session.get("booking_code")
+pulse_in_email = email_action and pulse[:100] in email_action["payload"].get("body", "")
+
 return {
-    "pulse_word_count":  {"value": word_count,   "passed": word_count <= 250},
-    "pulse_actions":     {"value": action_count,  "passed": action_count == 3},
+    "pulse_word_count":  {"value": word_count,       "passed": word_count <= 250},
+    "pulse_actions":     {"value": action_count,      "passed": action_count == 3},
     "theme_in_greeting": {"value": theme_in_greeting, "passed": theme_in_greeting},
+    "code_in_notes":     {"value": code_in_notes,     "passed": bool(code_in_notes)},
+    "pulse_in_email":    {"value": pulse_in_email,    "passed": bool(pulse_in_email)},
 }
 ```
 

@@ -80,41 +80,6 @@ def run_pipeline(csv_source: Union[str, io.IOBase], session: dict) -> dict:
     session["pulse_generated"] = True
     session["analytics_data"]  = analytics
 
-    # ── 9. Enqueue MCP actions ──────────────────────────────────────────────
-    from phase7_pillar_c_hitl.mcp_client import enqueue_action
-    from datetime import date
-
-    enqueue_action(
-        session,
-        type="notes_append",
-        payload={
-            "doc_title": "Weekly Pulse Notes",
-            "entry": {
-                "date":         str(date.today()),
-                "weekly_pulse": pulse[:500],
-                "top_themes":   top_3,
-                "fee_scenario": fee_result["scenario"],
-            },
-        },
-        source="m2_pipeline",
-    )
-
-    enqueue_action(
-        session,
-        type="email_draft",
-        payload={
-            "subject": f"Weekly Pulse + Fee Explainer — {date.today()}",
-            "body": (
-                f"Weekly Pulse:\n{pulse}\n\n"
-                f"Fee Context ({fee_result['scenario'].replace('_', ' ')}):\n"
-                + "\n".join(fee_result["bullets"])
-                + f"\n\nSources: {', '.join(fee_result['sources'])}"
-                + f"\n\nLast checked: {fee_result['checked']}"
-            ),
-        },
-        source="m2_pipeline",
-    )
-
     return {
         "top_3":        top_3,
         "quotes":       quotes,

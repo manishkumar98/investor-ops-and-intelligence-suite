@@ -10,7 +10,7 @@ import anthropic
 from phase5_pillar_a_faq.faq_engine import query
 from session_init import init_session_state
 
-ALLOWED_DOMAINS = ["sbimf.com", "amfiindia.com", "sebi.gov.in"]
+ALLOWED_DOMAINS = ["sbimf.com", "amfiindia.com", "sebi.gov.in", "indmoney.com"]
 
 _judge_client = None
 
@@ -45,15 +45,22 @@ def check_relevance(question: str, response) -> dict:
         f"Does this answer directly and specifically address the question?\n"
         f"Question: {question}\n"
         f"Answer: {answer_text}\n\n"
-        f'Reply with JSON only: {{"relevant": true or false, "reason": "one sentence"}}'
+        f'Reply with JSON only, no markdown fences: {{"relevant": true, "reason": "one sentence"}}'
     )
     try:
         msg = _get_judge().messages.create(
             model="claude-sonnet-4-6",
-            max_tokens=100,
+            max_tokens=150,
             messages=[{"role": "user", "content": prompt}],
         )
-        return json.loads(msg.content[0].text.strip())
+        raw = msg.content[0].text.strip()
+        # Strip markdown fences if present
+        if raw.startswith("```"):
+            raw = raw.split("```")[1]
+            if raw.startswith("json"):
+                raw = raw[4:]
+            raw = raw.strip()
+        return json.loads(raw)
     except Exception as exc:
         return {"relevant": None, "reason": f"LLM judge unavailable: {exc}"}
 

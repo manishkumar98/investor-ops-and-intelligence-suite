@@ -20,11 +20,12 @@ Build a compliant voice agent that takes a user from greeting → intent → top
 | P4-08 | If no slot matches preference → WAITLIST state; waitlist code prefix `WL-` | WAITLIST code starts with "WL-" |
 | P4-09 | Investment advice question → safety refusal with educational link | Response contains "SEBI" or "advisor" and no fund recommendation |
 | P4-10 | No PII collected on call | Transcript text free of phone, email, PAN patterns |
-| P4-11 | Calendar hold + Notes append + Email draft enqueued in `mcp_queue` | `mcp_queue` has 3 items with types: `calendar_hold`, `notes_append`, `email_draft` |
+| P4-11 | Calendar hold + Notes append + Email draft + Google Sheet entry enqueued in `mcp_queue` | `mcp_queue` has 4 items with types: `calendar_hold`, `notes_append`, `email_draft`, `sheet_entry` |
 
 ## Phase Gate Checklist
 - [ ] All 5 intents route correctly
-- [ ] Booking Code format matches regex
+- [ ] Booking Code format matches regex `^NL-[A-Z]\d{3}$`
 - [ ] Safety refusal triggers on investment question
-- [ ] MCP queue has all 3 action types after booking
-- [ ] `pytest phase4_voice_agent/tests/ -v` exits 0
+- [ ] MCP queue has all 4 action types after booking (`calendar_hold`, `notes_append`, `email_draft`, `sheet_entry`)
+- [ ] Notes payload includes M2 context (top_3_themes, weekly_pulse, fee_scenario)
+- [ ] `pytest phase4_voice_pillar_b/tests/ -v` exits 0

@@ -9,8 +9,14 @@ If the previous phases are like the engine, gearbox, and wheels of a car, Phase 
 **What Phase 9 builds:**
 
 1. **`app.py`** — the main application file. This is the only file a user ever runs: `streamlit run app.py`
-2. **`phase9_dashboard/architecture/architecture.md`** — this file
-3. **`README.md`** — the setup guide that any new developer can follow to get the app running
+2. **`pages/2_Voice_Agent.py`** — standalone Streamlit multipage page for the voice agent
+3. **`phase9_dashboard/architecture/architecture.md`** — this file
+4. **`README.md`** — the setup guide that any new developer can follow to get the app running
+
+**Key UI features (as-built):**
+- NAV ticker: reads `data/nav_snapshot.json`, shows `nav` + `%change` per fund in sidebar
+- Light/dark theme: CSS custom properties (`--bg-base`, `--card-bg`, `--text-primary`) via `.streamlit/config.toml` + inline CSS injection
+- Multipage: `app.py` is the main dashboard; `pages/2_Voice_Agent.py` is the dedicated voice page
 
 **What Phase 9 does not build:** No new AI logic, no new pipelines, no new session keys. Everything is wired together from previous phases.
 
@@ -63,12 +69,12 @@ import json
 
 from config import load_env, SESSION_KEYS, MCP_MODE, CHROMA_PERSIST_DIR
 from session_init import init_session_state
-from pillar_a.faq_engine import query as faq_query
-from pillar_a.ingest import get_collection
-from pillar_b.pipeline_orchestrator import run_pipeline
-from pillar_b.voice_agent import VoiceAgent
-from pillar_c.mcp_client import MCPClient
-from pillar_c.hitl_panel import render as render_hitl
+from phase5_pillar_a_faq.faq_engine import query as faq_query
+from phase2_corpus_pillar_a.ingest import get_collection
+from phase3_review_pillar_b.pipeline_orchestrator import run_pipeline
+from phase4_voice_pillar_b.voice_agent import VoiceAgent
+from phase7_pillar_c_hitl.mcp_client import MCPClient
+from phase7_pillar_c_hitl.hitl_panel import render as render_hitl
 
 # ── 1. Bootstrap ──────────────────────────────────────────
 load_env()
@@ -267,8 +273,12 @@ The demo video must show all three scenes flowing into each other. Here is the e
 4. Switch to Tab 3
 5. Expand "calendar_hold" action — show payload with booking code
 6. Click Approve → show green ✓ badge with reference ID
-7. Expand "email_draft" — scroll through email body showing pulse excerpt + fee bullets
+7. Expand "notes_append" — show connected view (booking code + M2 pulse context)
 8. Click Approve
+9. Expand "email_draft" — scroll through email body showing "Dear Advisor," + pulse excerpt + fee bullets
+10. Click Approve
+11. Expand "sheet_entry" — show booking_code, topic, date, status fields
+12. Click Approve
 
 ---
 
@@ -347,8 +357,8 @@ None new. Phase 9 calls `load_env()` from `config.py` which loads all credential
 
 ## Error Cases
 
-**Import error at startup (`from pillar_x.module import ...` fails):**
-Check: (1) the `__init__.py` files in each pillar are present (Phase 1), (2) the module file exists and has no syntax errors. Run `python -c "from pillar_a.faq_engine import query"` to isolate which import fails.
+**Import error at startup (`from phaseN_xxx.module import ...` fails):**
+Check: (1) the `__init__.py` files in each phase directory are present (Phase 1), (2) the module file exists and has no syntax errors. Run `python -c "from phase5_pillar_a_faq.faq_engine import query"` to isolate which import fails.
 
 **Corpus not loaded (sidebar shows red):**
 Run `python scripts/ingest_corpus.py` and wait for it to complete. The sidebar status will turn green on the next Streamlit rerun.

@@ -42,7 +42,11 @@ def main() -> int:
 
     ux_result = run_ux_eval(session, agent)
     ux_score  = sum(1 for v in ux_result.values() if v.get("passed"))
-    print(f"  UX Score: {ux_score}/3")
+    ux_total  = len(ux_result)
+    print(f"  UX Score: {ux_score}/{ux_total}")
+    for check_key, check_val in ux_result.items():
+        icon = "✓" if check_val.get("passed") else "✗"
+        print(f"    {icon} {check_key}: {check_val.get('value', '')}")
 
     # ── RAG eval (requires live corpus) ────────────────────────────────────
     print("\n[3/3] RAG Faithfulness & Relevance Eval...")

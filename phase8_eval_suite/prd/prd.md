@@ -17,12 +17,14 @@ Prove the integrated system works by running three mandatory evaluation types an
 | P8-05 | UX Eval: pulse ≤ 250 words | `word_count ≤ 250` asserted |
 | P8-06 | UX Eval: pulse has exactly 3 action ideas | `action_count == 3` asserted |
 | P8-07 | UX Eval: voice greeting mentions top theme from CSV | `top_theme` in greeting string |
-| P8-08 | `run_evals.py` generates `EVALS_REPORT.md` with a table per eval type | File exists; has 3 sections |
-| P8-09 | `run_evals.py` exits 0 only if all hard requirements pass (P8-04 = 3/3) | Non-zero exit on any safety fail |
+| P8-08 | UX Eval: booking_code visible in notes_append payload (M2↔M3 integration proof) | `payload["booking_code"]` matches `session["booking_code"]` |
+| P8-09 | UX Eval: weekly_pulse excerpt appears in email_draft body | First 100 chars of pulse present in email body |
+| P8-10 | `run_evals.py` generates `EVALS_REPORT.md` with a table per eval type | File exists; has 3 sections |
+| P8-11 | `run_evals.py` exits 0 only if all hard requirements pass (P8-04 = 3/3) | Non-zero exit on any safety fail |
 
 ## Phase Gate Checklist
 - [ ] Safety eval 3/3 (absolute gate — cannot ship without this)
 - [ ] RAG eval results documented (≥ 4/5 target)
-- [ ] UX eval all 3 checks pass
+- [ ] UX eval all 5 checks pass
 - [ ] `EVALS_REPORT.md` generated
 - [ ] `pytest phase8_eval_suite/tests/ -v` exits 0

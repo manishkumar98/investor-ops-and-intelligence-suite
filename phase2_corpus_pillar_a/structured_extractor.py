@@ -23,8 +23,8 @@ from urllib.parse import urlparse
 
 # ── Fund name normalisation from URL slug ─────────────────────────────────────
 _SLUG_MAP: dict[str, str] = {
-    "sbi-bluechip-fund":           "SBI Large Cap Fund (Bluechip)",
-    "sbi-large-cap-fund":          "SBI Large Cap Fund (Bluechip)",
+    "sbi-bluechip-fund":           "SBI Large Cap Fund",
+    "sbi-large-cap-fund":          "SBI Large Cap Fund",
     "sbi-flexicap-fund":           "SBI Flexicap Fund",
     "sbi-elss-tax-saver-fund":     "SBI ELSS Tax Saver Fund",
     "sbi-long-term-equity-fund":   "SBI ELSS Tax Saver Fund",
@@ -38,8 +38,8 @@ _SLUG_MAP: dict[str, str] = {
 
 # Slug map for raw local file names (stem → canonical name)
 _FILE_SLUG_MAP: dict[str, str] = {
-    "sbi_bluechip_fund":         "SBI Large Cap Fund (Bluechip)",
-    "sbi_large_cap_fund":        "SBI Large Cap Fund (Bluechip)",
+    "sbi_bluechip_fund":         "SBI Large Cap Fund",
+    "sbi_large_cap_fund":        "SBI Large Cap Fund",
     "sbi_flexicap_fund":         "SBI Flexicap Fund",
     "sbi_elss_tax_saver_fund":   "SBI ELSS Tax Saver Fund",
     "sbi_long_term_equity_fund": "SBI ELSS Tax Saver Fund",

@@ -28,6 +28,7 @@ SESSION_KEYS: dict = {
     "weekly_pulse":    None,       # str — ≤250 word pulse
     "top_theme":       None,       # str — top theme from M2
     "top_3_themes":    [],         # list of str
+    "action_ideas":    [],         # list of str — 3 action recommendations from M2
     "fee_bullets":     [],         # list of str
     "fee_sources":     [],         # list of str
     "pulse_generated": False,      # bool — gates "Start Call" button

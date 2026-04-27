@@ -1,0 +1,141 @@
+{
+  "keywords": [
+    {
+      "word": "trading",
+      "count": 56,
+      "color": "#4ade80"
+    },
+    {
+      "word": "redacted",
+      "count": 49,
+      "color": "#60a5fa"
+    },
+    {
+      "word": "best",
+      "count": 36,
+      "color": "#f59e0b"
+    },
+    {
+      "word": "option",
+      "count": 30,
+      "color": "#c084fc"
+    },
+    {
+      "word": "chart",
+      "count": 25,
+      "color": "#fb7185"
+    },
+    {
+      "word": "please",
+      "count": 22,
+      "color": "#34d399"
+    },
+    {
+      "word": "stock",
+      "count": 21,
+      "color": "#818cf8"
+    },
+    {
+      "word": "loss",
+      "count": 17,
+      "color": "#facc15"
+    },
+    {
+      "word": "stocks",
+      "count": 17,
+      "color": "#f87171"
+    },
+    {
+      "word": "trade",
+      "count": 16,
+      "color": "#2dd4bf"
+    },
+    {
+      "word": "add",
+      "count": 16,
+      "color": "#4ade80"
+    },
+    {
+      "word": "user",
+      "count": 16,
+      "color": "#60a5fa"
+    },
+    {
+      "word": "ind",
+      "count": 15,
+      "color": "#f59e0b"
+    },
+    {
+      "word": "order",
+      "count": 13,
+      "color": "#c084fc"
+    },
+    {
+      "word": "flash",
+      "count": 13,
+      "color": "#fb7185"
+    },
+    {
+      "word": "one",
+      "count": 13,
+      "color": "#34d399"
+    },
+    {
+      "word": "feature",
+      "count": 13,
+      "color": "#818cf8"
+    },
+    {
+      "word": "features",
+      "count": 13,
+      "color": "#facc15"
+    },
+    {
+      "word": "market",
+      "count": 12,
+      "color": "#f87171"
+    },
+    {
+      "word": "don",
+      "count": 12,
+      "color": "#2dd4bf"
+    }
+  ],
+  "sentiment": {
+    "positive": 149,
+    "neutral": 7,
+    "negative": 64
+  },
+  "rating_dist": {
+    "1": 52,
+    "2": 12,
+    "3": 7,
+    "4": 35,
+    "5": 114
+  },
+  "negative_reviews": [
+    {
+      "text": "Every day at 9:15 AM when I place an order, it shows “Execute the order after market open” even though the market is already open and LTP is changing.",
+      "rating": 1
+    },
+    {
+      "text": "very poor app always hang today while trading it hang does not show any data and 1000 times I have tried to exit but app was totally fail and showing ",
+      "rating": 1
+    },
+    {
+      "text": "chart pattern detection timely notification required in app. without notification there is no use of chart Pattern. Lots of strike is index option eac",
+      "rating": 1
+    },
+    {
+      "text": "ind flash trading app takes charges 20 rupees per order it is bad app now I closed permanently uninstalled this app and use [REDACTED] and [REDACTED] ",
+      "rating": 1
+    },
+    {
+      "text": "Flash trade by ind stock is misleading app. They add on FB ₹5 for fno trading but once you open an account with them they simply deny and say look my ",
+      "rating": 1
+    }
+  ],
+  "total": 220,
+  "generated_at": "2026-04-24T18:14:54.381412",
+  "review_count": 220
+}

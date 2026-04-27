@@ -67,7 +67,9 @@ mf_faq_corpus fee_corpus  both (parallel)
                 ▼
 ┌──────────────────────────────────────────┐
 │  STEP 3: Distance Filter                 │
-│  discard any chunk with distance > 0.75  │
+│  discard any chunk with distance > 1.2   │
+│  (local all-MiniLM uses 0–2 scale;       │
+│   1.2 is calibrated for that model)      │
 │  if ALL chunks discarded → no-context    │
 │  response (never hallucinate)            │
 └───────────────┬──────────────────────────┘
@@ -306,7 +308,7 @@ Function: `retrieve(query: str, query_type: str) -> list[dict]`
 - Embed query: `openai.embeddings.create(model="text-embedding-3-small", input=[query])`
 - Based on `query_type`, query one or both collections
 - For `compound`: query both collections simultaneously (2 calls); merge results
-- Apply distance filter: `[c for c in results if c["distance"] <= 0.75]`
+- Apply distance filter: `[c for c in results if c["distance"] <= 1.2]`
 - Deduplicate by `chunk_id`
 - Return `[{text, source_url, corpus, distance}]`
 
@@ -358,7 +360,7 @@ Catch `anthropic.APIError`. Return:
 FaqResponse(refused=True, refusal_msg="Service temporarily unavailable. Please try again.")
 ```
 
-**All retrieved chunks have distance > 0.75:**
+**All retrieved chunks have distance > 1.2:**
 `retrieve()` returns `[]` after filtering. This is treated identically to "corpus empty" — return the "not in knowledge base" response. Never hallucinate.
 
 **LLM returns answer without source citation:**
