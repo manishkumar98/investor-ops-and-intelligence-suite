@@ -63,8 +63,10 @@ The agent follows an **8-state Finite State Machine (FSM)** — a predetermined 
          │  BOOKED  │  generate_booking_code() → NL-A742
          │          │  write session["booking_code"]
          │          │  write session["booking_detail"]
-         │          │  enqueue: calendar_hold, notes_append,
-         │          │           email_draft, sheet_entry → mcp_queue (+4)
+         │          │  super_agent.run() → Claude calls 4 MCP tools:
+         │          │    calendar_hold, notes_append (+ M2 context),
+         │          │    email_draft (Claude writes with market context),
+         │          │    sheet_entry → mcp_queue (+4, agent-tagged)
          │          │  read booking code + secure URL to user
          └──────────┘
 ```
@@ -153,7 +155,7 @@ For text-mode (no microphone): skip Whisper; user types in `st.text_input()` dir
 | TIMEPREF | After topic confirmed | Parse weekday + AM/PM from utterance using regex | None (regex) | OFFERSLOTS |
 | OFFERSLOTS | After time preference | Filter `mock_calendar.json`; offer best 2 matching slots | None (lookup) | CONFIRM (user picks) or WAITLIST (no match) |
 | CONFIRM | After slot pick | Read back: topic + slot date/time in IST; ask "Is that right?" | None (scripted) | BOOKED (yes) or TIMEPREF (no) |
-| BOOKED | After confirmation | Generate code; write session; enqueue 4 MCP actions (calendar_hold, notes_append with M2 context, email_draft, sheet_entry); deliver secure URL via TTS | None (scripted) | END |
+| BOOKED | After confirmation | Generate code; write session; call `super_agent.run()` — Claude uses MCP tool_use to generate all 4 actions (calendar_hold, notes_append with M2 context, email_draft written by Claude with market context, sheet_entry); deliver secure URL via TTS | None (scripted) | END |
 | WAITLIST | No slots matched | Generate WL-prefix code; enqueue 2 MCP actions; inform user | None (scripted) | END |
 
 ---
@@ -310,8 +312,8 @@ Function: `match_slots(calendar: list[dict], day_pref: str | None, period: str |
 Function: `book(slot: dict, topic: str, session: dict) -> dict`
 - Generate booking code
 - Write to session: `booking_code`, `booking_detail`
-- Call `enqueue_action()` x4: calendar_hold, notes_append (with M2 context: top_3_themes, weekly_pulse[:300], fee_scenario), email_draft, sheet_entry
 - Return `{"booking_code": str, "slot": dict, "topic": str, "secure_url": str}`
+- (Note: MCP actions are queued by `voice_agent._complete_booking()` via `super_agent.run()`, not by `book()`)
 
 **4. `pillar_b/voice_agent.py`**
 Class: `VoiceAgent`
@@ -319,6 +321,7 @@ Class: `VoiceAgent`
 - `get_greeting() -> tuple[str, bytes]`: read `top_theme`; format greeting; TTS call; return (text, audio)
 - `step(utterance) -> tuple[str, bytes | None]`: FSM dispatch; call appropriate handler for current state; advance state; TTS call on response; return (text, audio or None)
 - Internal state handlers: `_handle_greet()`, `_handle_intent()`, `_handle_topic()`, `_handle_timepref()`, `_handle_offerslots()`, `_handle_confirm()`, `_handle_booked()`, `_handle_waitlist()`
+- `_complete_booking()`: calls `super_agent.run(booking_ctx, session)` — Claude generates all 4 MCP action payloads via tool_use; falls back to legacy `enqueue_action()` if Claude API fails
 
 ---
 

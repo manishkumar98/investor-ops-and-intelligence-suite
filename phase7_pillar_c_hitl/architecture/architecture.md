@@ -1,16 +1,17 @@
-# Phase 7 Architecture — Pillar C: HITL MCP Approval Center (v2.0 As-Built)
+# Phase 7 Architecture — Pillar C: HITL MCP Approval Center (v3.0 As-Built)
 
 ## What This Phase Does
 
 Phase 7 is the Human-in-the-Loop (HITL) approval center — the gatekeeper that prevents any AI-generated action from reaching the outside world without explicit human sign-off.
 
-By the time the user reaches Tab 3, the M3 voice agent has completed a booking and enqueued **4 pending actions**:
+When the M3 voice agent completes a booking, it invokes the **MCP Super-Agent** (`super_agent.py`): Claude receives the full booking context plus M2 market intelligence (`weekly_pulse`, `top_3_themes`, `fee_bullets`) and calls all 4 post-booking tools via **Model Context Protocol tool_use**. Claude constructs every payload — including writing the advisor email with a Market Context section derived from the M2 pulse pipeline. The resulting tool_use blocks land in `session["mcp_queue"]` as **4 pending actions**:
+
 - `calendar_hold` — reserve the advisor's slot
 - `notes_append` — log booking to advisor notes (enriched with M2 market context)
-- `email_draft` — pre-booking email to advisor with pulse excerpt + fee bullets
+- `email_draft` — pre-booking email written by Claude with M2 pulse + fee bullets
 - `sheet_entry` — record booking in Google Sheet
 
-> **As-built:** M2 pipeline enqueues **nothing**. All 4 HITL actions are generated exclusively by M3 `voice_agent.py` at booking time in `_complete_booking()`. This is a deviation from v1.0 which had M2 also enqueuing 2 actions.
+> **As-built (v3.0):** Actions are no longer hard-coded in `voice_agent.py`. Claude (`claude-sonnet-4-6`) acts as the super-agent via `tool_choice="any"`, constructing all 4 payloads through MCP tool_use. Each action is tagged `"agent": "claude-sonnet-4-6"` and shown with a 🤖 Claude MCP badge in the HITL panel. A legacy hard-coded fallback runs automatically if the Claude API is unavailable.
 
 Each action sits in `session["mcp_queue"]` waiting for a human to click "Approve" or "Reject". Phase 7 renders this queue as a Streamlit UI panel, executes approved actions through an MCP client, and persists the approval state to `data/mcp_state.json`.
 
@@ -21,40 +22,57 @@ Each action sits in `session["mcp_queue"]` waiting for a human to click "Approve
 
 ---
 
-## Approval Flow
+## MCP Super-Agent Flow
 
 ```
-session["mcp_queue"]  ← list of 4 pending actions (all from M3)
+Voice call ends → _complete_booking() in voice_agent.py
+         │
+         ▼
+┌────────────────────────────────────────────────────────┐
+│  super_agent.run(booking_detail, session)              │
+│                                                        │
+│  Calls Claude API (claude-sonnet-4-6):                 │
+│    system: "You are a booking super-agent..."          │
+│    tools:  [calendar_hold, notes_append,               │
+│             email_draft, sheet_entry]                  │
+│    tool_choice: {"type": "any"}   ← forces tool use   │
+│    user:   booking context + M2 weekly_pulse           │
+│             + top_3_themes + fee_bullets               │
+│                                                        │
+│  Claude returns tool_use blocks:                       │
+│    • calendar_hold(title, date, time, booking_code)    │
+│    • notes_append(doc_title, entry{+M2 context})       │
+│    • email_draft(subject, body WITH market context)    │
+│    • sheet_entry(booking_code, topic_key, date...)     │
+│                                                        │
+│  Each block → action dict with agent="claude-sonnet-4-6"
+│  → appended to session["mcp_queue"]                    │
+└────────────────────────────────────────────────────────┘
+         │
+         ▼
+session["mcp_queue"]  ← 4 pending Claude-generated actions
          │
          ▼
 ┌────────────────────────────────────────────────────────┐
 │  hitl_panel.py  (Streamlit Tab 3 component)            │
 │                                                        │
-│  "Clear N completed" button — removes approved/rejected│
+│  🤖 MCP Super-Agent active banner (if agent actions)   │
+│  "Clear N completed" button                            │
 │                                                        │
-│  Actions grouped by source:                            │
-│    📋 Booking Actions  ← m3_voice source               │
+│  Actions grouped: 📋 Booking Actions (m3_voice)        │
+│    Each card shows 🤖 Claude MCP badge + model name    │
 │                                                        │
 │  for action in mcp_queue:                              │
-│    if action["status"] == "pending":                   │
-│      render card based on action["type"]:              │
-│        calendar_hold  → date/time/topic/code           │
-│        notes_append   → connected view (booking+pulse) │
-│        email_draft    → subject + full body preview    │
-│        sheet_entry    → booking_code/topic/date/status │
-│        col1, col2 = st.columns(2)                      │
-│        col1: [✓ Approve]  col2: [✗ Reject]            │
+│    render card for action["type"]:                     │
+│      calendar_hold  → date/time/topic/code             │
+│      notes_append   → connected view (booking+pulse)   │
+│      email_draft    → subject + full body preview      │
+│      sheet_entry    → booking_code/topic/date/status   │
+│    col1: [✓ Approve]  col2: [✗ Reject]                │
 │                                                        │
-│  On Approve click:                                     │
-│    action["status"] = "approved"                       │
-│    result = mcp_client.execute(action)                 │
-│    show ✓ badge + result.ref_id                        │
-│    persist queue to data/mcp_state.json                │
-│                                                        │
-│  On Reject click:                                      │
-│    action["status"] = "rejected"                       │
-│    show ✗ badge                                        │
-│    persist queue to data/mcp_state.json                │
+│  On Approve → mcp_client.execute(action) → Google API  │
+│  On Reject  → action["status"] = "rejected"            │
+│  Both → persist to data/mcp_state.json                 │
 └────────────────────────────────────────────────────────┘
 ```
 
@@ -91,41 +109,43 @@ Body:
 
 ---
 
-## The `enqueue_action()` Helper (with deduplication)
-
-This function is the ONLY way to add items to `mcp_queue`. It is defined in `phase7_pillar_c_hitl/mcp_client.py` and imported by `phase4_voice_pillar_b/voice_agent.py`.
+## Key Interfaces
 
 ```python
+# phase7_pillar_c_hitl/super_agent.py  ← NEW: MCP super-agent
+
+TOOLS: list[dict]   # 4 Claude tool_use schemas: calendar_hold, notes_append,
+                    # email_draft, sheet_entry
+
+def run(booking_detail: dict, session: dict) -> list[dict]:
+    """
+    Invokes claude-sonnet-4-6 with tool_choice="any" and the 4 MCP tool schemas.
+    Claude receives booking context + M2 weekly_pulse/top_3_themes/fee_bullets
+    and constructs all payloads via tool_use (Model Context Protocol).
+
+    Returns list of action dicts tagged with agent="claude-sonnet-4-6",
+    ready for session["mcp_queue"]. Returns [] on failure (triggers legacy fallback).
+    """
+
 # phase7_pillar_c_hitl/mcp_client.py
+
 def enqueue_action(session: dict, type: str, payload: dict, source: str) -> str:
     """
-    Appends a standardised pending action to session["mcp_queue"].
-    Supersedes any existing PENDING action of the same type+source
-    so there is never more than one pending copy of the same action type per source.
-    Returns the unique action_id.
-
-    type:   "calendar_hold" | "notes_append" | "email_draft" | "sheet_entry"
-    source: "m3_voice"  (M2 pipeline no longer enqueues)
+    Legacy helper — still used by the waitlist path and as the super-agent fallback.
+    Supersedes any existing PENDING action of same type+source (deduplication).
+    type: "calendar_hold" | "notes_append" | "email_draft" | "sheet_entry"
     """
-    if "mcp_queue" not in session:
-        session["mcp_queue"] = []
 
-    # Deduplication: remove existing pending action of same type+source
-    session["mcp_queue"] = [
-        a for a in session["mcp_queue"]
-        if not (a["status"] == "pending" and a["type"] == type and a["source"] == source)
-    ]
-
-    action = {
-        "action_id":  str(uuid.uuid4()),
-        "type":       type,
-        "status":     "pending",
-        "created_at": datetime.utcnow().isoformat(),
-        "source":     source,
-        "payload":    payload,
-    }
-    session["mcp_queue"].append(action)
-    return action["action_id"]
+# action dict schema (as stored in mcp_queue):
+{
+    "action_id":  str,   # UUID
+    "type":       str,   # calendar_hold | notes_append | email_draft | sheet_entry
+    "status":     str,   # pending | approved | rejected | error
+    "created_at": str,   # UTC ISO timestamp
+    "source":     str,   # m3_voice
+    "agent":      str,   # "claude-sonnet-4-6" if MCP super-agent generated it (else absent)
+    "payload":    dict,  # tool-specific fields
+}
 ```
 
 ---
