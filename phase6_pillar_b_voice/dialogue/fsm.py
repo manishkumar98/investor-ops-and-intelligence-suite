@@ -13,7 +13,7 @@ from __future__ import annotations
 
 import logging
 import os
-from datetime import datetime, timedelta
+from datetime import datetime
 
 import pytz
 
@@ -1378,16 +1378,6 @@ class DialogueFSM:
             ctx.resolved_slot.get("start_ist", slot_iso)
             if ctx.resolved_slot else slot_iso
         )
-        # Compute end time: start + configured slot duration (same as build_payload)
-        slot_end_iso = ""
-        if slot_iso:
-            try:
-                from src.mcp.config import config as _mcp_cfg
-                _start_dt  = datetime.fromisoformat(slot_iso)
-                _end_dt    = _start_dt + timedelta(minutes=_mcp_cfg.slot_duration_minutes)
-                slot_end_iso = _end_dt.isoformat()
-            except Exception:
-                pass
         url = generate_secure_url(
             booking_code=ctx.booking_code,
             topic=ctx.topic or "general",
@@ -1395,31 +1385,14 @@ class DialogueFSM:
         )
         ctx.secure_url = url
 
-        # Phase 4: attempt real MCP dispatch; fall back to mock flags on any failure
-        ctx.calendar_hold_created, ctx.notes_appended, ctx.email_drafted = True, True, True
-        try:
-            if is_reschedule:
-                from src.mcp.mcp_orchestrator import reschedule_booking_mcp_sync
-                _mcp_results = reschedule_booking_mcp_sync(
-                    ctx.existing_booking_code,
-                    slot_iso,
-                    slot_end_iso,
-                    slot_readable,
-                )
-                ctx.calendar_hold_created = _mcp_results.calendar_success
-                ctx.notes_appended        = _mcp_results.sheets_success
-                ctx.email_drafted         = True  # no email step for reschedule
-                _log.info("Reschedule MCP result for %s: %s",
-                          ctx.existing_booking_code, _mcp_results.summary())
-            else:
-                from src.mcp.mcp_orchestrator import dispatch_mcp_sync, build_payload
-                _mcp_results = dispatch_mcp_sync(build_payload(ctx))
-                ctx.calendar_hold_created = _mcp_results.calendar_success
-                ctx.notes_appended        = _mcp_results.sheets_success
-                ctx.email_drafted         = _mcp_results.email_success
-                _log.info("Booking MCP result for %s: %s", ctx.booking_code, _mcp_results.summary())
-        except Exception as _exc:
-            _log.error("dispatch_mcp_sync failed for %s: %s", ctx.booking_code, _exc)
+        # Actions are queued for HITL approval — no Google API calls here.
+        # The super-agent (phase7_pillar_c_hitl/super_agent.py) will enqueue
+        # calendar_hold, notes_append, email_draft, sheet_entry into mcp_queue
+        # after process_turn() returns. They only execute when the advisor
+        # approves each action in the HITL panel.
+        ctx.calendar_hold_created = False
+        ctx.notes_appended        = False
+        ctx.email_drafted         = False
         ctx.current_state = DialogueState.BOOKING_COMPLETE
 
         topic_label = TOPIC_LABELS.get(ctx.topic or "", "your consultation")
@@ -1465,12 +1438,7 @@ class DialogueFSM:
             queue = get_global_queue()
             position = queue.add(entry)
             ctx.waitlist_code = entry.waitlist_code
-            # Record waitlisted row in Google Sheets
-            try:
-                from src.mcp.mcp_orchestrator import record_waitlist_in_sheets_sync
-                record_waitlist_in_sheets_sync(entry, ctx)
-            except Exception:
-                pass
+            # Sheet write is queued — HITL approval required before any Google API call
             ctx.current_state = DialogueState.WAITLIST_CONFIRMED
             code_spoken = _speak_code(entry.waitlist_code)
 
@@ -1596,14 +1564,7 @@ class DialogueFSM:
                                 pass  # Email unavailable — slot still freed
                 except Exception:
                     pass
-            # Cancel in Google Calendar and update Google Sheets
-            if code:
-                try:
-                    from src.mcp.mcp_orchestrator import cancel_booking_mcp_sync
-                    mcp_res = cancel_booking_mcp_sync(code)
-                    _log.info("Cancel MCP result for %s: %s", code, mcp_res.summary())
-                except Exception as _exc:
-                    _log.error("cancel_booking_mcp_sync failed for %s: %s", code, _exc)
+            # Calendar and Sheets updates are queued — HITL approval required
             ctx.current_state = DialogueState.END
             return ctx, _s("cancel_done").format(code=code) + promotion_note
 

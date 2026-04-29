@@ -7,7 +7,14 @@ import io
 import json
 import os
 import re
+import sys
 from pathlib import Path
+
+# Make phase6 sub-packages (voice.*, src.*, booking.*, dialogue.*) importable
+# by voice_agent.py and other phase4 code that use short-form imports.
+_p6 = str(Path(__file__).resolve().parent / "phase6_pillar_b_voice")
+if _p6 not in sys.path:
+    sys.path.insert(0, _p6)
 
 import streamlit as st
 import streamlit.components.v1 as components
@@ -789,6 +796,27 @@ if not st.session_state["mcp_queue"]:
         try:
             st.session_state["mcp_queue"] = json.loads(state_file.read_text())
         except json.JSONDecodeError:
+            pass
+
+# Auto-load pulse + fee data from disk so voice agent is ready without re-running pipeline
+if not st.session_state.get("pulse_generated"):
+    _pulse_file = Path("data/pulse_latest.json")
+    _fee_file   = Path("data/fee_latest.json")
+    if _pulse_file.exists():
+        try:
+            _pd = json.loads(_pulse_file.read_text())
+            st.session_state["weekly_pulse"]    = _pd.get("weekly_note", "")
+            st.session_state["top_3_themes"]    = _pd.get("top_3_themes", [])
+            st.session_state["top_theme"]       = (_pd.get("top_3_themes") or [""])[0]
+            st.session_state["pulse_generated"] = True
+        except Exception:
+            pass
+    if _fee_file.exists():
+        try:
+            _fd = json.loads(_fee_file.read_text())
+            st.session_state["fee_bullets"] = _fd.get("bullets", [])
+            st.session_state["fee_sources"] = _fd.get("sources", [])
+        except Exception:
             pass
 
 # ── 2. Sidebar ────────────────────────────────────────────────────────────────

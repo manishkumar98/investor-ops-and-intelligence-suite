@@ -472,6 +472,29 @@ def _init_state():
 
 _init_state()
 
+# Auto-load M2 pulse + fee data from disk so the voice agent and MCP super-agent
+# have full context even when the pipeline hasn't been run in this session.
+if not st.session_state.get("pulse_generated"):
+    import json as _json
+    _pulse_file = _root_dir / "data" / "pulse_latest.json"
+    _fee_file   = _root_dir / "data" / "fee_latest.json"
+    if _pulse_file.exists():
+        try:
+            _pd = _json.loads(_pulse_file.read_text())
+            st.session_state["weekly_pulse"]    = _pd.get("weekly_note", "")
+            st.session_state["top_3_themes"]    = _pd.get("top_3_themes", [])
+            st.session_state["top_theme"]       = (_pd.get("top_3_themes") or [""])[0]
+            st.session_state["pulse_generated"] = True
+        except Exception:
+            pass
+    if _fee_file.exists():
+        try:
+            _fd = _json.loads(_fee_file.read_text())
+            st.session_state["fee_bullets"] = _fd.get("bullets", [])
+            st.session_state["fee_sources"] = _fd.get("sources", [])
+        except Exception:
+            pass
+
 _lang = st.session_state.va_lang
 os.environ["TTS_LANGUAGE"] = _lang
 os.environ["STT_LANGUAGE"] = _lang
@@ -498,9 +521,41 @@ def _process(user_text: str):
         st.error(f"Routing error: {exc}")
         return
     ctx, speech = fsm.process_turn(ctx, clean_input, llm_resp)
-    # MCP dispatch happens inside fsm.process_turn (_dispatch_mcp)
-    # — ctx.calendar_hold_created / ctx.notes_appended / ctx.email_drafted / ctx.secure_url
-    #   are all set by the FSM before returning.
+
+    # After booking completes, run MCP super-agent to queue HITL actions
+    if ctx.current_state.name == "BOOKING_COMPLETE" and ctx.booking_code:
+        try:
+            from phase7_pillar_c_hitl.super_agent import run as _super_agent_run
+            from phase7_pillar_c_hitl.mcp_client import enqueue_action
+            import json as _json
+            from pathlib import Path as _Path
+
+            _booking_ctx = {
+                "booking_code": ctx.booking_code,
+                "topic":        ctx.topic or "",
+                "topic_label":  ctx.resolved_slot.get("topic_label", ctx.topic or "") if ctx.resolved_slot else (ctx.topic or ""),
+                "date":         ctx.resolved_slot.get("date", "") if ctx.resolved_slot else "",
+                "slot":         ctx.resolved_slot.get("start_ist", "") if ctx.resolved_slot else "",
+                "time":         ctx.resolved_slot.get("start_ist", "") if ctx.resolved_slot else "",
+                "call_id":      ctx.call_id or "N/A",
+            }
+            _agent_actions = _super_agent_run(_booking_ctx, st.session_state)
+            if _agent_actions:
+                if "mcp_queue" not in st.session_state:
+                    st.session_state["mcp_queue"] = []
+                for _action in _agent_actions:
+                    st.session_state["mcp_queue"] = [
+                        a for a in st.session_state["mcp_queue"]
+                        if not (a["status"] == "pending" and a["type"] == _action["type"]
+                                and a.get("source") == _action.get("source"))
+                    ]
+                    st.session_state["mcp_queue"].append(_action)
+                # Persist to disk so HITL panel picks it up
+                _Path("data/mcp_state.json").write_text(
+                    _json.dumps(st.session_state["mcp_queue"], indent=2)
+                )
+        except Exception:
+            pass
 
     # Layer 3: Compliance guard
     if speech:

@@ -9,7 +9,6 @@ Integrates:
 - 8-state FSM compatible with app.py interface
 """
 import json
-import threading
 import uuid
 from datetime import datetime
 from pathlib import Path
@@ -757,43 +756,10 @@ class VoiceAgent:
                 "status": "CONFIRMED", "call_id": self._ctx.call_id,
             })
 
-        self._ctx.calendar_hold_created = True
-        self._ctx.notes_appended = True
-        self._ctx.email_drafted = True
-
-        # ── Dispatch to Google Calendar, Sheets, and Gmail in background ──
-        def _mcp_dispatch_bg(session: dict, ctx, chosen_slot: dict, topic: str, tlabel: str) -> None:
-            try:
-                from phase6_pillar_b_voice.src.mcp.mcp_orchestrator import build_payload, dispatch_mcp_sync
-                from datetime import datetime as _dt
-                payload = build_payload(ctx)
-                if topic == "top_theme":
-                    payload.topic_label = tlabel
-                _slot = ctx.resolved_slot or chosen_slot
-                if _slot:
-                    _iso = _slot.get("start", "")
-                    if _iso:
-                        _sdt = _dt.fromisoformat(_iso)
-                        _h = _sdt.hour % 12 or 12
-                        _ap = "AM" if _sdt.hour < 12 else "PM"
-                        payload.slot_start_ist = (
-                            f"{_sdt.strftime('%A, %Y-%m-%d')} at {_h}:{_sdt.strftime('%M')} {_ap} IST"
-                        )
-                mcp_results = dispatch_mcp_sync(payload)
-                session["mcp_dispatch"] = {
-                    "calendar": mcp_results.calendar.success,
-                    "sheets":   mcp_results.sheets.success,
-                    "email":    mcp_results.email.success,
-                    "summary":  mcp_results.summary(),
-                }
-            except Exception as exc:
-                session["mcp_dispatch"] = {"error": str(exc)}
-
-        threading.Thread(
-            target=_mcp_dispatch_bg,
-            args=(self.session, self._ctx, self._chosen_slot, self._topic, topic_label),
-            daemon=True,
-        ).start()
+        # Actions are pending HITL approval — flags stay False until advisor approves
+        self._ctx.calendar_hold_created = False
+        self._ctx.notes_appended = False
+        self._ctx.email_drafted = False
 
         return (
             f"Your appointment is confirmed! "
