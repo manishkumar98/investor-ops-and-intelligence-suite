@@ -670,114 +670,92 @@ class VoiceAgent:
 
         topic_label = self._get_topic_label()
 
-        # ── Enqueue for Approval Center HITL panel ────────────────────────
+        # ── MCP Super-Agent: Claude orchestrates all post-booking actions ─────
+        # Claude receives booking context + M2 weekly_pulse and calls all 4 tools
+        # via tool_use (Model Context Protocol). The resulting actions are queued
+        # in mcp_queue for HITL human approval before any Google API fires.
+        from phase7_pillar_c_hitl.super_agent import run as _super_agent_run
         from phase7_pillar_c_hitl.mcp_client import enqueue_action
 
-        enqueue_action(
-            self.session,
-            type="calendar_hold",
-            payload={
+        _booking_ctx = {
+            "booking_code": code,
+            "topic":        self._topic,
+            "topic_label":  topic_label,
+            "date":         detail["date"],
+            "time":         detail.get("time", detail.get("slot", "")),
+            "slot":         detail.get("slot", detail.get("time", "")),
+            "call_id":      self._ctx.call_id,
+        }
+
+        _agent_actions = _super_agent_run(_booking_ctx, self.session)
+
+        if _agent_actions:
+            # Claude generated the actions — add to queue directly
+            if "mcp_queue" not in self.session:
+                self.session["mcp_queue"] = []
+            for _action in _agent_actions:
+                # Dedup: supersede any existing pending action of same type
+                self.session["mcp_queue"] = [
+                    a for a in self.session["mcp_queue"]
+                    if not (a["status"] == "pending" and a["type"] == _action["type"]
+                            and a.get("source") == _action.get("source"))
+                ]
+                self.session["mcp_queue"].append(_action)
+        else:
+            # Fallback: hard-coded payloads if super-agent unavailable
+            pulse        = self.session.get("weekly_pulse", "")
+            fee_bullets  = self.session.get("fee_bullets", [])
+            fee_sources  = self.session.get("fee_sources", [])
+            top_3        = self.session.get("top_3_themes", [])
+            market_ctx   = " ".join(pulse.split()[:120]) if pulse else "No pulse data available."
+            themes_line  = (
+                "Top themes: " + "  |  ".join(f"#{i+1} {t}" for i, t in enumerate(top_3[:3]))
+                if top_3 else ""
+            )
+            fee_section  = "\n".join(f"  • {b}" for b in fee_bullets) if fee_bullets else "  N/A"
+            fee_src_line = "\n  Sources: " + ", ".join(fee_sources) if fee_sources else ""
+            div = "─" * 52
+
+            enqueue_action(self.session, type="calendar_hold", source="m3_voice", payload={
                 "title":        f"Advisor Q&A — {topic_label} — {code}",
                 "date":         detail["date"],
-                "time":         detail["time"],
+                "time":         detail.get("time", detail.get("slot", "")),
                 "tz":           "IST",
                 "topic":        self._topic,
                 "booking_code": code,
-            },
-            source="m3_voice",
-        )
-        pulse       = self.session.get("weekly_pulse", "")
-        fee_bullets = self.session.get("fee_bullets", [])
-        top_3       = self.session.get("top_3_themes", [])
-        fee_scenario = self.session.get("fee_sources", [])
-
-        enqueue_action(
-            self.session,
-            type="notes_append",
-            payload={
+            })
+            enqueue_action(self.session, type="notes_append", source="m3_voice", payload={
                 "doc_title": "Advisor Pre-Bookings",
                 "entry": {
-                    "date":         detail["date"],
-                    "topic":        topic_label,
-                    "slot":         detail["slot"],
-                    "booking_code": code,
-                    "status":       "CONFIRMED",
-                    # M2 context — links pulse data to this booking
-                    "top_3_themes": top_3,
+                    "date": detail["date"], "topic": topic_label,
+                    "slot": detail.get("slot", ""), "booking_code": code,
+                    "status": "CONFIRMED", "top_3_themes": top_3,
                     "weekly_pulse": pulse[:300] if pulse else "",
                     "fee_scenario": fee_bullets[0] if fee_bullets else "",
                 },
-            },
-            source="m3_voice",
-        )
-
-        pulse       = self.session.get("weekly_pulse", "")
-        fee_bullets = self.session.get("fee_bullets", [])
-        fee_sources = self.session.get("fee_sources", [])
-        top_3       = self.session.get("top_3_themes", [])
-
-        market_ctx  = " ".join(pulse.split()[:120]) if pulse else "No pulse data available."
-        themes_line = (
-            "Top themes: " + "  |  ".join(f"#{i+1} {t}" for i, t in enumerate(top_3[:3]))
-            if top_3 else ""
-        )
-        fee_section = "\n".join(f"  • {b}" for b in fee_bullets) if fee_bullets else "  N/A"
-        fee_src_line = "\n  Sources: " + ", ".join(fee_sources) if fee_sources else ""
-        div = "─" * 52
-
-        enqueue_action(
-            self.session,
-            type="email_draft",
-            payload={
-                "subject":        f"Pre-Booking Alert: {topic_label} — {detail['date']} @ {detail['slot']}",
+            })
+            enqueue_action(self.session, type="email_draft", source="m3_voice", payload={
+                "subject":        f"Pre-Booking Alert: {topic_label} — {detail['date']} @ {detail.get('slot', '')}",
                 "booking_code":   code,
                 "topic_label":    topic_label,
-                "slot_start_ist": detail["slot"],
+                "slot_start_ist": detail.get("slot", ""),
                 "body": (
-                    f"Dear Advisor,\n\n"
-                    f"A new advisor appointment has been pre-booked via the INDMoney Voice Agent. "
-                    f"Please review the details below and prepare accordingly.\n\n"
-                    f"{div}\n"
-                    f" MEETING DETAILS\n"
-                    f"{div}\n"
-                    f"  Booking Code : {code}\n"
-                    f"  Topic        : {topic_label}\n"
-                    f"  Date         : {detail['date']}\n"
-                    f"  Time Slot    : {detail['slot']} IST\n"
-                    f"  Status       : CONFIRMED\n\n"
-                    f"{div}\n"
-                    f" MARKET CONTEXT  (this week's customer pulse)\n"
-                    f"{div}\n"
+                    f"Dear Advisor,\n\nA new appointment has been pre-booked.\n\n"
+                    f"{div}\n MEETING DETAILS\n{div}\n"
+                    f"  Booking Code : {code}\n  Topic        : {topic_label}\n"
+                    f"  Date         : {detail['date']}\n  Time Slot    : {detail.get('slot', '')} IST\n\n"
+                    f"{div}\n MARKET CONTEXT  (this week's customer pulse)\n{div}\n"
                     + (f"  {themes_line}\n\n" if themes_line else "")
                     + f"  {market_ctx}\n\n"
-                    f"{div}\n"
-                    f" FEE CONTEXT\n"
-                    f"{div}\n"
-                    f"{fee_section}{fee_src_line}\n\n"
-                    f"{div}\n\n"
-                    f"⚠  No investment advice implied. Factual summaries only.\n\n"
-                    f"Best regards,\n"
-                    f"INDMoney Advisor Suite\n"
-                    f"Auto-generated — do not reply to this message."
+                    f"{div}\n FEE CONTEXT\n{div}\n{fee_section}{fee_src_line}\n\n"
+                    f"⚠  No investment advice implied.\n\nBest regards,\nINDMoney Advisor Suite"
                 ),
-            },
-            source="m3_voice",
-        )
-
-        enqueue_action(
-            self.session,
-            type="sheet_entry",
-            payload={
-                "booking_code":   code,
-                "topic_key":      self._topic,
-                "topic_label":    topic_label,
-                "slot_start_ist": detail["slot"],
-                "date":           detail["date"],
-                "status":         "CONFIRMED",
-                "call_id":        self._ctx.call_id,
-            },
-            source="m3_voice",
-        )
+            })
+            enqueue_action(self.session, type="sheet_entry", source="m3_voice", payload={
+                "booking_code": code, "topic_key": self._topic, "topic_label": topic_label,
+                "slot_start_ist": detail.get("slot", ""), "date": detail["date"],
+                "status": "CONFIRMED", "call_id": self._ctx.call_id,
+            })
 
         self._ctx.calendar_hold_created = True
         self._ctx.notes_appended = True
