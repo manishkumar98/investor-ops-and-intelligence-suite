@@ -281,6 +281,36 @@ header h1 {
 .check-icon { background: rgba(201,168,76,0.15) !important; border-color: rgba(201,168,76,0.4) !important; color: #C9A84C !important; }
 .action-num { background: linear-gradient(135deg, #C9A84C, #A8863C) !important; color: #0A0C14 !important; }
 </style>
+<style>
+/* Capstone theme override — charcoal + gold */
+body { background: #0A0C14 !important; }
+.blob-1, .blob-2 { display: none !important; }
+.tab-btn.active {
+  background: linear-gradient(135deg, #C9A84C, #A8863C) !important;
+  color: #0A0C14 !important;
+  box-shadow: 0 4px 15px rgba(201,168,76,0.35) !important;
+}
+.tab-btn:hover:not(.active) { background: rgba(201,168,76,0.08) !important; }
+.send-btn {
+  background: linear-gradient(135deg, #C9A84C, #A8863C) !important;
+  color: #0A0C14 !important;
+}
+.send-btn:hover { box-shadow: 0 8px 20px rgba(201,168,76,0.4) !important; }
+header h1 {
+  background: linear-gradient(135deg, #F5F0E8, #C9A84C) !important;
+  -webkit-background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
+}
+.status-pill {
+  background: rgba(201,168,76,0.12) !important;
+  border-color: rgba(201,168,76,0.40) !important;
+  color: #C9A84C !important;
+}
+.status-dot { background: #C9A84C !important; }
+.review-badge { border-color: rgba(201,168,76,0.4) !important; color: #C9A84C !important; }
+.check-icon { background: rgba(201,168,76,0.15) !important; border-color: rgba(201,168,76,0.4) !important; color: #C9A84C !important; }
+.action-num { background: linear-gradient(135deg, #C9A84C, #A8863C) !important; color: #0A0C14 !important; }
+</style>
 </head>
 <body>
     <div class="blob blob-1"></div>
@@ -523,44 +553,61 @@ header h1 {
         // ── Baked-in data (updated by pipeline each week) ──────────────────
         const EMAIL_DRAFT = `WEEKLY INDMONEY PRODUCT PULSE
 ============================================================
-Date    : April 24, 2026
+Date    : April 29, 2026
 ============================================================
 
 SECTION 1 — WEEKLY PULSE
 ──────────────────────────
-Top 3 Themes: App crashes and technical instability during peak trading hours, Order execution failures and stop-loss reliability issues, Charting limitations and missing Flash Trading features
+Top 3 Themes: App crashes and performance issues during live trading, Stop loss and order execution failures, Low brokerage charges and pricing transparency concerns
 
 User Quotes:
-  "today while trading it hang does not show any data and 1000 times I have tried to exit but app was totally fail and showing technical issue end I have lost my trade and I get loss after 1 hour the app get working and I exit with my 60% loss"
   "I lost ₹43,000 using INDStock for options trading. It doesn't support stop loss trigger like [REDACTED], so trades don't auto-exit. The options layout is extremely confusing — seriously, it's hard to even find the right option."
+  "Every day at 9:15 AM when I place an order, it shows 'Execute the order after market open' even though the market is already open and LTP is changing. This major glitch has been happening for over a month."
   "you need to try its flash mode to experience the state of the art trading platform. I have used more than 10 leading broking sites but IND STOCK gives different key inputs for the current market scenario and the stock you are interested in to. this is AI based platform."
 
 Weekly Note:
-Reviews this week present a polarised but telling picture of INDmoney's trading product. On the critical side, three systemic issues dominate negative sentiment. First, app crashes and server instability during peak hours — especially at the 9:15 AM market open and intraday sessions — are directly causing measurable financial losses, with users citing losses ranging from ₹15,000 to over ₹1,00,000. Second, order execution failures including stale 'market not open' errors persisting for over a month, stop-losses not reflecting in open positions, and missing auto-exit functionality are severely eroding trader trust. Third, charting gaps in Flash Trading mode — absent TradingView integration, no dual-chart or split-chart view, disappearing indicators on relaunch — are the loudest repeated feature request from power users. Brokerage pricing discrepancies between advertised rates (₹5–₹10) and actual charges (₹20) are generating fraud accusations and driving uninstalls. Funds-not-credited complaints remain unresolved for some users across multiple months. On the positive side, Flash Mode AI insights, fast execution when stable, intuitive UI, and low brokerage pricing are building strong loyalty among intraday and options traders, with several users rating INDStock above ten competing platforms. Immediate engineering and product focus on server resilience, order reliability, chart completeness, and transparent pricing communication is critical to protecting and growing this user base.
+This week's consolidated reviews present a split picture of INDMoney's INDStocks platform — genuine strengths undercut by severe reliability failures. On the positive side, users consistently praise the intuitive interface, ₹5 flat brokerage for intraday and F&O, Flash Mode, and AI-driven market insights as meaningful differentiators against established brokers. The platform is viewed as fast-growing and well-positioned competitively. However, critical reliability issues are causing direct, quantifiable financial harm. Stop loss orders are failing to trigger or display in open positions, the 9:15 AM order rejection bug has persisted for over a month, and chart instability — including lagging candles, disappearing positions, and unintended trade executions via zoom — has resulted in user-reported losses ranging from ₹15,000 to ₹43,000. Brokerage pricing confusion is a cross-cutting trust issue, with users reporting charges of ₹20 instead of the advertised ₹5, and some alleging fraud after promotional rates were denied post-signup. Feature gaps — including absent Mutual Funds tab, commodity trading, trailing stop-loss for options, and TradingView chart integration for F&O — represent the next tier of urgency. Customer support responsiveness also drew criticism. Immediate engineering focus on crash stability and order execution integrity is essential to protect user trust before positive brand momentum is irreversibly damaged.
 
 Action Ideas:
-1. Resolve the 9:15 AM 'market not open' order execution error, audit end-to-end order reliability including stop-loss visibility in open positions, and invest in server resilience to eliminate crash-driven financial losses during peak trading hours.
-2. Complete TradingView integration and add dual/split-chart view (index plus option simultaneously) in Flash Trading mode, and persist saved chart layouts including indicators, colors, and drawings across sessions to close the most repeated power-trader feature gap.
-3. Audit and standardise brokerage pricing communication across all in-app onboarding, order, and confirmation screens to eliminate the advertised-versus-charged discrepancy, and introduce a dedicated Mutual Funds tab within INDStock to capture the high-frequency unmet demand flagged consistently across review periods.
+1. Immediately audit and fix stop loss trigger reliability, the 9:15 AM order rejection bug, and chart stability issues — these are causing verified financial losses and represent the highest-severity risk to user trust and retention.
+2. Publish a clear, locked in-app brokerage pricing page for Flash and F&O trading that reflects advertised rates at signup, and enforce consistent application of promotional pricing across support teams to eliminate fraud perception.
+3. Integrate a dedicated Mutual Funds tab within INDStocks and prioritize charting enhancements — trailing stop-loss for options, save-chart settings, and candle tools — to address the most repeated power-user and mainstream feature requests.
 
 SECTION 2 — FEE EXPLAINER
 ──────────────────────────
 exit_load
 
-• **SBI Small Cap Fund** charges an exit load of **1.0%** upon redemption, making it the highest exit load among the three schemes listed in the provided context.
-• **SBI ELSS Tax Saver Fund** has an exit load of **0%**, however it carries a mandatory **3-year lock-in period**, meaning redemption is not permitted before the lock-in period ends.
-• **SBI Large Cap Fund (Bluechip)** has a tiered exit load structure: **0.25% if redeemed within 0–30 days**, and **0.1% if redeemed within 30–90 days**, as per the provided context data.
-• Exit load is a fee charged at the time of **exiting (redeeming)** a mutual fund scheme earlier than a stipulated holding period, and is deducted from the redemption proceeds paid to the investor.
-• All three funds carry a **"Very High" risk level** per the provided context, and their respective expense ratios (Direct Plans) are: SBI Small Cap Fund — **0.79%**, SBI ELSS Tax Saver Fund — **0.99%**, SBI Large Cap Fund — **0.84%**.
-• The exit load and expense ratio data referenced above are sourced from: [https://www.indmoney.com/mutual-funds/sbi-small-cap-fund-direct-plan-growth-3603](https://www.indmoney.com/mutual-funds/sbi-small-cap-fund-direct-plan-growth-3603) and [https://www.indmoney.com/mutual-funds/sbi-bluechip-fund-direct-growth-3046](https://www.indmoney.com/mutual-funds/sbi-bluechip-fund-direct-growth-3046).
+• SBI Small Cap Fund carries an exit load of 1.0%, meaning investors are charged this fee if they redeem their units before the stipulated holding period, as per data from https://www.indmoney.com/mutual-funds/sbi-small-cap-fund-direct-plan-growth-3603
+• SBI ELSS Tax Saver Fund has an exit load of 0%, so no exit fee is charged upon redemption; however, it comes with a mandatory 3-year lock-in period during which redemption is not permitted at all.
+• SBI Large Cap Fund (Bluechip) has a tiered exit load structure: 0.25% if redeemed within 0–30 days, and 0.1% if redeemed between 30–90 days, as per data from https://www.indmoney.com/mutual-funds/sbi-bluechip-fund-direct-growth-3046
+• Exit load is a fee levied when an investor exits or redeems their mutual fund units earlier than a stipulated period, and it is deducted from the redemption amount at the time of withdrawal.
+• Among the three funds listed, SBI Small Cap Fund has the highest exit load at 1.0%, followed by SBI Large Cap Fund with a maximum of 0.25% (within 0–30 days), while SBI ELSS Tax Saver Fund charges 0% exit load.
+• The expense ratios for the direct plans are: SBI Small Cap Fund at 0.79%, SBI Large Cap Fund at 0.84%, and SBI ELSS Tax Saver Fund at 0.99%; these are separate annual charges and are distinct from exit load fees.
 
 Sources: https://www.sbimf.com/en-us/investor-service/expense-ratio, https://www.amfiindia.com/investor-corner/knowledge-center/expense-ratio.html
-Last checked: 2026-04-24
+Last checked: 2026-04-29
 
 ============================================================
 [DRAFT — Pending human review before sending]`;
 
-        const NOTES_MD = `## Week of April 24, 2026
+        const NOTES_MD = `## Week of April 29, 2026
+
+### Weekly Note
+This week's consolidated reviews present a split picture of INDMoney's INDStocks platform — genuine strengths undercut by severe reliability failures. On the positive side, users consistently praise the intuitive interface, ₹5 flat brokerage for intraday and F&O, Flash Mode, and AI-driven market insights as meaningful differentiators against established brokers. The platform is viewed as fast-growing and well-positioned competitively. However, critical reliability issues are causing direct, quantifiable financial harm. Stop loss orders are failing to trigger or display in open positions, the 9:15 AM order rejection bug has persisted for over a month, and chart instability — including lagging candles, disappearing positions, and unintended trade executions via zoom — has resulted in user-reported losses ranging from ₹15,000 to ₹43,000. Brokerage pricing confusion is a cross-cutting trust issue, with users reporting charges of ₹20 instead of the advertised ₹5, and some alleging fraud after promotional rates were denied post-signup. Feature gaps — including absent Mutual Funds tab, commodity trading, trailing stop-loss for options, and TradingView chart integration for F&O — represent the next tier of urgency. Customer support responsiveness also drew criticism. Immediate engineering focus on crash stability and order execution integrity is essential to protect user trust before positive brand momentum is irreversibly damaged.
+
+### Top 3 Themes
+- App crashes and performance issues during live trading
+- Stop loss and order execution failures
+- Low brokerage charges and pricing transparency concerns
+
+### Action Ideas
+1. Immediately audit and fix stop loss trigger reliability, the 9:15 AM order rejection bug, and chart stability issues — these are causing verified financial losses and represent the highest-severity risk to user trust and retention.
+2. Publish a clear, locked in-app brokerage pricing page for Flash and F&O trading that reflects advertised rates at signup, and enforce consistent application of promotional pricing across support teams to eliminate fraud perception.
+3. Integrate a dedicated Mutual Funds tab within INDStocks and prioritize charting enhancements — trailing stop-loss for options, save-chart settings, and candle tools — to address the most repeated power-user and mainstream feature requests.
+
+---
+
+## Week of April 24, 2026
 
 ### Weekly Note
 Reviews this week present a polarised but telling picture of INDmoney's trading product. On the critical side, three systemic issues dominate negative sentiment. First, app crashes and server instability during peak hours — especially at the 9:15 AM market open and intraday sessions — are directly causing measurable financial losses, with users citing losses ranging from ₹15,000 to over ₹1,00,000. Second, order execution failures including stale 'market not open' errors persisting for over a month, stop-losses not reflecting in open positions, and missing auto-exit functionality are severely eroding trader trust. Third, charting gaps in Flash Trading mode — absent TradingView integration, no dual-chart or split-chart view, disappearing indicators on relaunch — are the loudest repeated feature request from power users. Brokerage pricing discrepancies between advertised rates (₹5–₹10) and actual charges (₹20) are generating fraud accusations and driving uninstalls. Funds-not-credited complaints remain unresolved for some users across multiple months. On the positive side, Flash Mode AI insights, fast execution when stable, intuitive UI, and low brokerage pricing are building strong loyalty among intraday and options traders, with several users rating INDStock above ten competing platforms. Immediate engineering and product focus on server resilience, order reliability, chart completeness, and transparent pricing communication is critical to protecting and growing this user base.
@@ -581,31 +628,31 @@ Reviews this week present a polarised but telling picture of INDmoney's trading 
 
         const PULSE_DATA = {
             "themes": [
-                        "App crashes and technical instability during peak trading hours",
-                        "Order execution failures and stop-loss reliability issues",
-                        "Charting limitations and missing Flash Trading features",
-                        "Pricing transparency and brokerage charge discrepancies",
-                        "Missing product segments and feature gaps (Mutual Funds, Commodity, GTT)"
+                        "App crashes and performance issues during live trading",
+                        "Stop loss and order execution failures",
+                        "Low brokerage charges and pricing transparency concerns",
+                        "Missing features and charting tool gaps",
+                        "User-friendly interface, Flash mode, and AI-powered insights"
             ],
             "top_3_themes": [
-                        "App crashes and technical instability during peak trading hours",
-                        "Order execution failures and stop-loss reliability issues",
-                        "Charting limitations and missing Flash Trading features"
+                        "App crashes and performance issues during live trading",
+                        "Stop loss and order execution failures",
+                        "Low brokerage charges and pricing transparency concerns"
             ],
             "quotes": [
-                        "today while trading it hang does not show any data and 1000 times I have tried to exit but app was totally fail and showing technical issue end I have lost my trade and I get loss after 1 hour the app get working and I exit with my 60% loss",
                         "I lost ₹43,000 using INDStock for options trading. It doesn't support stop loss trigger like [REDACTED], so trades don't auto-exit. The options layout is extremely confusing — seriously, it's hard to even find the right option.",
+                        "Every day at 9:15 AM when I place an order, it shows 'Execute the order after market open' even though the market is already open and LTP is changing. This major glitch has been happening for over a month.",
                         "you need to try its flash mode to experience the state of the art trading platform. I have used more than 10 leading broking sites but IND STOCK gives different key inputs for the current market scenario and the stock you are interested in to. this is AI based platform."
             ],
-            "weekly_note": "Reviews this week present a polarised but telling picture of INDmoney's trading product. On the critical side, three systemic issues dominate negative sentiment. First, app crashes and server instability during peak hours — especially at the 9:15 AM market open and intraday sessions — are directly causing measurable financial losses, with users citing losses ranging from ₹15,000 to over ₹1,00,000. Second, order execution failures including stale 'market not open' errors persisting for over a month, stop-losses not reflecting in open positions, and missing auto-exit functionality are severely eroding trader trust. Third, charting gaps in Flash Trading mode — absent TradingView integration, no dual-chart or split-chart view, disappearing indicators on relaunch — are the loudest repeated feature request from power users. Brokerage pricing discrepancies between advertised rates (₹5–₹10) and actual charges (₹20) are generating fraud accusations and driving uninstalls. Funds-not-credited complaints remain unresolved for some users across multiple months. On the positive side, Flash Mode AI insights, fast execution when stable, intuitive UI, and low brokerage pricing are building strong loyalty among intraday and options traders, with several users rating INDStock above ten competing platforms. Immediate engineering and product focus on server resilience, order reliability, chart completeness, and transparent pricing communication is critical to protecting and growing this user base.",
+            "weekly_note": "This week's consolidated reviews present a split picture of INDMoney's INDStocks platform — genuine strengths undercut by severe reliability failures. On the positive side, users consistently praise the intuitive interface, ₹5 flat brokerage for intraday and F&O, Flash Mode, and AI-driven market insights as meaningful differentiators against established brokers. The platform is viewed as fast-growing and well-positioned competitively. However, critical reliability issues are causing direct, quantifiable financial harm. Stop loss orders are failing to trigger or display in open positions, the 9:15 AM order rejection bug has persisted for over a month, and chart instability — including lagging candles, disappearing positions, and unintended trade executions via zoom — has resulted in user-reported losses ranging from ₹15,000 to ₹43,000. Brokerage pricing confusion is a cross-cutting trust issue, with users reporting charges of ₹20 instead of the advertised ₹5, and some alleging fraud after promotional rates were denied post-signup. Feature gaps — including absent Mutual Funds tab, commodity trading, trailing stop-loss for options, and TradingView chart integration for F&O — represent the next tier of urgency. Customer support responsiveness also drew criticism. Immediate engineering focus on crash stability and order execution integrity is essential to protect user trust before positive brand momentum is irreversibly damaged.",
             "action_ideas": [
-                        "Resolve the 9:15 AM 'market not open' order execution error, audit end-to-end order reliability including stop-loss visibility in open positions, and invest in server resilience to eliminate crash-driven financial losses during peak trading hours.",
-                        "Complete TradingView integration and add dual/split-chart view (index plus option simultaneously) in Flash Trading mode, and persist saved chart layouts including indicators, colors, and drawings across sessions to close the most repeated power-trader feature gap.",
-                        "Audit and standardise brokerage pricing communication across all in-app onboarding, order, and confirmation screens to eliminate the advertised-versus-charged discrepancy, and introduce a dedicated Mutual Funds tab within INDStock to capture the high-frequency unmet demand flagged consistently across review periods."
+                        "Immediately audit and fix stop loss trigger reliability, the 9:15 AM order rejection bug, and chart stability issues — these are causing verified financial losses and represent the highest-severity risk to user trust and retention.",
+                        "Publish a clear, locked in-app brokerage pricing page for Flash and F&O trading that reflects advertised rates at signup, and enforce consistent application of promotional pricing across support teams to eliminate fraud perception.",
+                        "Integrate a dedicated Mutual Funds tab within INDStocks and prioritize charting enhancements — trailing stop-loss for options, save-chart settings, and candle tools — to address the most repeated power-user and mainstream feature requests."
             ]
 };
-        const ANALYTICS_META = {"review_count": 220, "sentiment": {"positive": 149, "neutral": 7, "negative": 64}, "rating_dist": {"1": 52, "2": 12, "3": 7, "4": 35, "5": 114}};
-        const FEE_DATA = {"scenario_name": "Exit Load", "explanation_bullets": ["• **SBI Small Cap Fund** charges an exit load of **1.0%** upon redemption, making it the highest exit load among the three schemes listed in the provided context.", "• **SBI ELSS Tax Saver Fund** has an exit load of **0%**, however it carries a mandatory **3-year lock-in period**, meaning redemption is not permitted before the lock-in period ends.", "• **SBI Large Cap Fund (Bluechip)** has a tiered exit load structure: **0.25% if redeemed within 0–30 days**, and **0.1% if redeemed within 30–90 days**, as per the provided context data.", "• Exit load is a fee charged at the time of **exiting (redeeming)** a mutual fund scheme earlier than a stipulated holding period, and is deducted from the redemption proceeds paid to the investor.", "• All three funds carry a **\"Very High\" risk level** per the provided context, and their respective expense ratios (Direct Plans) are: SBI Small Cap Fund — **0.79%**, SBI ELSS Tax Saver Fund — **0.99%**, SBI Large Cap Fund — **0.84%**.", "• The exit load and expense ratio data referenced above are sourced from: [https://www.indmoney.com/mutual-funds/sbi-small-cap-fund-direct-plan-growth-3603](https://www.indmoney.com/mutual-funds/sbi-small-cap-fund-direct-plan-growth-3603) and [https://www.indmoney.com/mutual-funds/sbi-bluechip-fund-direct-growth-3046](https://www.indmoney.com/mutual-funds/sbi-bluechip-fund-direct-growth-3046)."], "source_links": ["https://www.sbimf.com/en-us/investor-service/expense-ratio", "https://www.amfiindia.com/investor-corner/knowledge-center/expense-ratio.html"], "last_checked": "2026-04-24"};
+        const ANALYTICS_META = {"review_count": 222, "sentiment": {"positive": 149, "neutral": 7, "negative": 66}, "rating_dist": {"1": 54, "2": 12, "3": 7, "4": 35, "5": 114}};
+        const FEE_DATA = {"scenario_name": "Exit Load", "explanation_bullets": ["• SBI Small Cap Fund carries an exit load of 1.0%, meaning investors are charged this fee if they redeem their units before the stipulated holding period, as per data from https://www.indmoney.com/mutual-funds/sbi-small-cap-fund-direct-plan-growth-3603", "• SBI ELSS Tax Saver Fund has an exit load of 0%, so no exit fee is charged upon redemption; however, it comes with a mandatory 3-year lock-in period during which redemption is not permitted at all.", "• SBI Large Cap Fund (Bluechip) has a tiered exit load structure: 0.25% if redeemed within 0–30 days, and 0.1% if redeemed between 30–90 days, as per data from https://www.indmoney.com/mutual-funds/sbi-bluechip-fund-direct-growth-3046", "• Exit load is a fee levied when an investor exits or redeems their mutual fund units earlier than a stipulated period, and it is deducted from the redemption amount at the time of withdrawal.", "• Among the three funds listed, SBI Small Cap Fund has the highest exit load at 1.0%, followed by SBI Large Cap Fund with a maximum of 0.25% (within 0–30 days), while SBI ELSS Tax Saver Fund charges 0% exit load.", "• The expense ratios for the direct plans are: SBI Small Cap Fund at 0.79%, SBI Large Cap Fund at 0.84%, and SBI ELSS Tax Saver Fund at 0.99%; these are separate annual charges and are distinct from exit load fees."], "source_links": ["https://www.sbimf.com/en-us/investor-service/expense-ratio", "https://www.amfiindia.com/investor-corner/knowledge-center/expense-ratio.html"], "last_checked": "2026-04-29"};
         // ───────────────────────────────────────────────────────────────────
 
         window.addEventListener('DOMContentLoaded', () => {
@@ -839,7 +886,7 @@ Reviews this week present a polarised but telling picture of INDmoney's trading 
         }
 
         // ── Word Cloud data ──────────────────────────────────────────────────
-        const KEYWORDS = [{"w": "trading", "n": 56, "c": "#4ade80"}, {"w": "redacted", "n": 49, "c": "#60a5fa"}, {"w": "best", "n": 36, "c": "#f59e0b"}, {"w": "option", "n": 30, "c": "#c084fc"}, {"w": "chart", "n": 25, "c": "#fb7185"}, {"w": "please", "n": 22, "c": "#34d399"}, {"w": "stock", "n": 21, "c": "#818cf8"}, {"w": "loss", "n": 17, "c": "#facc15"}, {"w": "stocks", "n": 17, "c": "#f87171"}, {"w": "trade", "n": 16, "c": "#2dd4bf"}, {"w": "add", "n": 16, "c": "#4ade80"}, {"w": "user", "n": 16, "c": "#60a5fa"}, {"w": "ind", "n": 15, "c": "#f59e0b"}, {"w": "order", "n": 13, "c": "#c084fc"}, {"w": "flash", "n": 13, "c": "#fb7185"}, {"w": "one", "n": 13, "c": "#34d399"}, {"w": "feature", "n": 13, "c": "#818cf8"}, {"w": "features", "n": 13, "c": "#facc15"}, {"w": "market", "n": 12, "c": "#f87171"}, {"w": "don", "n": 12, "c": "#2dd4bf"}];
+        const KEYWORDS = [{"w": "trading", "n": 56, "c": "#4ade80"}, {"w": "redacted", "n": 49, "c": "#60a5fa"}, {"w": "best", "n": 36, "c": "#f59e0b"}, {"w": "option", "n": 30, "c": "#c084fc"}, {"w": "chart", "n": 28, "c": "#fb7185"}, {"w": "please", "n": 22, "c": "#34d399"}, {"w": "stock", "n": 21, "c": "#818cf8"}, {"w": "loss", "n": 18, "c": "#facc15"}, {"w": "stocks", "n": 17, "c": "#f87171"}, {"w": "trade", "n": 16, "c": "#2dd4bf"}, {"w": "add", "n": 16, "c": "#4ade80"}, {"w": "user", "n": 16, "c": "#60a5fa"}, {"w": "ind", "n": 15, "c": "#f59e0b"}, {"w": "order", "n": 14, "c": "#c084fc"}, {"w": "flash", "n": 13, "c": "#fb7185"}, {"w": "one", "n": 13, "c": "#34d399"}, {"w": "feature", "n": 13, "c": "#818cf8"}, {"w": "features", "n": 13, "c": "#facc15"}, {"w": "market", "n": 12, "c": "#f87171"}, {"w": "don", "n": 12, "c": "#2dd4bf"}];
         const UPVOTED_REVIEWS = [
             {name:'Manish Mathur',date:'21 Apr 2026',stars:4,sentiment:'Neutral',text:'easy to use and understand UI DESIGN, FAST & RELIABLE',tags:['UI/UX','Performance'],upvotes:141},
             {name:'App User',date:'28 Mar 2026',stars:1,sentiment:'Negative',text:'On listing day the stock was not visible on the app for around 10 minutes after it went live on the exchange. Available on other brokerages during the same time.',tags:['Investment & Trading','Performance'],upvotes:828},
@@ -847,7 +894,7 @@ Reviews this week present a polarised but telling picture of INDmoney's trading 
         ];
 
         // ── Category data ─────────────────────────────────────────────────────
-        const CATEGORIES_DATA = [{"name": "App crashes and technical instability during peak trading hours", "count": 120, "pct": 59.4, "color": "#4ade80"}, {"name": "Order execution failures and stop-loss reliability issues", "count": 27, "pct": 13.4, "color": "#60a5fa"}, {"name": "Charting limitations and missing Flash Trading features", "count": 24, "pct": 11.9, "color": "#f59e0b"}, {"name": "Pricing transparency and brokerage charge discrepancies", "count": 16, "pct": 7.9, "color": "#f472b6"}, {"name": "Missing product segments and feature gaps (Mutual Funds, Commodity, GTT)", "count": 15, "pct": 7.4, "color": "#a78bfa"}];
+        const CATEGORIES_DATA = [{"name": "App crashes and performance issues during live trading", "count": 120, "pct": 59.4, "color": "#4ade80"}, {"name": "Stop loss and order execution failures", "count": 27, "pct": 13.4, "color": "#60a5fa"}, {"name": "Low brokerage charges and pricing transparency concerns", "count": 24, "pct": 11.9, "color": "#f59e0b"}, {"name": "Missing features and charting tool gaps", "count": 16, "pct": 7.9, "color": "#f472b6"}, {"name": "User-friendly interface, Flash mode, and AI-powered insights", "count": 15, "pct": 7.4, "color": "#a78bfa"}];
 
         // ── Ideation data ─────────────────────────────────────────────────────
         const AI_IDEAS = [
@@ -856,7 +903,7 @@ Reviews this week present a polarised but telling picture of INDmoney's trading 
             {title:'Add Trailing Stop-Loss Feature',body:'Power traders explicitly request trailing stop-loss orders. This is a standard feature on competing platforms and would reduce churn.',impact:'Medium'},
             {title:'Mutual Funds SIP Reminders',body:'Users want push notifications for SIP execution dates and confirmation of investment. Easy win for engagement and trust.',impact:'Medium'},
         ];
-        const NEGATIVE_REVIEWS = [{"name": "App User", "stars": 1, "text": "Every day at 9:15 AM when I place an order, it shows “Execute the order after market open” even though the market is already open and LTP is changing.", "tags": ["App crashes and technical instability during peak trading hours"]}, {"name": "App User", "stars": 1, "text": "very poor app always hang today while trading it hang does not show any data and 1000 times I have tried to exit but app was totally fail and showing ", "tags": ["App crashes and technical instability during peak trading hours"]}, {"name": "App User", "stars": 1, "text": "chart pattern detection timely notification required in app. without notification there is no use of chart Pattern. Lots of strike is index option eac", "tags": ["App crashes and technical instability during peak trading hours"]}, {"name": "App User", "stars": 1, "text": "ind flash trading app takes charges 20 rupees per order it is bad app now I closed permanently uninstalled this app and use [REDACTED] and [REDACTED] ", "tags": ["App crashes and technical instability during peak trading hours"]}, {"name": "App User", "stars": 1, "text": "Flash trade by ind stock is misleading app. They add on FB ₹5 for fno trading but once you open an account with them they simply deny and say look my ", "tags": ["App crashes and technical instability during peak trading hours"]}];
+        const NEGATIVE_REVIEWS = [{"name": "App User", "stars": 1, "text": "Sometimes the position vanished from the chart, TP/SL didn't work on mobile, from desktop browsers I can but that also depends on luck, if I use setup", "tags": ["App crashes and performance issues during live trading"]}, {"name": "App User", "stars": 1, "text": "Every day at 9:15 AM when I place an order, it shows “Execute the order after market open” even though the market is already open and LTP is changing.", "tags": ["App crashes and performance issues during live trading"]}, {"name": "App User", "stars": 1, "text": "very poor app always hang today while trading it hang does not show any data and 1000 times I have tried to exit but app was totally fail and showing ", "tags": ["App crashes and performance issues during live trading"]}, {"name": "App User", "stars": 1, "text": "chart pattern detection timely notification required in app. without notification there is no use of chart Pattern. Lots of strike is index option eac", "tags": ["App crashes and performance issues during live trading"]}, {"name": "App User", "stars": 1, "text": "ind flash trading app takes charges 20 rupees per order it is bad app now I closed permanently uninstalled this app and use [REDACTED] and [REDACTED] ", "tags": ["App crashes and performance issues during live trading"]}];
 
         let _bugSelected = new Set();
 
