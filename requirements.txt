@@ -26,9 +26,7 @@ google-cloud-speech>=2.26.0
 gTTS>=2.5.1             # free fallback TTS (no API key needed)
 pyttsx3>=2.90           # offline last-resort TTS
 
-# Voice — audio I/O
-sounddevice>=0.4.6
-soundfile>=0.12.1
+# Voice — audio I/O (Handled by browser via JS)
 
 # Google APIs (Calendar, Sheets, Gmail — phase6 MCP tools)
 google-api-python-client>=2.130.0
