@@ -842,8 +842,22 @@ with st.sidebar:
         st.success(f"✅ FAQ corpus: {faq_count} chunks")
         st.success(f"✅ Fee corpus: {fee_count} chunks")
     except Exception:
-        st.error("❌ Corpus not loaded — run:")
-        st.code("python scripts/ingest_corpus.py")
+        st.error("❌ Corpus not loaded")
+
+    if st.button("🔄 Sync Knowledge Base", use_container_width=True, help="Ingest URLs from SOURCE_MANIFEST.md into ChromaDB"):
+        with st.sidebar:
+            with st.spinner("Syncing Knowledge Base..."):
+                try:
+                    from phase2_corpus_pillar_a.ingest import ingest_corpus, ingest_local_files
+                    t0 = time.time()
+                    res = ingest_corpus(force=False)
+                    loc = ingest_local_files()
+                    dur = time.time() - t0
+                    st.success(f"Done! {res['mf_faq_count'] + loc['mf_faq_added']} chunks added ({dur:.1f}s)")
+                    time.sleep(2)
+                    st.rerun()
+                except Exception as e:
+                    st.error(f"Sync failed: {e}")
 
     st.markdown("---")
 
