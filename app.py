@@ -328,13 +328,39 @@ hr { border-color: var(--border) !important; margin: 24px 0 !important; }
 }
 
 /* ── Fund cards ── */
-.fund-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(280px,1fr)); gap:12px; margin:16px 0 24px; }
-.fund-card { background:var(--bg-card); border:1px solid var(--border); border-radius:12px; padding:18px; transition:all 0.25s; box-shadow:VAR_CARD_SHADOW; }
-.fund-card:hover { border-color:var(--gold-1); background:var(--gold-glow); transform:translateY(-2px); box-shadow:VAR_FUND_HOVER_SHADOW; }
-.fund-name { color:var(--gold-1); font-weight:600; font-size:0.92rem; margin-bottom:6px; }
-.fund-meta { color:var(--text-2); font-size:0.8rem; display:flex; gap:10px; margin-bottom:8px; flex-wrap:wrap; }
-.fund-tag { background:var(--bg-glass); border:1px solid var(--border); border-radius:4px; padding:2px 8px; font-size:0.72rem; color:var(--text-2); }
-.fund-coverage { color:var(--text-3); font-size:0.78rem; margin-top:6px; line-height:1.4; }
+.fund-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(300px,1fr)); gap:16px; margin:20px 0 32px; }
+.fund-card { 
+  background:linear-gradient(145deg, var(--bg-card), var(--bg-base)); 
+  border:1px solid var(--border); 
+  border-radius:16px; 
+  padding:20px; 
+  transition:all 0.3s cubic-bezier(0.4, 0, 0.2, 1); 
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1); 
+  position: relative;
+  overflow: hidden;
+}
+.fund-card::before {
+  content: ''; position: absolute; top: 0; left: 0; width: 4px; height: 100%;
+  background: var(--gold-1); opacity: 0.7;
+}
+.fund-card:hover { 
+  border-color:var(--gold-1); 
+  background:var(--bg-card);
+  transform:translateY(-4px); 
+  box-shadow: 0 12px 24px rgba(0,0,0,0.2); 
+}
+.fund-name { color:var(--gold-2); font-weight:700; font-size:1.0rem; margin-bottom:8px; }
+.fund-meta { color:var(--text-2); font-size:0.8rem; display:flex; gap:10px; margin-bottom:12px; flex-wrap:wrap; }
+.fund-tag { 
+  background:var(--bg-glass); 
+  border:1px solid var(--border); 
+  border-radius:6px; 
+  padding:3px 10px; 
+  font-size:0.75rem; 
+  font-weight: 500;
+  color:var(--text-2); 
+}
+.fund-coverage { color:var(--text-3); font-size:0.82rem; margin-top:8px; line-height:1.5; font-style: italic; }
 
 /* ── NAV Ticker ── */
 .ticker-wrap {
@@ -867,7 +893,7 @@ tab1, tab2, tab3 = st.tabs([
 # ══════════════════════════════════════════════════════════════════════════════
 _SUPPORTED_FUNDS = [
     {
-        "name": "SBI Large Cap Fund",
+        "name": "SBI Bluechip Fund",
         "category": "Large Cap Equity",
         "risk": "Moderate",
         "coverage": "Exit load, expense ratio, SIP minimums, AUM, fund manager",
@@ -914,6 +940,30 @@ _SUPPORTED_FUNDS = [
         "risk": "High",
         "coverage": "Contrarian strategy, exit load, expense ratio",
     },
+    {
+        "name": "SBI Technology Opportunities Fund",
+        "category": "Sectoral / IT",
+        "risk": "Very High",
+        "coverage": "Tech exposure, sector-specific risk, exit load details",
+    },
+    {
+        "name": "SBI Healthcare Opportunities Fund",
+        "category": "Sectoral / Pharma",
+        "risk": "Very High",
+        "coverage": "Pharma & healthcare themes, sector performance, fees",
+    },
+    {
+        "name": "SBI Equity Hybrid Fund",
+        "category": "Aggressive Hybrid",
+        "risk": "Moderate–High",
+        "coverage": "Equity-debt mix, rebalancing strategy, expense ratio",
+    },
+    {
+        "name": "SBI Magnum Global Fund",
+        "category": "Thematic / MNC",
+        "risk": "High",
+        "coverage": "MNC theme, global exposure, exit load & SIP details",
+    },
 ]
 
 _RISK_COLORS = {
@@ -948,34 +998,58 @@ with tab1:
 </p>
 """, unsafe_allow_html=True)
 
-    # ── Knowledge Base Status & Sync (Pillar A) ──────────────────────────────
-    c1, c2, c3 = st.columns([1, 1, 1.5])
+    # ── Knowledge Base Control Center (Pillar A) ──────────────────────────────
+    st.markdown("""
+    <div style="background:var(--bg-glass); border:1px solid var(--border); border-radius:16px; padding:24px; margin-bottom:32px; box-shadow:0 8px 32px rgba(0,0,0,0.15);">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+        <div style="display:flex; align-items:center; gap:12px;">
+          <div style="width:10px; height:30px; background:var(--gold-1); border-radius:4px;"></div>
+          <h4 style="margin:0; font-size:1.1rem; letter-spacing:0.02em;">Knowledge Base Control Center</h4>
+        </div>
+        <div style="font-size:0.75rem; color:var(--text-3); text-transform:uppercase; letter-spacing:0.1em; font-weight:600;">System Ready</div>
+      </div>
+    """, unsafe_allow_html=True)
+
+    c1, c2, c3 = st.columns([1, 1, 1.2])
     with c1:
         try:
             count = get_collection("mf_faq_corpus").count()
-            st.markdown(f'<div class="info-chip" style="width:100%;justify-content:center;">📚 FAQ: {count}</div>', unsafe_allow_html=True)
+            st.markdown(f"""
+            <div style="background:var(--bg-card); border:1px solid var(--border); border-radius:12px; padding:16px; text-align:center;">
+              <div style="font-size:0.7rem; color:var(--text-3); text-transform:uppercase; margin-bottom:4px;">FAQ Chunks</div>
+              <div style="font-size:1.8rem; font-weight:800; color:var(--gold-2);">{count}</div>
+            </div>
+            """, unsafe_allow_html=True)
         except:
             st.error("FAQ Error")
     with c2:
         try:
             count = get_collection("fee_corpus").count()
-            st.markdown(f'<div class="info-chip" style="width:100%;justify-content:center;">💰 Fee: {count}</div>', unsafe_allow_html=True)
+            st.markdown(f"""
+            <div style="background:var(--bg-card); border:1px solid var(--border); border-radius:12px; padding:16px; text-align:center;">
+              <div style="font-size:0.7rem; color:var(--text-3); text-transform:uppercase; margin-bottom:4px;">Fee Chunks</div>
+              <div style="font-size:1.8rem; font-weight:800; color:var(--gold-2);">{count}</div>
+            </div>
+            """, unsafe_allow_html=True)
         except:
             st.error("Fee Error")
     with c3:
-        if st.button("🔄 Sync Knowledge Base", use_container_width=True):
-            with st.spinner("Syncing..."):
+        st.markdown('<div style="height:10px;"></div>', unsafe_allow_html=True)
+        if st.button("🚀 Sync Knowledge Base", use_container_width=True, help="Ingest URLs and update the database"):
+            with st.spinner(""):
                 try:
                     from phase2_corpus_pillar_a.ingest import ingest_corpus, ingest_local_files
-                    res = ingest_corpus(force=False)
-                    loc = ingest_local_files()
-                    st.success("Sync Complete!")
+                    ingest_corpus(force=False)
+                    ingest_local_files()
+                    st.toast("✅ Knowledge Base Synchronized!", icon="🚀")
                     time.sleep(1)
                     st.rerun()
                 except Exception as e:
-                    st.error(f"Failed: {e}")
+                    st.error(f"Sync failed: {e}")
+    
+    st.markdown("</div>", unsafe_allow_html=True)
 
-    with st.expander("📋 Supported Mutual Funds", expanded=False):
+    with st.expander("📋 Supported Mutual Funds", expanded=True):
         cards_html = '<div class="fund-grid">'
         for f in _SUPPORTED_FUNDS:
             risk_color = _RISK_COLORS.get(f["risk"], "#9A9080")
