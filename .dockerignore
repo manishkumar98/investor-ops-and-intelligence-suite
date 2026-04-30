@@ -17,4 +17,6 @@ data/mcp_state.json
 data/nav_snapshot.json
 *.docx
 *.pdf
-*.md
+# Keep critical manifest
+!SOURCE_MANIFEST.md
+!LOW_LEVEL_ARCHITECTURE.md
