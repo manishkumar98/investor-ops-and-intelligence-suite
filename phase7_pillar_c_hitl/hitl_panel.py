@@ -228,12 +228,14 @@ def render(session: dict, mcp_client: MCPClient) -> None:
     pending_count   = sum(1 for a in queue if a["status"] == "pending")
     completed_count = sum(1 for a in queue if a["status"] in ("approved", "rejected", "error"))
 
-    col_warn, col_clear = st.columns([4, 1])
+    col_warn, col_metric, col_clear = st.columns([2.5, 1.5, 1], vertical_alignment="center")
     with col_warn:
         if pending_count > 0:
             st.warning(f"⚠ {pending_count} action(s) awaiting your approval")
         else:
             st.success("✓ All actions processed")
+    with col_metric:
+        st.metric("Pending Approvals", pending_count)
     with col_clear:
         if completed_count > 0:
             if st.button(f"🗑️ Clear {completed_count} completed", use_container_width=True):

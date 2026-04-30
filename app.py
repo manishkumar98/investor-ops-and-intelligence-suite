@@ -138,6 +138,11 @@ def _build_css(is_light: bool) -> str:
 /* ── Full-width block container ── */
 .block-container { padding: 0 !important; max-width: 100% !important; margin: 0 !important; }
 
+/* ── Main Header Row Alignment ── */
+div[data-testid="stHorizontalBlock"]:has(.dsa-header-logo-container) {
+  padding: 16px 48px 8px 48px;
+}
+
 /* ── Base ── */
 html, body, .stApp,
 [data-testid="stAppViewContainer"],
@@ -178,6 +183,9 @@ section[data-testid="stSidebar"] * { color: var(--text-1) !important; }
 .stTabs [data-baseweb="tab"]:hover {
   color: var(--gold-2) !important; background-color: var(--gold-glow) !important;
 }
+.stTabs [role="tabpanel"] {
+  padding: 32px 48px !important;
+}
 
 /* ── Metrics ── */
 div[data-testid="stMetric"] {
@@ -191,27 +199,39 @@ div[data-testid="stMetricValue"] { color: var(--gold-2) !important; font-weight:
 .stButton > button,
 [data-testid="stBaseButton-primary"],
 [data-testid="stBaseButton-secondary"] {
-  background: linear-gradient(135deg, VAR_GOLD_1, VAR_GOLD_1B) !important;
-  color: #111111 !important; border: none !important;
-  border-radius: 100px !important; font-weight: 700 !important;
-  font-size: 0.875rem !important; padding: 10px 24px !important;
-  letter-spacing: 0.02em !important;
-  box-shadow: 0 4px 20px VAR_BTN_SHADOW !important;
-  transition: all 0.2s ease !important;
+  background: #5D4037 !important; /* Deep Brown Resting */
+  color: #FFFFFF !important;
+  border: 2px solid #FFFFFF !important;
+  border-radius: 12px !important;
+  height: 48px !important;
+  padding: 0 32px !important;
+  font-weight: 700 !important;
+  font-size: 0.95rem !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.05em !important;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3) !important;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
 }
 .stButton > button:hover,
 [data-testid="stBaseButton-primary"]:hover,
 [data-testid="stBaseButton-secondary"]:hover {
-  background: linear-gradient(135deg, VAR_GOLD_2, VAR_GOLD_1) !important;
-  color: #111111 !important;
-  box-shadow: 0 6px 28px VAR_BTN_HOVER_SHADOW !important;
-  transform: translateY(-1px) !important;
+  background: #FFFFFF !important;
+  color: #000000 !important;
+  box-shadow: 0 8px 30px rgba(255,255,255,0.6) !important;
+  transform: scale(1.02) !important;
 }
-.stButton > button *, [data-testid="stBaseButton-primary"] *,
-[data-testid="stBaseButton-secondary"] * { color: #111111 !important; }
 .stButton > button p, .stButton > button span,
 [data-testid="stBaseButton-primary"] p, [data-testid="stBaseButton-primary"] span,
-button[kind="primary"] p { color: #111111 !important; }
+[data-testid="stBaseButton-secondary"] p, [data-testid="stBaseButton-secondary"] span,
+button[kind="primary"] p, button[kind="secondary"] p {
+  color: #FFFFFF !important;
+  font-weight: 700 !important;
+}
+.stButton > button:hover p, .stButton > button:hover span,
+[data-testid="stBaseButton-primary"]:hover p, [data-testid="stBaseButton-primary"]:hover span,
+[data-testid="stBaseButton-secondary"]:hover p, [data-testid="stBaseButton-secondary"]:hover span {
+  color: #000000 !important;
+}
 
 /* ── Reject button — scoped to HITL expanders only ── */
 [data-testid="stExpander"] [data-testid="column"]:last-child .stButton > button,
@@ -230,12 +250,37 @@ button[kind="primary"] p { color: #111111 !important; }
   background: var(--bg-card); border: 1px solid var(--border);
   border-radius: 12px; margin-bottom: 8px;
 }
-[data-testid="stChatInput"] textarea {
-  background: var(--bg-card) !important; border: 1px solid var(--border) !important;
-  color: var(--text-1) !important; border-radius: 12px !important;
+[data-testid="stChatInput"] > div {
+  background: var(--gold-1) !important; 
+  border: 1px solid var(--gold-1) !important;
+  border-radius: 12px !important;
 }
-[data-testid="stChatInput"] textarea:focus {
-  border-color: var(--gold-1) !important; box-shadow: 0 0 0 2px var(--gold-glow) !important;
+[data-testid="stChatInput"] div {
+  background-color: transparent !important;
+}
+[data-testid="stChatInput"] > div {
+  background-color: var(--gold-1) !important;
+}
+[data-testid="stChatInput"] textarea {
+  background: transparent !important;
+  color: #000000 !important; 
+  -webkit-text-fill-color: #000000 !important;
+  font-weight: 800 !important;
+}
+[data-testid="stChatInput"] textarea::placeholder {
+  color: rgba(0,0,0,0.6) !important;
+  -webkit-text-fill-color: rgba(0,0,0,0.6) !important;
+  font-weight: 700 !important;
+}
+[data-testid="stChatInput"] button {
+  background: transparent !important;
+}
+[data-testid="stChatInput"] svg {
+  fill: #000000 !important;
+  color: #000000 !important;
+}
+[data-testid="stChatInput"] > div:focus-within {
+  box-shadow: 0 0 15px var(--gold-glow) !important;
 }
 
 /* ── Text inputs ── */
@@ -609,7 +654,7 @@ _warm_embedder()
 
 st.set_page_config(
     page_title="Investor Ops & Intelligence Suite by Dalal Street Advisors",
-    page_icon="📊",
+    page_icon="assets/logo.jpg",
     layout="wide",
 )
 init_session_state(st.session_state)
@@ -793,28 +838,128 @@ if _ticker:
     st.markdown(_ticker, unsafe_allow_html=True)
 
 # ── App Header ────────────────────────────────────────────────────────────────
-# Anchor lets CSS target the adjacent columns row and yank it to fixed position
-st.markdown('<div id="dsa-hdr-toggle-anchor" style="display:none;height:0;"></div>',
-            unsafe_allow_html=True)
-_hdr_sp, _hdr_tog = st.columns([30, 1])
-with _hdr_tog:
-    _hdr_icon = "☀️" if not _is_light else "🌙"
-    if st.button(_hdr_icon, key="header_theme_toggle", help="Toggle light / dark theme"):
-        st.session_state["theme"] = "light" if not _is_light else "dark"
-        st.rerun()
+h_col1, h_col2 = st.columns([0.7, 0.3], vertical_alignment="center")
 
-st.markdown("""
-<div class="dsa-header">
-  <div class="dsa-logo-wrap">
-    <div class="dsa-logo-icon">📊</div>
-    <div>
-      <div class="dsa-logo-text">Investor Ops & Intelligence Suite by Dalal Street Advisors</div>
-      <div class="dsa-logo-sub">Investor Ops &amp; Intelligence Platform</div>
+import base64
+
+def get_base64_image(image_path):
+    try:
+        with open(image_path, "rb") as img_file:
+            return base64.b64encode(img_file.read()).decode()
+    except Exception:
+        return ""
+
+logo_base64 = get_base64_image("assets/logo.jpg")
+logo_img_tag = f'<img src="data:image/jpeg;base64,{logo_base64}" width="42" height="42" style="border-radius:10px; object-fit:cover; box-shadow: 0 4px 12px rgba(0,0,0,0.3);">' if logo_base64 else '<div style="font-size:2.5rem;">📊</div>'
+
+with h_col1:
+    st.markdown(f"""
+    <div class="dsa-header-logo-container" style="display:flex; align-items:center; gap:20px;">
+      {logo_img_tag}
+      <div>
+        <h2 style="margin:0; font-size:1.4rem; color:var(--text-1); letter-spacing:-0.01em;">Investor Ops & Intelligence Suite by Dalal Street Advisors</h2>
+        <div style="font-size:0.8rem; color:var(--text-3); text-transform:uppercase; letter-spacing:0.1em; font-weight:600;">Investor Ops & Intelligence Platform</div>
+      </div>
     </div>
-  </div>
-  <div class="dsa-header-badge">⚡ AI-Powered · Facts Only</div>
-</div>
-""", unsafe_allow_html=True)
+    """, unsafe_allow_html=True)
+
+with h_col2:
+    # Right side: Reset Button + Theme Switcher
+    st.markdown("""
+    <style>
+    /* Global Button No-Wrap */
+    div[data-testid="stButton"] button {
+        white-space: nowrap !important;
+        min-width: 160px !important;
+        height: 42px !important;
+        padding-top: 0 !important;
+        padding-bottom: 0 !important;
+    }
+    .header-controls {
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 20px;
+    }
+    .theme-label {
+        font-size: 0.75rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        color: var(--text-2);
+        margin: 0;
+        padding: 0;
+        line-height: 42px; /* Match button height for perfect alignment */
+        white-space: nowrap;
+    }
+    </style>
+    """, unsafe_allow_html=True)
+    
+    # Rebalanced Columns: [Reset Button] [Theme Control]
+    c_reset, c_theme = st.columns([0.55, 0.45], vertical_alignment="center")
+    
+    with c_reset:
+        if st.button("🔄 RESET SESSION", key="header_reset_btn_ultimate", use_container_width=True):
+            for key in list(st.session_state.keys()):
+                del st.session_state[key]
+            Path("data/mcp_state.json").unlink(missing_ok=True)
+            st.rerun()
+        
+    with c_theme:
+        # Injected CSS for the theme section only
+        st.markdown("""
+        <style>
+        /* Isolate the theme switcher columns and remove gaps */
+        [data-testid="column"]:nth-child(2) [data-testid="stVerticalBlock"] {
+            gap: 0rem !important;
+        }
+        
+        /* Force the toggle to be horizontally centered in its column */
+        [data-testid="column"]:nth-child(2) [data-testid="stCheckbox"] {
+            display: flex !important;
+            justify-content: center !important;
+            align-items: center !important;
+            min-height: auto !important;
+            padding: 0 !important;
+            width: fit-content !important;
+            margin: 0 auto !important;
+        }
+        
+        /* The specific text style for Dark/Light */
+        .theme-label-perfect {
+            font-size: 0.7rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--text-2);
+            white-space: nowrap;
+            display: inline-block;
+            transform: translateY(-16px); /* Precise upward nudge to counter Streamlit toggle bottom padding */
+        }
+        </style>
+        """, unsafe_allow_html=True)
+        
+        # Squeeze the middle column so it hugs the toggle exactly, forcing symmetry
+        t_col1, t_col2, t_col3 = st.columns([0.46, 0.08, 0.46], vertical_alignment="center")
+        
+        with t_col1:
+            st.markdown('<div style="text-align:right;"><span class="theme-label-perfect">DARK</span></div>', unsafe_allow_html=True)
+        with t_col2:
+            # Container to isolate toggle alignment
+            _tog_new = st.toggle(
+                "Theme",
+                value=_is_light,
+                key="header_theme_toggle_absolute_fix",
+                label_visibility="collapsed"
+            )
+        with t_col3:
+            st.markdown('<div style="text-align:left;"><span class="theme-label-perfect">LIGHT</span></div>', unsafe_allow_html=True)
+            
+        if _tog_new != _is_light:
+            st.session_state["theme"] = "light" if _tog_new else "dark"
+            st.rerun()
+
+st.markdown('<div style="margin-bottom:24px; border-bottom:1px solid var(--border);"></div>', unsafe_allow_html=True)
 
 # Reload MCP queue from disk if session is fresh (handles page reloads)
 if not st.session_state["mcp_queue"]:
@@ -846,40 +991,7 @@ if not st.session_state.get("pulse_generated"):
         except Exception:
             pass
 
-# ── 2. Sidebar ────────────────────────────────────────────────────────────────
-with st.sidebar:
-    # ── Theme toggle ──────────────────────────────────────────────────────────
-    _tog_new = st.toggle(
-        "☀️  Light Mode" if not _is_light else "🌙  Dark Mode",
-        value=_is_light,
-        key="sidebar_theme_toggle",
-    )
-    if _tog_new != _is_light:
-        st.session_state["theme"] = "light" if _tog_new else "dark"
-        st.rerun()
 
-    st.title("📊 Investor Ops & Intelligence Suite by Dalal Street Advisors")
-    st.caption("Investor Ops & Intelligence Suite — Demo")
-    st.markdown("---")
-
-    st.markdown("---")
-
-    # Pulse status
-    if st.session_state["pulse_generated"]:
-        st.info(f"📊 Top theme: **{st.session_state['top_theme']}**")
-    else:
-        st.warning("📊 No pulse generated yet")
-
-    # MCP pending count
-    pending = sum(1 for a in st.session_state["mcp_queue"] if a["status"] == "pending")
-    st.metric("Pending Approvals", pending)
-
-    st.markdown("---")
-    if st.button("🔄 Reset Session"):
-        for key in list(st.session_state.keys()):
-            del st.session_state[key]
-        Path("data/mcp_state.json").unlink(missing_ok=True)
-        st.rerun()
 
 # ── 3. Tabs ───────────────────────────────────────────────────────────────────
 tab1, tab2, tab3 = st.tabs([
@@ -975,6 +1087,8 @@ _RISK_COLORS = {
 }
 
 with tab1:
+    # Global header used instead
+
     st.markdown("""
 <div class="pillar-header">
   <h3 style="margin:0;color:var(--text-1);">The Smart-Sync Knowledge Base</h3>
@@ -1010,7 +1124,17 @@ with tab1:
       </div>
     """, unsafe_allow_html=True)
 
-    c1, c2, c3 = st.columns([1, 1, 1.2])
+    st.markdown("""
+    <style>
+    /* Centering the Sync Button Column */
+    div[data-testid="column"]:nth-of-type(3) {
+        display: flex !important;
+        justify-content: center !important;
+    }
+    </style>
+    """, unsafe_allow_html=True)
+
+    c1, c2, c3 = st.columns([1, 1, 1], vertical_alignment="center")
     with c1:
         try:
             count = get_collection("mf_faq_corpus").count()
@@ -1034,23 +1158,7 @@ with tab1:
         except:
             st.error("Fee Error")
     with c3:
-        st.markdown("""
-        <style>
-        /* Specific override for the Sync button to make it stand out and tighten padding */
-        div[data-testid="column"]:nth-of-type(3) button {
-            background: linear-gradient(135deg, #22C55E, #166534) !important;
-            padding: 6px 16px !important;
-            min-height: 38px !important;
-            color: white !important;
-        }
-        div[data-testid="column"]:nth-of-type(3) button p {
-            color: white !important;
-            font-size: 0.82rem !important;
-        }
-        </style>
-        """, unsafe_allow_html=True)
-        st.markdown('<div style="height:12px;"></div>', unsafe_allow_html=True)
-        if st.button("🚀 Sync Knowledge Base", use_container_width=True, help="Ingest URLs and update the database"):
+        if st.button("🔄 SYNC KNOWLEDGE BASE", use_container_width=False, help="Ingest URLs and update the database"):
             with st.spinner(""):
                 try:
                     from phase2_corpus_pillar_a.ingest import ingest_corpus, ingest_local_files
@@ -1542,11 +1650,11 @@ st.markdown("""
     </div>
     <div class="dsa-footer-col">
       <h4>Features</h4>
-      <a href="javascript:void(0)">Smart-Sync Knowledge Base</a>
-      <a href="javascript:void(0)">Insight-Driven Optimization</a>
-      <a href="javascript:void(0)">Voice Booking Agent</a>
-      <a href="javascript:void(0)">Super-Agent MCP Workflow</a>
-      <a href="javascript:void(0)">NAV Tracker</a>
+      <div style="color:var(--text-2); margin-bottom:8px; font-size:0.85rem;">Smart-Sync Knowledge Base</div>
+      <div style="color:var(--text-2); margin-bottom:8px; font-size:0.85rem;">Insight-Driven Optimization</div>
+      <div style="color:var(--text-2); margin-bottom:8px; font-size:0.85rem;">Voice Booking Agent</div>
+      <div style="color:var(--text-2); margin-bottom:8px; font-size:0.85rem;">Super-Agent MCP Workflow</div>
+      <div style="color:var(--text-2); margin-bottom:8px; font-size:0.85rem;">NAV Tracker</div>
     </div>
     <div class="dsa-footer-col">
       <h4>Funds Covered</h4>
