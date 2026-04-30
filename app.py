@@ -836,30 +836,6 @@ with st.sidebar:
     st.caption("Investor Ops & Intelligence Suite — Demo")
     st.markdown("---")
 
-    # Corpus status
-    try:
-        faq_count = get_collection("mf_faq_corpus").count()
-        fee_count = get_collection("fee_corpus").count()
-        st.success(f"✅ FAQ corpus: {faq_count} chunks")
-        st.success(f"✅ Fee corpus: {fee_count} chunks")
-    except Exception:
-        st.error("❌ Corpus not loaded")
-
-    if st.button("🔄 Sync Knowledge Base", use_container_width=True, help="Ingest URLs from SOURCE_MANIFEST.md into ChromaDB"):
-        with st.sidebar:
-            with st.spinner("Syncing Knowledge Base..."):
-                try:
-                    from phase2_corpus_pillar_a.ingest import ingest_corpus, ingest_local_files
-                    t0 = time.time()
-                    res = ingest_corpus(force=False)
-                    loc = ingest_local_files()
-                    dur = time.time() - t0
-                    st.success(f"Done! {res['mf_faq_count'] + loc['mf_faq_added']} chunks added ({dur:.1f}s)")
-                    time.sleep(2)
-                    st.rerun()
-                except Exception as e:
-                    st.error(f"Sync failed: {e}")
-
     st.markdown("---")
 
     # Pulse status
@@ -971,6 +947,33 @@ with tab1:
   Ask factual questions about SBI Mutual Fund schemes and fees. Facts only — no investment advice.
 </p>
 """, unsafe_allow_html=True)
+
+    # ── Knowledge Base Status & Sync (Pillar A) ──────────────────────────────
+    c1, c2, c3 = st.columns([1, 1, 1.5])
+    with c1:
+        try:
+            count = get_collection("mf_faq_corpus").count()
+            st.markdown(f'<div class="info-chip" style="width:100%;justify-content:center;">📚 FAQ: {count}</div>', unsafe_allow_html=True)
+        except:
+            st.error("FAQ Error")
+    with c2:
+        try:
+            count = get_collection("fee_corpus").count()
+            st.markdown(f'<div class="info-chip" style="width:100%;justify-content:center;">💰 Fee: {count}</div>', unsafe_allow_html=True)
+        except:
+            st.error("Fee Error")
+    with c3:
+        if st.button("🔄 Sync Knowledge Base", use_container_width=True):
+            with st.spinner("Syncing..."):
+                try:
+                    from phase2_corpus_pillar_a.ingest import ingest_corpus, ingest_local_files
+                    res = ingest_corpus(force=False)
+                    loc = ingest_local_files()
+                    st.success("Sync Complete!")
+                    time.sleep(1)
+                    st.rerun()
+                except Exception as e:
+                    st.error(f"Failed: {e}")
 
     with st.expander("📋 Supported Mutual Funds", expanded=False):
         cards_html = '<div class="fund-grid">'
