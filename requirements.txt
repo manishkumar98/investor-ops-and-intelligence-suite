@@ -4,18 +4,18 @@ openai==1.54.3
 groq==0.11.0
 
 # Vector DB
-chromadb==0.5.18
+chromadb==1.5.8
 
 # LangChain (corpus loading + chunking)
-langchain==0.3.7
-langchain-community==0.3.7
+langchain==0.3.28
+langchain-community==0.3.31
 langchain-openai==0.2.8
 
 # RAG Embeddings (phase6 voice RAG injector)
 sentence-transformers==3.2.1
 
 # NLP / PII scrubbing
-spacy==3.7.5
+spacy==3.8.14
 # after install: python -m spacy download en_core_web_sm
 
 # Voice — STT
@@ -35,7 +35,7 @@ google-auth-httplib2==0.2.0
 google-auth-oauthlib==1.2.1
 
 # UI
-streamlit==1.40.1
+streamlit==1.57.0
 
 # Timezone (IST — used throughout voice agent)
 pytz==2024.2
