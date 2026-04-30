@@ -10,7 +10,7 @@ from .chunker import chunk_text, make_structured_chunk
 from .embedder import get_embeddings
 from .structured_extractor import extract as extract_fields, to_summary_text, fund_name_from_filename
 
-ROOT = Path(__file__).resolve().parents[2]
+ROOT = Path(__file__).resolve().parents[1]
 _INDEX_HASH_FILE  = ROOT / "data" / ".index_hash"
 _RAW_DIR          = ROOT / "data" / "raw"
 _SNAPSHOT_FILE    = ROOT / "data" / "fund_snapshot.json"
