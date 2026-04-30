@@ -10,9 +10,11 @@ from .chunker import chunk_text, make_structured_chunk
 from .embedder import get_embeddings
 from .structured_extractor import extract as extract_fields, to_summary_text, fund_name_from_filename
 
-_INDEX_HASH_FILE  = Path("data/.index_hash")
-_RAW_DIR          = Path("data/raw")
-_SNAPSHOT_FILE    = Path("data/fund_snapshot.json")
+ROOT = Path(__file__).resolve().parents[2]
+_INDEX_HASH_FILE  = ROOT / "data" / ".index_hash"
+_RAW_DIR          = ROOT / "data" / "raw"
+_SNAPSHOT_FILE    = ROOT / "data" / "fund_snapshot.json"
+_MANIFEST_PATH    = ROOT / "SOURCE_MANIFEST.md"
 
 
 def get_collection(name: str):
@@ -142,7 +144,9 @@ def _upsert_chunks(col, chunks: list[dict]) -> None:
     )
 
 
-def ingest_corpus(manifest_path: str = "SOURCE_MANIFEST.md", force: bool = False) -> dict:
+def ingest_corpus(manifest_path: str | Path | None = None, force: bool = False) -> dict:
+    if manifest_path is None:
+        manifest_path = _MANIFEST_PATH
     entries = _parse_manifest(manifest_path)
     urls_sorted = sorted(e[0] for e in entries)
     new_hash = hashlib.sha256("|".join(urls_sorted).encode()).hexdigest()
