@@ -1034,7 +1034,22 @@ with tab1:
         except:
             st.error("Fee Error")
     with c3:
-        st.markdown('<div style="height:10px;"></div>', unsafe_allow_html=True)
+        st.markdown("""
+        <style>
+        /* Specific override for the Sync button to make it stand out and tighten padding */
+        div[data-testid="column"]:nth-of-type(3) button {
+            background: linear-gradient(135deg, #22C55E, #166534) !important;
+            padding: 6px 16px !important;
+            min-height: 38px !important;
+            color: white !important;
+        }
+        div[data-testid="column"]:nth-of-type(3) button p {
+            color: white !important;
+            font-size: 0.82rem !important;
+        }
+        </style>
+        """, unsafe_allow_html=True)
+        st.markdown('<div style="height:12px;"></div>', unsafe_allow_html=True)
         if st.button("🚀 Sync Knowledge Base", use_container_width=True, help="Ingest URLs and update the database"):
             with st.spinner(""):
                 try:
