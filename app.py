@@ -983,14 +983,14 @@ with h_col2:
     </style>
     """, unsafe_allow_html=True)
     
-    # Rebalanced Columns: [Reset Button] [Theme Control]
-    c_reset, c_theme = st.columns([0.55, 0.45])
-    
+    # Rebalanced Columns: [spacer] [Reset Button] [Theme Control]
+    _, c_reset, c_theme = st.columns([0.15, 0.4, 0.45])
+
     with c_reset:
         if st.button(
             "🔄 RESET SESSION",
             key="header_reset_btn_ultimate",
-            use_container_width=True,
+            use_container_width=False,
             help=(
                 "ℹ️ What this does:\n"
                 "• Clears your entire session — chat history, voice call state, booking code, weekly pulse, and MCP approval queue\n"
@@ -1319,7 +1319,7 @@ with tab1:
     </style>
     """, unsafe_allow_html=True)
 
-    c1, c2, c3 = st.columns([1, 1, 1])
+    c1, c2, c3 = st.columns([1, 1, 0.6])
     with c1:
         try:
             count = get_collection("mf_faq_corpus").count()
@@ -1343,9 +1343,10 @@ with tab1:
         except:
             st.error("Fee Error")
     with c3:
+        st.markdown("<div style='height:14px'></div>", unsafe_allow_html=True)
         if st.button(
             "🔄 SYNC KNOWLEDGE BASE",
-            use_container_width=False,
+            use_container_width=True,
             help=(
                 "ℹ️ What this does:\n"
                 "• Re-scrapes all 34 official URLs in SOURCE_MANIFEST.md (SBI MF, AMFI, SEBI, INDMoney)\n"
