@@ -140,9 +140,9 @@ def _render_download_dropdown(options: list[dict], key_prefix: str) -> None:
         st.caption("No files available yet")
         return
 
-    labels   = [o["label"] for o in available]
+    labels   = [f"Download {o['label']}" for o in available]
     selected = st.selectbox("📥 Download", labels, key=f"{key_prefix}_select", label_visibility="collapsed")
-    opt      = next(o for o in available if o["label"] == selected)
+    opt      = next(o for o in available if f"Download {o['label']}" == selected)
     p        = Path(opt["path"])
 
     if opt["mime"] == "text/csv" and p.suffix == ".json":
@@ -152,14 +152,30 @@ def _render_download_dropdown(options: list[dict], key_prefix: str) -> None:
         data  = p.read_bytes()
         fname = opt["filename"]
 
-    st.download_button(
-        label     = f"⬇ {opt['label']}",
-        data      = data,
-        file_name = fname,
-        mime      = opt["mime"],
-        key       = f"{key_prefix}_dl",
-        use_container_width = True,
-    )
+    dl_container = st.container()
+    with dl_container:
+        st.markdown(
+            """<style>
+            [data-testid="stDownloadButton"] > button {
+                background-color: #3d9df3 !important;
+                border-color: #3d9df3 !important;
+                color: white !important;
+            }
+            [data-testid="stDownloadButton"] > button:hover {
+                background-color: #2185d8 !important;
+                border-color: #2185d8 !important;
+            }
+            </style>""",
+            unsafe_allow_html=True,
+        )
+        st.download_button(
+            label     = f"⬇ Download {opt['label']}",
+            data      = data,
+            file_name = fname,
+            mime      = opt["mime"],
+            key       = f"{key_prefix}_dl",
+            use_container_width = True,
+        )
 
 
 @st.dialog("📊 Weekly Pipeline — Complete", width="large")
