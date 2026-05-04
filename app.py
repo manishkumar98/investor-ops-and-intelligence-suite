@@ -899,10 +899,27 @@ with h_col2:
     c_reset, c_theme = st.columns([0.55, 0.45])
     
     with c_reset:
-        if st.button("🔄 RESET SESSION", key="header_reset_btn_ultimate", use_container_width=True):
+        if st.button(
+            "🔄 RESET SESSION",
+            key="header_reset_btn_ultimate",
+            use_container_width=True,
+            help=(
+                "ℹ️ What this does:\n"
+                "• Clears your entire session — chat history, voice call state, booking code, weekly pulse, and MCP approval queue\n"
+                "• Deletes any pending MCP actions (calendar hold, notes entry, email draft)\n"
+                "• Does NOT touch the knowledge base corpus (ChromaDB) — no re-ingestion needed\n\n"
+                "Use this to start a fresh demo or if the app gets into a stuck state."
+            ),
+        ):
+            cleared_keys = len(st.session_state.keys())
+            had_mcp = Path("data/mcp_state.json").exists()
             for key in list(st.session_state.keys()):
                 del st.session_state[key]
             Path("data/mcp_state.json").unlink(missing_ok=True)
+            st.session_state["_reset_notification"] = {
+                "cleared_keys": cleared_keys,
+                "had_mcp": had_mcp,
+            }
             st.rerun()
         
     with c_theme:
@@ -999,6 +1016,16 @@ tab1, tab2, tab3 = st.tabs([
     "📊  Insight-Driven Optimization",
     "🤖  Super-Agent MCP Workflow",
 ])
+
+if "_reset_notification" in st.session_state:
+    _rn = st.session_state.pop("_reset_notification")
+    st.success(
+        f"**Session reset complete.**\n\n"
+        f"- 🗑️ Cleared {_rn['cleared_keys']} session variables — chat history, voice state, booking code, weekly pulse, and MCP queue\n"
+        f"- {'🗑️ Deleted pending MCP actions (calendar hold, notes entry, email draft)' if _rn['had_mcp'] else '✅ No pending MCP actions were queued'}\n"
+        f"- ✅ Knowledge base corpus (ChromaDB) preserved — no re-ingestion needed\n\n"
+        f"You're starting fresh. All three pillars are ready to use."
+    )
 
 # ══════════════════════════════════════════════════════════════════════════════
 # Tab 1 — Smart-Sync FAQ
@@ -1158,17 +1185,50 @@ with tab1:
         except:
             st.error("Fee Error")
     with c3:
-        if st.button("🔄 SYNC KNOWLEDGE BASE", use_container_width=False, help="Ingest URLs and update the database"):
-            with st.spinner(""):
-                try:
-                    from phase2_corpus_pillar_a.ingest import ingest_corpus, ingest_local_files
-                    ingest_corpus(force=False)
+        if st.button(
+            "🔄 SYNC KNOWLEDGE BASE",
+            use_container_width=False,
+            help=(
+                "ℹ️ What this does:\n"
+                "• Reads SOURCE_MANIFEST.md (34 official URLs — SBI MF, AMFI, SEBI, INDMoney)\n"
+                "• Skips re-scraping if the URL list hasn't changed since the last run (hash check)\n"
+                "• If URLs changed: fetches pages, extracts fund fields (NAV, expense ratio, exit load, etc.), chunks text, re-embeds with OpenAI text-embedding-3-small, and rebuilds ChromaDB\n"
+                "• Also ingests any pre-scraped local files from data/raw/\n\n"
+                "Run this after adding new URLs to SOURCE_MANIFEST.md or when fund data needs refreshing."
+            ),
+        ):
+            _sync_placeholder = st.empty()
+            try:
+                from phase2_corpus_pillar_a.ingest import ingest_corpus, ingest_local_files
+                _sync_placeholder.info("⏳ **Step 1/3** — Checking SOURCE_MANIFEST.md for changes…")
+                result = ingest_corpus(force=False)
+                if result.get("skipped"):
+                    _sync_placeholder.info("⏳ **Step 2/3** — Corpus already current, ingesting local files…")
                     ingest_local_files()
-                    st.toast("✅ Knowledge Base Synchronized!", icon="🚀")
-                    time.sleep(1)
-                    st.rerun()
-                except Exception as e:
-                    st.error(f"Sync failed: {e}")
+                    _sync_placeholder.success(
+                        "**✅ Knowledge Base Already Up-to-Date**\n\n"
+                        "- 🔍 URL list unchanged since last sync — scraping skipped\n"
+                        "- 📂 Local files from `data/raw/` re-ingested\n"
+                        "- No changes to ChromaDB\n\n"
+                        "To force a full re-scrape, run `python scripts/ingest_corpus.py --force` from the terminal."
+                    )
+                else:
+                    _sync_placeholder.info("⏳ **Step 2/3** — Scraping URLs and rebuilding embeddings…")
+                    ingest_local_files()
+                    _added   = result.get("added", 0)
+                    _skipped = result.get("skipped_urls", 0)
+                    _sync_placeholder.success(
+                        f"**✅ Knowledge Base Synchronised**\n\n"
+                        f"- 🌐 Scraped {result.get('total_urls', 0)} URLs from SOURCE_MANIFEST.md\n"
+                        f"- 📄 {_added} new chunks added to ChromaDB\n"
+                        f"- ⚡ Embeddings rebuilt with OpenAI `text-embedding-3-small`\n"
+                        f"- 📂 Local files from `data/raw/` ingested\n\n"
+                        f"The FAQ and Fee Explainer are now up-to-date."
+                    )
+                time.sleep(2)
+                st.rerun()
+            except Exception as e:
+                _sync_placeholder.error(f"❌ Sync failed: {e}")
     
     st.markdown("</div>", unsafe_allow_html=True)
 
