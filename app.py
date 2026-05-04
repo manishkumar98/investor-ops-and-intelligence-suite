@@ -911,15 +911,19 @@ with h_col2:
                 "Use this to start a fresh demo or if the app gets into a stuck state."
             ),
         ):
-            cleared_keys = len(st.session_state.keys())
             had_mcp = Path("data/mcp_state.json").exists()
             for key in list(st.session_state.keys()):
                 del st.session_state[key]
             Path("data/mcp_state.json").unlink(missing_ok=True)
-            st.session_state["_reset_notification"] = {
-                "cleared_keys": cleared_keys,
-                "had_mcp": had_mcp,
-            }
+            mcp_line = "🗑️ Pending MCP actions cleared" if had_mcp else "✅ No pending MCP actions"
+            st.toast(
+                f"**Session Reset**\n\n"
+                f"Chat history, voice state, booking code & pulse cleared\n\n"
+                f"{mcp_line}\n\n"
+                f"Knowledge base (ChromaDB) preserved",
+                icon="🔄",
+            )
+            time.sleep(1)
             st.rerun()
         
     with c_theme:
@@ -1017,15 +1021,6 @@ tab1, tab2, tab3 = st.tabs([
     "🤖  Super-Agent MCP Workflow",
 ])
 
-if "_reset_notification" in st.session_state:
-    _rn = st.session_state.pop("_reset_notification")
-    st.success(
-        f"**Session reset complete.**\n\n"
-        f"- 🗑️ Cleared {_rn['cleared_keys']} session variables — chat history, voice state, booking code, weekly pulse, and MCP queue\n"
-        f"- {'🗑️ Deleted pending MCP actions (calendar hold, notes entry, email draft)' if _rn['had_mcp'] else '✅ No pending MCP actions were queued'}\n"
-        f"- ✅ Knowledge base corpus (ChromaDB) preserved — no re-ingestion needed\n\n"
-        f"You're starting fresh. All three pillars are ready to use."
-    )
 
 # ══════════════════════════════════════════════════════════════════════════════
 # Tab 1 — Smart-Sync FAQ
