@@ -983,10 +983,47 @@ with h_col2:
     </style>
     """, unsafe_allow_html=True)
     
-    # Rebalanced Columns: [spacer] [Reset Button] [Theme Control]
-    _, c_reset, c_theme = st.columns([0.15, 0.4, 0.45])
+    st.markdown("""
+    <style>
+    /* Header controls row — flex so button and toggle sit on same baseline */
+    .header-controls-row {
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 20px;
+        padding: 4px 0;
+    }
+    /* Shrink Streamlit's default button padding so it matches toggle height */
+    div[data-testid="stButton"] > button[kind="secondary"] {
+        padding: 6px 18px !important;
+        font-size: 0.78rem !important;
+        border-radius: 8px !important;
+        height: 36px !important;
+        line-height: 1 !important;
+    }
+    /* Remove Streamlit's forced bottom margin on columns inside the header */
+    .header-right-col div[data-testid="stVerticalBlock"] {
+        gap: 0 !important;
+    }
+    .theme-pill-label {
+        font-size: 0.7rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: var(--text-2);
+        white-space: nowrap;
+    }
+    /* Pull toggle up to align with labels */
+    .header-right-col [data-testid="stToggle"] {
+        margin-top: -2px !important;
+    }
+    </style>
+    """, unsafe_allow_html=True)
+
+    c_reset, c_theme = st.columns([0.45, 0.55])
 
     with c_reset:
+        st.markdown("<div style='display:flex; justify-content:flex-end;'>", unsafe_allow_html=True)
         if st.button(
             "🔄 RESET SESSION",
             key="header_reset_btn_ultimate",
@@ -1005,57 +1042,24 @@ with h_col2:
             Path("data/mcp_state.json").unlink(missing_ok=True)
             st.session_state["_show_reset_dialog"] = {"had_mcp": had_mcp}
             st.rerun()
-        
+        st.markdown("</div>", unsafe_allow_html=True)
+
     with c_theme:
-        # Injected CSS for the theme section only
-        st.markdown("""
-        <style>
-        /* Isolate the theme switcher columns and remove gaps */
-        [data-testid="column"]:nth-child(2) [data-testid="stVerticalBlock"] {
-            gap: 0rem !important;
-        }
-        
-        /* Force the toggle to be horizontally centered in its column */
-        [data-testid="column"]:nth-child(2) [data-testid="stCheckbox"] {
-            display: flex !important;
-            justify-content: center !important;
-            align-items: center !important;
-            min-height: auto !important;
-            padding: 0 !important;
-            width: fit-content !important;
-            margin: 0 auto !important;
-        }
-        
-        /* The specific text style for Dark/Light */
-        .theme-label-perfect {
-            font-size: 0.7rem;
-            font-weight: 800;
-            text-transform: uppercase;
-            letter-spacing: 0.1em;
-            color: var(--text-2);
-            white-space: nowrap;
-            display: inline-block;
-            transform: translateY(-16px); /* Precise upward nudge to counter Streamlit toggle bottom padding */
-        }
-        </style>
-        """, unsafe_allow_html=True)
-        
-        # Squeeze the middle column so it hugs the toggle exactly, forcing symmetry
-        t_col1, t_col2, t_col3 = st.columns([0.46, 0.08, 0.46])
-        
-        with t_col1:
-            st.markdown('<div style="text-align:right;"><span class="theme-label-perfect">DARK</span></div>', unsafe_allow_html=True)
-        with t_col2:
-            # Container to isolate toggle alignment
+        st.markdown("<div class='header-right-col'>", unsafe_allow_html=True)
+        lbl_col, tog_col, lbl2_col = st.columns([0.38, 0.24, 0.38])
+        with lbl_col:
+            st.markdown("<div style='text-align:right; padding-top:8px;'><span class='theme-pill-label'>DARK</span></div>", unsafe_allow_html=True)
+        with tog_col:
             _tog_new = st.toggle(
                 "Theme",
                 value=_is_light,
                 key="header_theme_toggle_absolute_fix",
-                label_visibility="collapsed"
+                label_visibility="collapsed",
             )
-        with t_col3:
-            st.markdown('<div style="text-align:left;"><span class="theme-label-perfect">LIGHT</span></div>', unsafe_allow_html=True)
-            
+        with lbl2_col:
+            st.markdown("<div style='text-align:left; padding-top:8px;'><span class='theme-pill-label'>LIGHT</span></div>", unsafe_allow_html=True)
+        st.markdown("</div>", unsafe_allow_html=True)
+
         if _tog_new != _is_light:
             st.session_state["theme"] = "light" if _tog_new else "dark"
             st.rerun()
