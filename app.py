@@ -872,8 +872,11 @@ h1,h2,h3,h4,h5,h6 { color: #1A1612 !important; }
 [data-testid="stTextArea"] label { color: #3D3028 !important; }
 
 /* Expanders */
-[data-testid="stExpander"] summary { color: #1A1612 !important; }
+[data-testid="stExpander"] { background: #FFFFFF !important; }
+[data-testid="stExpander"] summary { background: #FFFFFF !important; color: #1A1612 !important; }
 [data-testid="stExpander"] summary p { color: #1A1612 !important; }
+[data-testid="stExpander"] summary span { color: #1A1612 !important; }
+[data-testid="stExpander"] summary svg { fill: #1A1612 !important; stroke: #1A1612 !important; }
 [data-testid="stExpander"] [data-testid="stMarkdownContainer"] p { color: #3D3028 !important; }
 
 /* Metrics */
@@ -901,11 +904,18 @@ section[data-testid="stSidebar"] [data-testid="stCaptionContainer"] p { color: #
 [data-testid="stNotificationContentSuccess"] p,
 [data-testid="stNotificationContentError"] p { color: #1A1612 !important; }
 
-/* Buttons — gold border replaces invisible white */
+/* Buttons — keep white text on brown/gold background */
 .stButton > button,
 [data-testid="stBaseButton-primary"],
 [data-testid="stBaseButton-secondary"] {
   border: 2px solid #A67C00 !important;
+  color: #FFFFFF !important;
+}
+.stButton > button *,
+[data-testid="stBaseButton-primary"] *,
+[data-testid="stBaseButton-secondary"] * {
+  color: #FFFFFF !important;
+  -webkit-text-fill-color: #FFFFFF !important;
 }
 .stButton > button:hover,
 [data-testid="stBaseButton-primary"]:hover,
@@ -915,8 +925,11 @@ section[data-testid="stSidebar"] [data-testid="stCaptionContainer"] p { color: #
   border: 2px solid #A67C00 !important;
   box-shadow: 0 8px 20px rgba(166,124,0,0.3) !important;
 }
-.stButton > button:hover p,
-.stButton > button:hover span { color: #FFFFFF !important; }
+.stButton > button:hover p, .stButton > button:hover span,
+[data-testid="stBaseButton-primary"]:hover p, [data-testid="stBaseButton-primary"]:hover span,
+[data-testid="stBaseButton-secondary"]:hover p, [data-testid="stBaseButton-secondary"]:hover span {
+  color: #FFFFFF !important;
+}
 
 /* Chat messages */
 [data-testid="stChatMessage"] [data-testid="stMarkdownContainer"] p { color: #1A1612 !important; }
@@ -2193,7 +2206,9 @@ with tab2:
     _dashboard = Path("data/dashboard.html")
     _DASHBOARD_LIGHT_CSS = """<style>
 body{background:linear-gradient(135deg,#e8f0fe 0%,#dce8fb 50%,#e4eaf5 100%)!important;color:#1a2340!important;}
-body *{color:#1a2340;}
+body *{color:#1a2340!important;}
+input,textarea,select{background:#fff!important;color:#1a2340!important;border-color:rgba(0,0,0,0.2)!important;}
+input::placeholder,textarea::placeholder{color:#6b7280!important;-webkit-text-fill-color:#6b7280!important;opacity:1!important;}
 .glass-card{background:rgba(255,255,255,0.82)!important;backdrop-filter:blur(10px);border:1px solid rgba(0,0,0,0.08)!important;}
 .blob-1{background:rgba(166,124,0,0.12)!important;}.blob-2{background:rgba(100,140,200,0.18)!important;}
 .tabs{background:rgba(255,255,255,0.45)!important;border-color:rgba(0,0,0,0.08)!important;}
@@ -2202,6 +2217,10 @@ body *{color:#1a2340;}
 .tab-btn:hover:not(.active){background:rgba(0,0,0,0.06)!important;color:#1a2340!important;}
 .stat-value,.stat-label,.section-title,.chart-label,.category-name,.category-pct,.bar-label{color:#1a2340!important;}
 .word-cloud-item,.keyword-word,.kw-count{color:#1a2340!important;}
+.cat-name,.cat-card-name,.cat-card-count,.cat-card-sub{color:#1a2340!important;}
+.cat-stat-name,.cat-stat-count,.cat-stat-pct{color:#1a2340!important;}
+.cat-card{background:rgba(255,255,255,0.75)!important;border-color:rgba(0,0,0,0.1)!important;}
+#chart-title,#chart-subtitle,#kw-count-label,#upvote-count-label{color:#1a2340!important;}
 h1,h2,h3,h4,h5,h6,p,span,li,td,th,label,div{color:#1a2340;}
 .draft-box{background:rgba(0,0,0,0.05)!important;color:#1a2340!important;border-color:rgba(0,0,0,0.08)!important;}
 .markdown-box p,.markdown-box ul,.markdown-box li{color:#1a2340!important;}
@@ -2218,6 +2237,9 @@ header p,header a{color:rgba(26,35,64,0.6)!important;}
 .action-num{background:linear-gradient(135deg,#3b5bdb,#2d4aa8)!important;color:#fff!important;}
 .check-icon{color:#166534!important;}
 .neg-review-card{background:rgba(255,255,255,0.7)!important;color:#1a2340!important;}
+.add-ticket-btn,.add-ticket-btn *{color:#fff!important;-webkit-text-fill-color:#fff!important;}
+.send-btn,.send-btn *,.gen-report-btn,.gen-report-btn *,.gate-btn,.gate-btn *{color:#fff!important;-webkit-text-fill-color:#fff!important;}
+.tab-btn.active,.tab-btn.active *{color:#fff!important;-webkit-text-fill-color:#fff!important;}
 </style>"""
 
     # CSS that hides the draft tabs (Approval Gate, Email Draft, Markdown Report, Pulse Poster)
@@ -2278,6 +2300,7 @@ header p,header a{color:rgba(26,35,64,0.6)!important;}
             _dash_html = _dashboard.read_text(encoding="utf-8")
             _dash_html = _dash_html.replace("</head>", _HIDE_DRAFT_TABS + "</head>", 1)
             if _is_light:
+                _dash_html = _dash_html.replace("<body", '<body data-theme="light"', 1)
                 _dash_html = _dash_html.replace("</head>", _DASHBOARD_LIGHT_CSS + "</head>", 1)
             components.html(_dash_html, height=700, scrolling=True)
         else:
@@ -2321,6 +2344,7 @@ header p,header a{color:rgba(26,35,64,0.6)!important;}
                 'id="tab-analytics" class="tab-content"',
             )
             if _is_light:
+                _draft_html = _draft_html.replace("<body", '<body data-theme="light"', 1)
                 _draft_html = _draft_html.replace("</head>", _DASHBOARD_LIGHT_CSS + "</head>", 1)
             components.html(_draft_html, height=700, scrolling=True)
         else:

@@ -7,6 +7,7 @@ from .mcp_client import MCPClient
 
 MCP_STATE_PATH = Path("data/mcp_state.json")
 
+
 TYPE_LABELS = {
     "calendar_hold": "📅 Calendar Hold",
     "notes_append":  "📝 Notes / Doc Entry",

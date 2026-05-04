@@ -761,6 +761,13 @@ Reviews this week present a polarised but telling picture of INDmoney's trading 
         const FEE_DATA = {"scenario_name": "Exit Load", "explanation_bullets": ["• **SBI Small Cap Fund** charges an exit load of **1.0%** if units are redeemed before the stipulated holding period, making it the highest exit load among the three funds listed in the provided context.", "• **SBI ELSS Tax Saver Fund** has an exit load of **0%**, meaning no exit load fee is charged upon redemption; however, it carries a mandatory **3-year lock-in period** during which redemption is not permitted.", "• **SBI Large Cap Fund (Bluechip)** has a tiered exit load structure: **0.25%** if redeemed within **0–30 days** and **0.10%** if redeemed within **30–90 days**, as per the detailed fund data provided.", "• Exit load is a fee charged to investors for redeeming or \"exiting\" a mutual fund before a stipulated period; it is deducted from the redemption amount and is **not** a flat fee paid separately.", "• All three funds carry a **Very High risk level** as per the provided context, with expense ratios (Direct Plan) of **0.79%** (Small Cap), **0.99%** (ELSS Tax Saver), and **0.84%** (Large Cap Bluechip).", "• For full and accurate exit load terms and conditions, refer to the official fund pages:"], "source_links": ["https://www.sbimf.com/en-us/investor-service/expense-ratio", "https://www.amfiindia.com/investor-corner/knowledge-center/expense-ratio.html"], "last_checked": "2026-05-04"};
         // ───────────────────────────────────────────────────────────────────
 
+        // Chart color tokens — overridden to dark when body[data-theme="light"]
+        const _isLight = document.body && document.body.dataset.theme === 'light';
+        const _TC  = _isLight ? '#374151' : 'rgba(255,255,255,0.5)';   // tick color
+        const _TC2 = _isLight ? '#374151' : 'rgba(255,255,255,0.7)';   // tick color strong
+        const _TC3 = _isLight ? '#374151' : 'rgba(255,255,255,0.6)';   // legend color
+        const _GC  = _isLight ? 'rgba(0,0,0,0.08)' : 'rgba(255,255,255,0.05)'; // grid color
+
         window.addEventListener('DOMContentLoaded', () => {
             // Extract week/date from draft
             const dateMatch = EMAIL_DRAFT.match(/EMAIL DRAFT — (\d{4}-\d{2}-\d{2})/);
@@ -934,12 +941,12 @@ Reviews this week present a polarised but telling picture of INDmoney's trading 
                     responsive: true,
                     maintainAspectRatio: false,
                     plugins: {
-                        legend: { position: 'bottom', labels: { color: 'rgba(255,255,255,0.6)', boxWidth: 12, padding: 16, font: { family: 'Outfit' } } },
+                        legend: { position: 'bottom', labels: { color: _TC3, boxWidth: 12, padding: 16, font: { family: 'Outfit' } } },
                         tooltip: { backgroundColor: 'rgba(0,0,0,0.75)', titleFont: { family: 'Outfit' }, bodyFont: { family: 'Outfit' } }
                     },
                     scales: {
-                        x: { ticks: { color: 'rgba(255,255,255,0.5)', font: { family: 'Outfit' } }, grid: { color: 'rgba(255,255,255,0.05)' } },
-                        y: { beginAtZero: true, ticks: { color: 'rgba(255,255,255,0.5)', font: { family: 'Outfit' } }, grid: { color: 'rgba(255,255,255,0.05)' } }
+                        x: { ticks: { color: _TC, font: { family: 'Outfit' } }, grid: { color: _GC } },
+                        y: { beginAtZero: true, ticks: { color: _TC, font: { family: 'Outfit' } }, grid: { color: _GC } }
                     }
                 }
             });
@@ -1081,8 +1088,8 @@ Reviews this week present a polarised but telling picture of INDmoney's trading 
                     borderWidth:1,borderRadius:5}]
             },options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,
                 plugins:{legend:{display:false},tooltip:{backgroundColor:'rgba(0,0,0,0.75)',bodyFont:{family:'Outfit'}}},
-                scales:{x:{ticks:{color:'rgba(255,255,255,0.5)',font:{family:'Outfit'}},grid:{color:'rgba(255,255,255,0.05)'}},
-                        y:{ticks:{color:'rgba(255,255,255,0.7)',font:{family:'Outfit',size:11}},grid:{display:false}}}}});
+                scales:{x:{ticks:{color:_TC,font:{family:'Outfit'}},grid:{color:_GC}},
+                        y:{ticks:{color:_TC2,font:{family:'Outfit',size:11}},grid:{display:false}}}}});
 
             const totalCat = CATEGORIES_DATA.reduce((s,c)=>s+c.count,0);
             document.getElementById('cat-stats-list').innerHTML = CATEGORIES_DATA.map(c => `
@@ -1100,8 +1107,8 @@ Reviews this week present a polarised but telling picture of INDmoney's trading 
                 labels:['Positive','Neutral','Negative'],
                 datasets:[{data:[s.positive,s.neutral,s.negative],backgroundColor:['#4ade8099','#fbbf2499','#f8717199'],borderColor:['#4ade80','#fbbf24','#f87171'],borderWidth:2,borderRadius:8}]
             },options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},
-                scales:{x:{ticks:{color:'rgba(255,255,255,0.6)',font:{family:'Outfit'}},grid:{display:false}},
-                        y:{ticks:{color:'rgba(255,255,255,0.4)',font:{family:'Outfit'}},grid:{color:'rgba(255,255,255,0.05)'}}}}});
+                scales:{x:{ticks:{color:_TC3,font:{family:'Outfit'}},grid:{display:false}},
+                        y:{ticks:{color:_TC,font:{family:'Outfit'}},grid:{color:_GC}}}}});
 
             const rd = ANALYTICS_META.rating_dist;
             const ratingCtx = document.getElementById('ratingChart').getContext('2d');
@@ -1109,8 +1116,8 @@ Reviews this week present a polarised but telling picture of INDmoney's trading 
                 labels:['5★','4★','3★','2★','1★'],
                 datasets:[{data:[rd['5'],rd['4'],rd['3'],rd['2'],rd['1']],backgroundColor:['#4ade8099','#4ade8099','#fbbf2499','#fb923c99','#f8717199'],borderColor:['#4ade80','#4ade80','#fbbf24','#fb923c','#f87171'],borderWidth:2,borderRadius:8}]
             },options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},
-                scales:{x:{ticks:{color:'rgba(255,255,255,0.6)',font:{family:'Outfit'}},grid:{display:false}},
-                        y:{ticks:{color:'rgba(255,255,255,0.4)',font:{family:'Outfit'}},grid:{color:'rgba(255,255,255,0.05)'}}}}});
+                scales:{x:{ticks:{color:_TC3,font:{family:'Outfit'}},grid:{display:false}},
+                        y:{ticks:{color:_TC,font:{family:'Outfit'}},grid:{color:_GC}}}}});
         }
 
         function initIdeation() {
