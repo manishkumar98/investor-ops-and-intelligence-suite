@@ -838,7 +838,7 @@ if _ticker:
     st.markdown(_ticker, unsafe_allow_html=True)
 
 # ── App Header ────────────────────────────────────────────────────────────────
-h_col1, h_col2 = st.columns([0.7, 0.3], vertical_alignment="center")
+h_col1, h_col2 = st.columns([0.7, 0.3])
 
 import base64
 
@@ -896,7 +896,7 @@ with h_col2:
     """, unsafe_allow_html=True)
     
     # Rebalanced Columns: [Reset Button] [Theme Control]
-    c_reset, c_theme = st.columns([0.55, 0.45], vertical_alignment="center")
+    c_reset, c_theme = st.columns([0.55, 0.45])
     
     with c_reset:
         if st.button("🔄 RESET SESSION", key="header_reset_btn_ultimate", use_container_width=True):
@@ -940,7 +940,7 @@ with h_col2:
         """, unsafe_allow_html=True)
         
         # Squeeze the middle column so it hugs the toggle exactly, forcing symmetry
-        t_col1, t_col2, t_col3 = st.columns([0.46, 0.08, 0.46], vertical_alignment="center")
+        t_col1, t_col2, t_col3 = st.columns([0.46, 0.08, 0.46])
         
         with t_col1:
             st.markdown('<div style="text-align:right;"><span class="theme-label-perfect">DARK</span></div>', unsafe_allow_html=True)
@@ -1134,7 +1134,7 @@ with tab1:
     </style>
     """, unsafe_allow_html=True)
 
-    c1, c2, c3 = st.columns([1, 1, 1], vertical_alignment="center")
+    c1, c2, c3 = st.columns([1, 1, 1])
     with c1:
         try:
             count = get_collection("mf_faq_corpus").count()
