@@ -109,6 +109,53 @@ def _show_sync_dialog(done: list, stopped: bool) -> None:
         st.rerun()
 
 
+@st.dialog("📊 Weekly Pipeline — Complete", width="large")
+def _show_pipeline_dialog(result: dict) -> None:
+    pulse  = result.get("pulse", {})
+    fee    = result.get("fee", {})
+
+    top3      = pulse.get("top_3_themes", [])
+    review_ct = pulse.get("review_count", 0)
+    fee_ct    = len(fee.get("bullets", []))
+
+    st.success("**Pipeline ran successfully. All downstream systems updated.**")
+
+    m1, m2, m3 = st.columns(3)
+    m1.metric("Reviews processed", review_ct)
+    m2.metric("Themes identified", len(pulse.get("themes", [])))
+    m3.metric("Fee bullets generated", fee_ct)
+
+    st.markdown("---")
+
+    st.markdown("**What was updated:**")
+    st.markdown(
+        "- 📊 **Weekly Pulse** — ≤250-word note, top 3 themes, 3 user quotes, 3 action ideas generated\n"
+        f"- 🎙️ **Voice Agent briefed** — greeting will now mention: *\"{top3[0] if top3 else '—'}\"*\n"
+        "- 💰 **Fee Explainer** — RAG-retrieved fee bullets ready for advisor email\n"
+        "- ✉️ **Pillar C email** — Market Context snippet populated from this pulse\n"
+        "- 💾 **Saved to disk** — `pulse_latest.json`, `fee_latest.json`, `analytics_latest.json`"
+    )
+
+    if top3:
+        st.markdown("---")
+        st.markdown("**Top themes this week:**")
+        for i, t in enumerate(top3, 1):
+            st.markdown(f"{i}. {t}")
+
+    st.markdown("---")
+    st.info(
+        "**When to run again:**\n\n"
+        "- 📅 **Weekly** — run every Monday morning before advisor calls to keep the Voice Agent brief current\n"
+        "- 🚨 **After a spike** — if app store ratings drop sharply, run immediately to capture the theme\n"
+        "- 🔄 **Before a demo** — always run fresh so the Voice Agent greeting reflects real current sentiment\n\n"
+        "**Impact of NOT running:** The Voice Agent will greet with stale or no theme context. "
+        "The advisor email Market Context will be outdated. The fee bullets may not match the current top issue."
+    )
+
+    if st.button("✅ Got it, close", use_container_width=True, type="primary"):
+        st.rerun()
+
+
 def _build_css(is_light: bool) -> str:
     """Return full app CSS with palette substituted for the chosen theme."""
     if is_light:
@@ -746,6 +793,9 @@ if "_show_reset_dialog" in st.session_state:
 if "_show_sync_dialog" in st.session_state:
     _d = st.session_state.pop("_show_sync_dialog")
     _show_sync_dialog(_d["done"], _d["stopped"])
+
+if "_show_pipeline_dialog" in st.session_state:
+    _show_pipeline_dialog(st.session_state.pop("_show_pipeline_dialog"))
 
 # ── Theme state ───────────────────────────────────────────────────────────────
 if "theme" not in st.session_state:
@@ -1473,36 +1523,70 @@ with tab2:
                 pass
     with _col_btn:
         st.markdown("<br>", unsafe_allow_html=True)
-        _run_pipeline = st.button("▶ Run Pipeline", key="run_pipeline_tab2", type="primary")
+        _run_pipeline = st.button(
+            "▶ Run Pipeline",
+            key="run_pipeline_tab2",
+            type="primary",
+            help=(
+                "ℹ️ What this does (5 steps):\n"
+                "1. Scrapes last 12 weeks of INDMoney reviews from Google Play (up to 1,000)\n"
+                "2. Strips all PII — phone numbers, emails replaced with [REDACTED]\n"
+                "3. Clusters reviews into themes with Claude — top 3 themes, 3 user quotes, ≤250-word weekly note, 3 action ideas\n"
+                "4. Generates analytics — sentiment, rating distribution, keyword frequency\n"
+                "5. RAG-retrieves fee context for the top theme — ≤6 bullet fee explainer with source links\n\n"
+                "📤 Outputs saved to: pulse_latest.json, fee_latest.json, analytics_latest.json\n\n"
+                "🔗 Impact on other pillars:\n"
+                "• Voice Agent greeting will mention the new top theme\n"
+                "• Advisor email (Pillar C) Market Context will use the new pulse\n"
+                "• Fee bullets in the advisor email will reflect the top issue\n\n"
+                "⏱ Takes ~30–60 seconds depending on review volume.\n\n"
+                "📅 When to run:\n"
+                "• Weekly — every Monday before advisor calls\n"
+                "• After a rating spike on the app store\n"
+                "• Always before a live demo"
+            ),
+        )
 
     # ── Run pipeline inline ──────────────────────────────────────────────────
     if _run_pipeline:
-        _log_area = st.empty()
-        _logs: list[str] = []
+        _step_box = st.empty()
+        _STEPS = [
+            "⏳ Step 1/5 — Scraping last 12 weeks of Google Play reviews…",
+            "⏳ Step 2/5 — Scrubbing PII from reviews…",
+            "⏳ Step 3/5 — Clustering themes with Claude (2-pass)…",
+            "⏳ Step 4/5 — Generating analytics…",
+            "⏳ Step 5/5 — RAG fee explainer for top theme…",
+        ]
+        _current_step = [0]
 
-        def _pipeline_cb(msg: str) -> None:
-            _logs.append(msg)
-            _log_area.info("\n\n".join(_logs))
+        def _pipeline_cb(_msg: str) -> None:
+            idx = _current_step[0]
+            done   = [s.replace("⏳", "✅") for s in _STEPS[:idx]]
+            active = [_STEPS[idx]] if idx < len(_STEPS) else []
+            pending= [s for s in _STEPS[idx+1:]]
+            _step_box.info("\n\n".join(done + active + pending))
+            _current_step[0] = min(idx + 1, len(_STEPS) - 1)
 
-        with st.spinner("Scraping reviews and running pipeline…"):
-            try:
-                _result = _run_full_pipeline(status_cb=_pipeline_cb)
-                _pulse = _result["pulse"]
-                _top3  = _pulse.get("top_3_themes", [])
-                st.session_state["weekly_pulse"]    = _pulse.get("weekly_note", "")
-                st.session_state["top_theme"]       = _top3[0] if _top3 else "General Feedback"
-                st.session_state["top_3_themes"]    = _top3
-                st.session_state["action_ideas"]    = _pulse.get("action_ideas", [])
-                st.session_state["fee_bullets"]     = _result["fee"].get("bullets", [])
-                st.session_state["fee_sources"]     = _result["fee"].get("sources", [])
-                st.session_state["pulse_generated"] = True
-                st.session_state["analytics_data"]  = _result["analytics"]
-                _log_area.empty()
-                st.success(f"✅ Pipeline complete — {_pulse.get('review_count','?')} reviews processed.")
-                st.rerun()
-            except Exception as _exc:
-                _log_area.empty()
-                st.error(f"Pipeline failed: {_exc}")
+        # Show initial state
+        _step_box.info("\n\n".join(_STEPS))
+        try:
+            _result = _run_full_pipeline(status_cb=_pipeline_cb)
+            _pulse = _result["pulse"]
+            _top3  = _pulse.get("top_3_themes", [])
+            st.session_state["weekly_pulse"]    = _pulse.get("weekly_note", "")
+            st.session_state["top_theme"]       = _top3[0] if _top3 else "General Feedback"
+            st.session_state["top_3_themes"]    = _top3
+            st.session_state["action_ideas"]    = _pulse.get("action_ideas", [])
+            st.session_state["fee_bullets"]     = _result["fee"].get("bullets", [])
+            st.session_state["fee_sources"]     = _result["fee"].get("sources", [])
+            st.session_state["pulse_generated"] = True
+            st.session_state["analytics_data"]  = _result["analytics"]
+            _step_box.empty()
+            st.session_state["_show_pipeline_dialog"] = _result
+            st.rerun()
+        except Exception as _exc:
+            _step_box.empty()
+            st.error(f"Pipeline failed: {_exc}")
 
     # ── Seed session state from saved JSONs (handles page reloads) ─────────────
     if not st.session_state.get("pulse_generated"):
