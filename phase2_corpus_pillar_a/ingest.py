@@ -144,6 +144,48 @@ def _upsert_chunks(col, chunks: list[dict]) -> None:
     )
 
 
+def ingest_single_url(url: str, corpus: str, snapshot: dict) -> dict:
+    """Fetch, chunk, embed and upsert a single URL. Returns a result dict.
+
+    Used by the UI sync flow to process URLs one at a time so the user can
+    see live progress and cancel between URLs.
+    """
+    col = get_collection("mf_faq_corpus" if corpus == "mf_faq_corpus" else "fee_corpus")
+    try:
+        text = fetch_url(url)
+    except Exception as exc:
+        return {"url": url, "corpus": corpus, "status": "error", "chunks": 0, "error": str(exc)}
+
+    if not text.strip():
+        return {"url": url, "corpus": corpus, "status": "empty", "chunks": 0, "error": "empty content"}
+
+    fields  = extract_fields(url, text)
+    summary = to_summary_text(fields)
+
+    fund_name = fields["fund_name"]
+    existing  = snapshot["funds"].get(fund_name, {})
+    snapshot["funds"][fund_name] = {**existing, **{k: v for k, v in fields.items() if v}}
+
+    all_chunks: list[dict] = []
+    if summary:
+        sc = make_structured_chunk(summary, url, corpus)
+        if sc:
+            all_chunks.append(sc)
+    all_chunks.extend(chunk_text(text, url, corpus))
+
+    if all_chunks:
+        _upsert_chunks(col, all_chunks)
+
+    return {
+        "url":    url,
+        "corpus": corpus,
+        "status": "ok",
+        "chunks": len(all_chunks),
+        "fund":   fund_name,
+        "error":  None,
+    }
+
+
 def ingest_corpus(manifest_path: str | Path | None = None, force: bool = False) -> dict:
     if manifest_path is None:
         manifest_path = _MANIFEST_PATH

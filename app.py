@@ -67,45 +67,37 @@ def _show_reset_dialog(had_mcp: bool) -> None:
         st.rerun()
 
 
-@st.dialog("🔄 Knowledge Base Sync")
-def _show_sync_dialog(skipped: bool, result: dict) -> None:
-    st.markdown(
-        """
-        <style>
-        .sync-row { display:flex; align-items:flex-start; gap:10px; padding:5px 0; font-size:0.92rem; }
-        </style>
-        """,
-        unsafe_allow_html=True,
-    )
-    if skipped:
-        st.info("**No changes detected — sync skipped.**")
-        st.markdown(
-            "The URL list in `SOURCE_MANIFEST.md` hasn't changed since the last run.\n\n"
-            "**What happened:**\n"
-            "- 🔍 Manifest hash checked — matched last ingest\n"
-            "- ⏭️ Web scraping skipped (not needed)\n"
-            "- 📂 Local files from `data/raw/` re-ingested\n"
-            "- 🗄️ ChromaDB unchanged"
-        )
-        st.markdown("---")
-        st.caption("To force a full re-scrape, run `python scripts/ingest_corpus.py --force` from the terminal.")
+@st.dialog("🔄 Knowledge Base Sync — Complete", width="large")
+def _show_sync_dialog(done: list, stopped: bool) -> None:
+    ok      = [r for r in done if r["status"] == "ok"]
+    errors  = [r for r in done if r["status"] in ("error", "empty")]
+    total_chunks = sum(r["chunks"] for r in ok)
+
+    if stopped:
+        st.warning(f"**Sync stopped early by user.** Processed {len(done)} of the queued URLs.")
     else:
-        st.success("**Knowledge base successfully synchronised.**")
-        col1, col2 = st.columns(2)
-        with col1:
-            st.metric("URLs scraped", result.get("total_urls", "—"))
-        with col2:
-            st.metric("Chunks added", result.get("added", "—"))
-        st.markdown(
-            "**What happened:**\n"
-            f"- 🌐 Scraped {result.get('total_urls', 0)} URLs from `SOURCE_MANIFEST.md`\n"
-            f"- 📄 {result.get('added', 0)} new chunks added to ChromaDB\n"
-            "- ⚡ Embeddings rebuilt with OpenAI `text-embedding-3-small`\n"
-            "- 📂 Local files from `data/raw/` ingested\n"
-            "- 🗄️ ChromaDB updated"
-        )
-        st.markdown("---")
-        st.caption("The FAQ and Fee Explainer are now up-to-date with the latest official sources.")
+        st.success(f"**All {len(done)} URLs processed successfully.**")
+
+    m1, m2, m3 = st.columns(3)
+    m1.metric("URLs processed", len(done))
+    m2.metric("Chunks added",   total_chunks)
+    m3.metric("Errors / Skipped", len(errors))
+
+    st.markdown("---")
+    st.markdown("**URL-by-URL results:**")
+    for r in done:
+        icon   = "✅" if r["status"] == "ok" else "⚠️"
+        label  = r["url"].replace("https://", "").replace("http://", "")
+        detail = f"{r['chunks']} chunks" if r["status"] == "ok" else r.get("error", "skipped")
+        corpus_tag = "📚 FAQ" if r.get("corpus") == "mf_faq_corpus" else "💰 Fee"
+        st.markdown(f"{icon} `{label[:60]}` &nbsp; {corpus_tag} &nbsp; — &nbsp; *{detail}*", unsafe_allow_html=True)
+
+    st.markdown("---")
+    if stopped:
+        st.caption("Re-click Sync to process remaining URLs, or run `python scripts/ingest_corpus.py --force` to redo all.")
+    else:
+        st.caption("ChromaDB updated. Local files from `data/raw/` also re-ingested. FAQ and Fee Explainer are now current.")
+
     if st.button("✅ Got it, close", use_container_width=True, type="primary"):
         st.rerun()
 
@@ -746,7 +738,7 @@ if "_show_reset_dialog" in st.session_state:
 
 if "_show_sync_dialog" in st.session_state:
     _d = st.session_state.pop("_show_sync_dialog")
-    _show_sync_dialog(_d["skipped"], _d["result"])
+    _show_sync_dialog(_d["done"], _d["stopped"])
 
 # ── Theme state ───────────────────────────────────────────────────────────────
 if "theme" not in st.session_state:
@@ -1095,6 +1087,79 @@ if not st.session_state.get("pulse_generated"):
 
 
 
+# ── 3. Iterative sync loop (runs one URL per rerun) ──────────────────────────
+if st.session_state.get("_sync_active"):
+    from phase2_corpus_pillar_a.ingest import ingest_single_url, ingest_local_files, _load_snapshot, _save_snapshot, _INDEX_HASH_FILE, _parse_manifest, _MANIFEST_PATH
+    import hashlib
+
+    queue   = st.session_state.get("_sync_queue", [])
+    done    = st.session_state.get("_sync_done",  [])
+    stopped = st.session_state.get("_sync_stop",  False)
+    total   = st.session_state.get("_sync_total", len(queue) + len(done))
+
+    # ── Render progress UI ─────────────────────────────────────────────────
+    st.markdown("### 🔄 Syncing Knowledge Base…")
+    stop_col, _ = st.columns([1, 3])
+    with stop_col:
+        if not stopped and st.button("⏹ Stop Scraping", type="secondary", use_container_width=True):
+            st.session_state["_sync_stop"] = True
+            stopped = True
+
+    st.caption(f"Processing URL {len(done) + (0 if stopped or not queue else 1)} of {total}  •  {len(done)} done  •  {len(queue)} remaining")
+    st.progress(len(done) / total if total else 1.0)
+
+    # Render full URL table
+    for r in done:
+        icon = "✅" if r["status"] == "ok" else "⚠️"
+        label = r["url"].replace("https://", "").replace("http://", "")
+        detail = f"{r['chunks']} chunks" if r["status"] == "ok" else r.get("error", "skipped")
+        st.markdown(f"{icon} `{label[:70]}` — *{detail}*")
+
+    if queue and not stopped:
+        next_url, next_corpus = queue[0]
+        label = next_url.replace("https://", "").replace("http://", "")
+        st.markdown(f"🔄 `{label[:70]}` — *scraping…*")
+        for u, c in queue[1:]:
+            lbl = u.replace("https://", "").replace("http://", "")
+            st.markdown(f"⏳ `{lbl[:70]}` — *pending*")
+    elif queue and stopped:
+        for u, c in queue:
+            lbl = u.replace("https://", "").replace("http://", "")
+            st.markdown(f"⏸ `{lbl[:70]}` — *not processed (stopped)*")
+
+    # ── Process next URL or finish ─────────────────────────────────────────
+    if queue and not stopped:
+        next_url, next_corpus = queue.pop(0)
+        snapshot = st.session_state.get("_sync_snapshot", _load_snapshot())
+        result   = ingest_single_url(next_url, next_corpus, snapshot)
+        done.append(result)
+        st.session_state["_sync_queue"]    = queue
+        st.session_state["_sync_done"]     = done
+        st.session_state["_sync_snapshot"] = snapshot
+        st.rerun()
+    else:
+        # All done or stopped — finalise
+        snapshot = st.session_state.get("_sync_snapshot", _load_snapshot())
+        _save_snapshot(snapshot)
+        if not stopped:
+            # Write hash so CLI knows we're current
+            entries     = _parse_manifest(_MANIFEST_PATH)
+            urls_sorted = sorted(e[0] for e in entries)
+            new_hash    = hashlib.sha256("|".join(urls_sorted).encode()).hexdigest()
+            _INDEX_HASH_FILE.parent.mkdir(parents=True, exist_ok=True)
+            _INDEX_HASH_FILE.write_text(new_hash)
+        try:
+            ingest_local_files()
+        except Exception:
+            pass
+        # Clear sync state
+        for k in ["_sync_active", "_sync_queue", "_sync_done", "_sync_stop", "_sync_total", "_sync_snapshot"]:
+            st.session_state.pop(k, None)
+        st.session_state["_show_sync_dialog"] = {"done": done, "stopped": stopped}
+        st.rerun()
+
+    st.stop()   # don't render tabs while sync is in progress
+
 # ── 3. Tabs ───────────────────────────────────────────────────────────────────
 tab1, tab2, tab3 = st.tabs([
     "📚  Smart-Sync Knowledge Base",
@@ -1266,29 +1331,24 @@ with tab1:
             use_container_width=False,
             help=(
                 "ℹ️ What this does:\n"
-                "• Reads SOURCE_MANIFEST.md (34 official URLs — SBI MF, AMFI, SEBI, INDMoney)\n"
-                "• Skips re-scraping if the URL list hasn't changed since the last run (hash check)\n"
-                "• If URLs changed: fetches pages, extracts fund fields (NAV, expense ratio, exit load, etc.), chunks text, re-embeds with OpenAI text-embedding-3-small, and rebuilds ChromaDB\n"
-                "• Also ingests any pre-scraped local files from data/raw/\n\n"
-                "Run this after adding new URLs to SOURCE_MANIFEST.md or when fund data needs refreshing."
+                "• Re-scrapes all 34 official URLs in SOURCE_MANIFEST.md (SBI MF, AMFI, SEBI, INDMoney)\n"
+                "• Extracts fund fields (expense ratio, exit load, NAV, benchmark, etc.) from each page\n"
+                "• Chunks the text, generates embeddings with OpenAI text-embedding-3-small, and upserts into ChromaDB\n"
+                "• Also ingests pre-scraped local files from data/raw/\n\n"
+                "⚠️ Warning: Scraping 34 URLs and rebuilding embeddings takes 2–5 minutes.\n"
+                "You can stop mid-way — already-processed URLs will be saved.\n\n"
+                "Run this when fund data has changed (new expense ratios, exit load updates, etc.)"
             ),
         ):
-            _sync_placeholder = st.empty()
-            try:
-                from phase2_corpus_pillar_a.ingest import ingest_corpus, ingest_local_files
-                _sync_placeholder.info("⏳ **Step 1/3** — Checking SOURCE_MANIFEST.md for changes…")
-                result = ingest_corpus(force=False)
-                _sync_placeholder.info("⏳ **Step 2/3** — Ingesting local files from data/raw/…")
-                ingest_local_files()
-                _sync_placeholder.info("⏳ **Step 3/3** — Finalising…")
-                _sync_placeholder.empty()
-                st.session_state["_show_sync_dialog"] = {
-                    "skipped": result.get("skipped", False),
-                    "result":  result,
-                }
-                st.rerun()
-            except Exception as e:
-                _sync_placeholder.error(f"❌ Sync failed: {e}")
+            from phase2_corpus_pillar_a.ingest import _parse_manifest, _MANIFEST_PATH
+            entries = _parse_manifest(_MANIFEST_PATH)
+            st.session_state["_sync_active"]   = True
+            st.session_state["_sync_queue"]    = list(entries)
+            st.session_state["_sync_done"]     = []
+            st.session_state["_sync_stop"]     = False
+            st.session_state["_sync_total"]    = len(entries)
+            st.session_state.pop("_sync_snapshot", None)
+            st.rerun()
     
     st.markdown("</div>", unsafe_allow_html=True)
 
