@@ -307,6 +307,33 @@ investor_ops-and-intelligence_suit/
 
 ---
 
+## Review Scraping
+
+Reviews are scraped from the **Google Play Store** using the open-source `google-play-scraper` library (no API key required). The target app is INDMoney (`com.indmoney.indstocks`).
+
+### How it works
+
+1. Fetches up to 400 reviews per star rating (1–5★) × 2 sort orders (MOST_RELEVANT + NEWEST) → up to 4,000 raw reviews
+2. Deduplicates by `review_id`, drops reviews under 5 words
+3. Caps at **1,000 reviews** with proportional rating distribution
+4. Saves to `data/reviews_latest.csv`
+
+### When it runs
+
+**Only when you click "▶ Run Pipeline" in Tab 2** — it is not automatic. The live scrape is Step 1 of the pipeline. If the scrape returns nothing (rate-limited or no network), the pipeline falls back automatically to `data/reviews_sample.csv`.
+
+### Corpus scraping (FAQ / fund facts)
+
+The corpus scraper (`python scripts/ingest_corpus.py`) is also manual. It uses a SHA-256 hash of the URL list in `SOURCE_MANIFEST.md` — if the list hasn't changed since the last run, it skips re-scraping entirely. Use `--force` to override. You can also trigger it from the "Sync Knowledge Base" button in the Tab 1 sidebar.
+
+### Known limitations
+
+- **Google Play only** — no App Store (iOS) scraping; Hindi/regional-language reviews are excluded (`lang="en"` filter)
+- **Rate limiting** — Google Play has no official API; heavy use can temporarily throttle the scraper
+- **No historical archive** — each pipeline run overwrites `reviews_latest.csv`; week-over-week trend analysis would require versioning the CSVs
+
+---
+
 ## Known Limits
 
 - Voice input is text-based in demo mode. Audio ASR via `whisper-1` requires microphone access.
