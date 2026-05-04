@@ -156,6 +156,14 @@ def _render_download_dropdown(options: list[dict], key_prefix: str) -> None:
     with dl_container:
         st.markdown(
             """<style>
+            [data-testid="stSelectbox"] > div > div {
+                background-color: #c9a84c !important;
+                border-color: #c9a84c !important;
+                color: white !important;
+            }
+            [data-testid="stSelectbox"] > div > div > div {
+                color: white !important;
+            }
             [data-testid="stDownloadButton"] > button {
                 background-color: #3d9df3 !important;
                 border-color: #3d9df3 !important;
