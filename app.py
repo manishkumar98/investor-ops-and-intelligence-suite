@@ -94,7 +94,14 @@ def _show_sync_dialog(done: list, stopped: bool) -> None:
 
     st.markdown("---")
     if stopped:
-        st.caption("Re-click Sync to process remaining URLs, or run `python scripts/ingest_corpus.py --force` to redo all.")
+        st.info(
+            "**What this means for your next sync:**\n\n"
+            "- ✅ All processed URLs are saved in ChromaDB and usable right now\n"
+            "- 🔄 The sync index was **not** updated — next Sync will re-process all URLs from scratch\n"
+            "- This ensures no URL is accidentally skipped due to a partial run\n\n"
+            "Re-click Sync anytime to complete the remaining URLs, or run "
+            "`python scripts/ingest_corpus.py --force` from the terminal."
+        )
     else:
         st.caption("ChromaDB updated. Local files from `data/raw/` also re-ingested. FAQ and Fee Explainer are now current.")
 
@@ -1104,6 +1111,16 @@ if st.session_state.get("_sync_active"):
         if not stopped and st.button("⏹ Stop Scraping", type="secondary", use_container_width=True):
             st.session_state["_sync_stop"] = True
             stopped = True
+
+    if stopped:
+        st.warning(
+            "**Sync stopped.**  \n"
+            f"✅ {len(done)} URLs processed and saved to ChromaDB (data persisted to disk).  \n"
+            f"⏸ {len(queue)} URLs were not processed.  \n\n"
+            "**Important:** The sync index has **not** been updated — next time you click "
+            "Sync, all URLs will be re-processed from scratch to ensure consistency.  \n"
+            "Already-ingested chunks from this session remain in ChromaDB and are usable immediately."
+        )
 
     st.caption(f"Processing URL {len(done) + (0 if stopped or not queue else 1)} of {total}  •  {len(done)} done  •  {len(queue)} remaining")
     st.progress(len(done) / total if total else 1.0)
