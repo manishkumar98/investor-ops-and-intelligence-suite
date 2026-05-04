@@ -265,8 +265,8 @@ def _build_css(is_light: bool) -> str:
             "VAR_GOLD_DIM":         "rgba(166,124,0,0.65)",
             "VAR_GOLD_BORDER_DIM":  "rgba(166,124,0,0.22)",
             "VAR_TEXT_1":           "#1A1612",
-            "VAR_TEXT_2":           "#6B5E52",
-            "VAR_TEXT_3":           "#A0918A",
+            "VAR_TEXT_2":           "#3D3028",
+            "VAR_TEXT_3":           "#6B5E52",
             "VAR_GREEN":            "#166534",
             "VAR_RED":              "#B91C1C",
             "VAR_AMBIENT_G":        ("radial-gradient(ellipse 80% 40% at 50% -5%,"
@@ -304,8 +304,8 @@ def _build_css(is_light: bool) -> str:
             "VAR_GOLD_DIM":         "rgba(201,168,76,0.55)",
             "VAR_GOLD_BORDER_DIM":  "rgba(201,168,76,0.22)",
             "VAR_TEXT_1":           "#F5F0E8",
-            "VAR_TEXT_2":           "#9A9080",
-            "VAR_TEXT_3":           "#6B6358",
+            "VAR_TEXT_2":           "#C8BDB0",
+            "VAR_TEXT_3":           "#9A9080",
             "VAR_GREEN":            "#22C55E",
             "VAR_RED":              "#EF4444",
             "VAR_AMBIENT_G":        ("radial-gradient(ellipse 80% 40% at 50% -5%,"
@@ -828,86 +828,84 @@ div[data-testid="element-container"]:has(#dsa-hdr-toggle-anchor)
   background: var(--bg-glass); border: 1px solid var(--border);
   color: var(--text-2); min-height: 28px; text-align: center;
 }
-</style>"""
+
+LIGHT_MODE_OVERRIDES"""
     for k, v in subs.items():
         css = css.replace(k, v)
 
     if is_light:
-        css += """<style>
-/* ── Light-mode overrides ── */
-
-/* Force all text to dark in Streamlit native elements */
-.stApp, .stApp * { color: #1A1612; }
+        light_overrides = """
+/* ── Light-mode overrides (targeted — no wildcard) ── */
 
 /* Headings */
-h1,h2,h3,h4,h5,h6,
+h1,h2,h3,h4,h5,h6 { color: #1A1612 !important; }
 [data-testid="stMarkdownContainer"] h1,
 [data-testid="stMarkdownContainer"] h2,
 [data-testid="stMarkdownContainer"] h3,
 [data-testid="stMarkdownContainer"] h4 { color: #1A1612 !important; }
 
-/* Paragraph text */
-[data-testid="stMarkdownContainer"] p,
-[data-testid="stMarkdownContainer"] li,
-[data-testid="stMarkdownContainer"] span { color: #3D3028 !important; }
+/* Paragraph / list / inline text */
+[data-testid="stMarkdownContainer"] p { color: #3D3028 !important; }
+[data-testid="stMarkdownContainer"] li { color: #3D3028 !important; }
+[data-testid="stMarkdownContainer"] strong { color: #1A1612 !important; }
+[data-testid="stMarkdownContainer"] em { color: #3D3028 !important; }
 
-/* Captions and labels */
+/* Captions */
 [data-testid="stCaptionContainer"] p,
-.stCaption, small,
-[data-testid="stWidgetLabel"] label,
+[data-testid="stCaptionContainer"] span { color: #6B5E52 !important; }
+
+/* Widget labels */
 [data-testid="stWidgetLabel"] p,
-[data-testid="stWidgetLabel"] span { color: #6B5E52 !important; }
+[data-testid="stWidgetLabel"] label { color: #3D3028 !important; }
 
-/* Selectbox / dropdowns */
-[data-testid="stSelectbox"] label,
-[data-testid="stSelectbox"] p { color: #1A1612 !important; }
-[data-testid="stSelectbox"] > div > div,
-[data-testid="stSelectbox"] > div > div > div { color: #1A1612 !important; }
+/* Selectbox */
+[data-testid="stSelectbox"] label { color: #3D3028 !important; }
+[data-testid="stSelectbox"] > div > div { color: #1A1612 !important; background: #FFFFFF !important; }
 
-/* Radio buttons */
-[data-testid="stRadio"] label,
-[data-testid="stRadio"] p,
-[data-testid="stRadio"] span { color: #1A1612 !important; }
+/* Radio */
+[data-testid="stRadio"] label { color: #3D3028 !important; }
 
 /* Text inputs */
-[data-testid="stTextInput"] input,
-[data-testid="stTextArea"] textarea { color: #1A1612 !important; }
-[data-testid="stTextInput"] label,
-[data-testid="stTextArea"] label { color: #1A1612 !important; }
+[data-testid="stTextInput"] input { color: #1A1612 !important; background: #FFFFFF !important; }
+[data-testid="stTextInput"] label { color: #3D3028 !important; }
+[data-testid="stTextArea"] textarea { color: #1A1612 !important; background: #FFFFFF !important; }
+[data-testid="stTextArea"] label { color: #3D3028 !important; }
 
 /* Expanders */
-[data-testid="stExpander"] summary,
-[data-testid="stExpander"] summary span,
-[data-testid="stExpander"] summary p,
-[data-testid="stExpander"] [data-testid="stMarkdownContainer"] p { color: #1A1612 !important; }
+[data-testid="stExpander"] summary { color: #1A1612 !important; }
+[data-testid="stExpander"] summary p { color: #1A1612 !important; }
+[data-testid="stExpander"] [data-testid="stMarkdownContainer"] p { color: #3D3028 !important; }
 
-/* Metric values */
+/* Metrics */
+[data-testid="stMetricValue"] { color: #A67C00 !important; }
 [data-testid="stMetricLabel"] p { color: #6B5E52 !important; }
 [data-testid="stMetricDelta"] p { color: #166534 !important; }
 
-/* Sidebar */
-section[data-testid="stSidebar"],
-section[data-testid="stSidebar"] * { color: #1A1612 !important; }
+/* Sidebar text */
 section[data-testid="stSidebar"] [data-testid="stMarkdownContainer"] p { color: #3D3028 !important; }
+section[data-testid="stSidebar"] [data-testid="stMarkdownContainer"] h1,
+section[data-testid="stSidebar"] [data-testid="stMarkdownContainer"] h2,
+section[data-testid="stSidebar"] [data-testid="stMarkdownContainer"] h3,
+section[data-testid="stSidebar"] [data-testid="stMarkdownContainer"] h4 { color: #1A1612 !important; }
+section[data-testid="stSidebar"] [data-testid="stWidgetLabel"] p { color: #3D3028 !important; }
+section[data-testid="stSidebar"] [data-testid="stCaptionContainer"] p { color: #6B5E52 !important; }
 
-/* Tabs */
+/* Tabs bar */
 .stTabs [data-baseweb="tab"] { color: #6B5E52 !important; }
 .stTabs [aria-selected="true"] { color: #A67C00 !important; }
+.stTabs [data-baseweb="tab-list"] { background: #F7F3EE !important; }
 
-/* Alerts / info boxes */
+/* Alerts */
 [data-testid="stNotificationContentInfo"] p,
 [data-testid="stNotificationContentWarning"] p,
 [data-testid="stNotificationContentSuccess"] p,
-[data-testid="stNotificationContentError"] p,
-[data-testid="stAlert"] p,
-[data-testid="stAlert"] * { color: #1A1612 !important; }
+[data-testid="stNotificationContentError"] p { color: #1A1612 !important; }
 
-/* Buttons — fix white border invisible on light background */
+/* Buttons — gold border replaces invisible white */
 .stButton > button,
 [data-testid="stBaseButton-primary"],
 [data-testid="stBaseButton-secondary"] {
   border: 2px solid #A67C00 !important;
-  color: #FFFFFF !important;
 }
 .stButton > button:hover,
 [data-testid="stBaseButton-primary"]:hover,
@@ -917,50 +915,54 @@ section[data-testid="stSidebar"] [data-testid="stMarkdownContainer"] p { color: 
   border: 2px solid #A67C00 !important;
   box-shadow: 0 8px 20px rgba(166,124,0,0.3) !important;
 }
-.stButton > button p, .stButton > button span,
-[data-testid="stBaseButton-primary"] p,
-[data-testid="stBaseButton-secondary"] p { color: #FFFFFF !important; }
-
-/* Download buttons */
-[data-testid="stDownloadButton"] > button { color: #FFFFFF !important; }
-[data-testid="stDownloadButton"] > button p,
-[data-testid="stDownloadButton"] > button span { color: #FFFFFF !important; }
+.stButton > button:hover p,
+.stButton > button:hover span { color: #FFFFFF !important; }
 
 /* Chat messages */
 [data-testid="stChatMessage"] [data-testid="stMarkdownContainer"] p { color: #1A1612 !important; }
 
-/* Chat input */
-[data-testid="stChatInput"] textarea { color: #1A1612 !important; }
-[data-testid="stChatInput"] textarea::placeholder { color: #A0918A !important; }
+/* Chat input text */
+[data-testid="stChatInput"] textarea { color: #1A1612 !important; -webkit-text-fill-color: #1A1612 !important; }
+[data-testid="stChatInput"] textarea::placeholder { color: #A0918A !important; -webkit-text-fill-color: #A0918A !important; }
 
-/* Toggle */
-[data-testid="stToggle"] label,
-[data-testid="stToggle"] p,
-[data-testid="stToggle"] span { color: #1A1612 !important; }
+/* Toggle label */
+[data-testid="stToggle"] p { color: #3D3028 !important; }
 
-/* Spinner */
-.stSpinner p, .stSpinner span { color: #6B5E52 !important; }
+/* Code */
+.stCode pre, pre code { color: #1A1612 !important; }
 
-/* Code blocks */
-.stCode, pre, code { color: #1A1612 !important; }
-
-/* Custom HTML cards — ensure text is dark */
-.mctx-header-title { color: #A67C00 !important; }
-.mctx-header-sub   { color: #6B5E52 !important; }
+/* Custom cards */
+.mctx-header-title  { color: #A67C00 !important; }
+.mctx-header-sub    { color: #6B5E52 !important; }
 .mctx-section-label { color: #6B5E52 !important; }
-.mctx-pulse-text   { color: #3D3028 !important; border-left-color: rgba(166,124,0,0.5) !important; }
-.mctx-fee-item     { color: #3D3028 !important; }
-.mctx-fee-dot      { background: #A67C00 !important; }
-.ticker-symbol     { color: #A67C00 !important; }
-.ticker-nav        { color: #6B5E52 !important; }
-.fund-name         { color: #A67C00 !important; }
-.fund-meta, .fund-tag, .fund-coverage { color: #6B5E52 !important; }
+.mctx-pulse-text    { color: #3D3028 !important; border-left-color: rgba(166,124,0,0.5) !important; }
+.mctx-fee-item      { color: #3D3028 !important; }
+.mctx-fee-dot       { background: #A67C00 !important; }
+
+/* Ticker */
+.ticker-symbol  { color: #A67C00 !important; }
+.ticker-nav     { color: #6B5E52 !important; }
+
+/* Fund cards */
+.fund-name      { color: #A67C00 !important; }
+.fund-meta      { color: #6B5E52 !important; }
+.fund-tag       { color: #6B5E52 !important; }
+.fund-coverage  { color: #6B5E52 !important; }
+
+/* Tooltip */
 .pillar-tooltip-body { color: #1A1612 !important; background: #FFFFFF !important; }
-.info-chip         { color: #6B5E52 !important; }
-.dsa-footer-brand p { color: #6B5E52 !important; }
-.dsa-footer-col a  { color: #6B5E52 !important; }
-.dsa-footer-copy, .dsa-footer-right { color: #6B5E52 !important; }
-</style>"""
+.info-chip           { color: #6B5E52 !important; }
+
+/* Footer */
+.dsa-footer-brand p  { color: #6B5E52 !important; }
+.dsa-footer-col a    { color: #6B5E52 !important; }
+.dsa-footer-copy,
+.dsa-footer-right    { color: #6B5E52 !important; }"""
+        css = css.replace("LIGHT_MODE_OVERRIDES", light_overrides)
+    else:
+        css = css.replace("LIGHT_MODE_OVERRIDES", "")
+
+    css += "\n</style>"
     return css
 
 
