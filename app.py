@@ -2193,24 +2193,31 @@ with tab2:
     _dashboard = Path("data/dashboard.html")
     _DASHBOARD_LIGHT_CSS = """<style>
 body{background:linear-gradient(135deg,#e8f0fe 0%,#dce8fb 50%,#e4eaf5 100%)!important;color:#1a2340!important;}
-.glass-card{background:rgba(255,255,255,0.72)!important;backdrop-filter:blur(10px);border:1px solid rgba(0,0,0,0.08)!important;}
+body *{color:#1a2340;}
+.glass-card{background:rgba(255,255,255,0.82)!important;backdrop-filter:blur(10px);border:1px solid rgba(0,0,0,0.08)!important;}
 .blob-1{background:rgba(166,124,0,0.12)!important;}.blob-2{background:rgba(100,140,200,0.18)!important;}
 .tabs{background:rgba(255,255,255,0.45)!important;border-color:rgba(0,0,0,0.08)!important;}
-.tab-btn{color:rgba(26,35,64,0.6)!important;}
+.tab-btn{color:rgba(26,35,64,0.65)!important;}
 .tab-btn.active{background:linear-gradient(135deg,#3b5bdb,#2d4aa8)!important;color:#fff!important;}
 .tab-btn:hover:not(.active){background:rgba(0,0,0,0.06)!important;color:#1a2340!important;}
-.draft-box{background:rgba(0,0,0,0.05)!important;color:rgba(26,35,64,0.85)!important;border-color:rgba(0,0,0,0.08)!important;}
-.markdown-box p,.markdown-box ul,.markdown-box li{color:rgba(26,35,64,0.8)!important;}
+.stat-value,.stat-label,.section-title,.chart-label,.category-name,.category-pct,.bar-label{color:#1a2340!important;}
+.word-cloud-item,.keyword-word,.kw-count{color:#1a2340!important;}
+h1,h2,h3,h4,h5,h6,p,span,li,td,th,label,div{color:#1a2340;}
+.draft-box{background:rgba(0,0,0,0.05)!important;color:#1a2340!important;border-color:rgba(0,0,0,0.08)!important;}
+.markdown-box p,.markdown-box ul,.markdown-box li{color:#1a2340!important;}
 .markdown-box h1,.markdown-box h2,.markdown-box h3,.markdown-box strong{color:#1a2340!important;}
-.markdown-box code{background:rgba(0,0,0,0.07)!important;color:rgba(26,35,64,0.85)!important;}
-.note-text,.action-text{color:rgba(26,35,64,0.85)!important;}
-.quote-card{background:rgba(255,255,255,0.6)!important;color:rgba(26,35,64,0.85)!important;border-color:#3b5bdb!important;}
-.poster-section h3{color:rgba(26,35,64,0.5)!important;}
+.markdown-box code{background:rgba(0,0,0,0.07)!important;color:#1a2340!important;}
+.note-text,.action-text,.quote-text,.review-text{color:#1a2340!important;}
+.quote-card{background:rgba(255,255,255,0.7)!important;color:#1a2340!important;border-color:#3b5bdb!important;}
+.poster-section h3{color:rgba(26,35,64,0.6)!important;}
 .pill{background:rgba(59,91,219,0.12)!important;border-color:rgba(59,91,219,0.35)!important;color:#3b5bdb!important;}
 header h1{background:linear-gradient(135deg,#1a2340,#3b5bdb)!important;-webkit-background-clip:text!important;-webkit-text-fill-color:transparent!important;}
 header p,header a{color:rgba(26,35,64,0.6)!important;}
 .status-pill{background:rgba(22,101,52,0.12)!important;border-color:rgba(22,101,52,0.35)!important;color:#166534!important;}
 .review-badge{background:rgba(59,91,219,0.12)!important;border-color:rgba(59,91,219,0.35)!important;color:#3b5bdb!important;}
+.action-num{background:linear-gradient(135deg,#3b5bdb,#2d4aa8)!important;color:#fff!important;}
+.check-icon{color:#166534!important;}
+.neg-review-card{background:rgba(255,255,255,0.7)!important;color:#1a2340!important;}
 </style>"""
 
     # CSS that hides the draft tabs (Approval Gate, Email Draft, Markdown Report, Pulse Poster)
