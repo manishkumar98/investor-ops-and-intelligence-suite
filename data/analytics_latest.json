@@ -1,141 +1,141 @@
 {
   "keywords": [
     {
-      "word": "trading",
-      "count": 56,
+      "word": "chart",
+      "count": 9,
       "color": "#4ade80"
     },
     {
-      "word": "redacted",
-      "count": 49,
+      "word": "order",
+      "count": 8,
       "color": "#60a5fa"
     },
     {
-      "word": "best",
-      "count": 36,
+      "word": "trading",
+      "count": 7,
       "color": "#f59e0b"
     },
     {
-      "word": "option",
-      "count": 30,
+      "word": "redacted",
+      "count": 7,
       "color": "#c084fc"
     },
     {
-      "word": "chart",
-      "count": 28,
+      "word": "view",
+      "count": 4,
       "color": "#fb7185"
     },
     {
-      "word": "please",
-      "count": 22,
+      "word": "flash",
+      "count": 4,
       "color": "#34d399"
     },
     {
-      "word": "stock",
-      "count": 21,
+      "word": "brokerage",
+      "count": 4,
       "color": "#818cf8"
     },
     {
-      "word": "loss",
-      "count": 18,
+      "word": "offer",
+      "count": 3,
       "color": "#facc15"
     },
     {
-      "word": "stocks",
-      "count": 17,
+      "word": "position",
+      "count": 3,
+      "color": "#f87171"
+    },
+    {
+      "word": "then",
+      "count": 3,
+      "color": "#2dd4bf"
+    },
+    {
+      "word": "star",
+      "count": 3,
+      "color": "#4ade80"
+    },
+    {
+      "word": "best",
+      "count": 3,
+      "color": "#60a5fa"
+    },
+    {
+      "word": "user",
+      "count": 3,
+      "color": "#f59e0b"
+    },
+    {
+      "word": "per",
+      "count": 3,
+      "color": "#c084fc"
+    },
+    {
+      "word": "ind",
+      "count": 3,
+      "color": "#fb7185"
+    },
+    {
+      "word": "option",
+      "count": 3,
+      "color": "#34d399"
+    },
+    {
+      "word": "pattern",
+      "count": 3,
+      "color": "#818cf8"
+    },
+    {
+      "word": "दिया",
+      "count": 3,
+      "color": "#facc15"
+    },
+    {
+      "word": "getting",
+      "count": 2,
       "color": "#f87171"
     },
     {
       "word": "trade",
-      "count": 16,
-      "color": "#2dd4bf"
-    },
-    {
-      "word": "add",
-      "count": 16,
-      "color": "#4ade80"
-    },
-    {
-      "word": "user",
-      "count": 16,
-      "color": "#60a5fa"
-    },
-    {
-      "word": "ind",
-      "count": 15,
-      "color": "#f59e0b"
-    },
-    {
-      "word": "order",
-      "count": 14,
-      "color": "#c084fc"
-    },
-    {
-      "word": "flash",
-      "count": 13,
-      "color": "#fb7185"
-    },
-    {
-      "word": "one",
-      "count": 13,
-      "color": "#34d399"
-    },
-    {
-      "word": "feature",
-      "count": 13,
-      "color": "#818cf8"
-    },
-    {
-      "word": "features",
-      "count": 13,
-      "color": "#facc15"
-    },
-    {
-      "word": "market",
-      "count": 12,
-      "color": "#f87171"
-    },
-    {
-      "word": "don",
-      "count": 12,
+      "count": 2,
       "color": "#2dd4bf"
     }
   ],
   "sentiment": {
-    "positive": 149,
-    "neutral": 7,
-    "negative": 66
+    "positive": 12,
+    "neutral": 2,
+    "negative": 9
   },
   "rating_dist": {
-    "1": 54,
-    "2": 12,
-    "3": 7,
-    "4": 35,
-    "5": 114
+    "1": 8,
+    "3": 2,
+    "5": 9,
+    "4": 3,
+    "2": 1
   },
   "negative_reviews": [
+    {
+      "text": "why I am not getting ₹10 fno trade offer ?",
+      "rating": 1
+    },
     {
       "text": "Sometimes the position vanished from the chart, TP/SL didn't work on mobile, from desktop browsers I can but that also depends on luck, if I use setup",
       "rating": 1
     },
     {
-      "text": "Every day at 9:15 AM when I place an order, it shows “Execute the order after market open” even though the market is already open and LTP is changing.",
+      "text": "there is no LIMIT order sell...not for scalper...",
       "rating": 1
     },
     {
-      "text": "very poor app always hang today while trading it hang does not show any data and 1000 times I have tried to exit but app was totally fail and showing ",
-      "rating": 1
+      "text": "Not as user friendly as expected.",
+      "rating": 2
     },
     {
-      "text": "chart pattern detection timely notification required in app. without notification there is no use of chart Pattern. Lots of strike is index option eac",
-      "rating": 1
-    },
-    {
-      "text": "ind flash trading app takes charges 20 rupees per order it is bad app now I closed permanently uninstalled this app and use [REDACTED] and [REDACTED] ",
+      "text": "Flash trading se ind mony f&o me 1 year tak 10 rup.. Brokerage btaya tha Phir bhi 20 rupee Brokerage lag raha hai",
       "rating": 1
     }
   ],
-  "total": 222,
-  "generated_at": "2026-04-29T11:34:46.079638",
-  "review_count": 222
+  "total": 23,
+  "generated_at": "2026-05-04T21:29:32.974378",
+  "review_count": 23
 }

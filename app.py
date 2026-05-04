@@ -186,6 +186,23 @@ def _render_download_dropdown(options: list[dict], key_prefix: str) -> None:
         )
 
 
+@st.dialog("⏹ Pipeline Stopped", width="large")
+def _show_pipeline_stop_dialog(info: dict) -> None:
+    steps_done = info.get("steps_done", 0)
+    st.warning(
+        f"**Pipeline was stopped after {steps_done} of 5 step(s).**\n\n"
+        "- ✅ Completed steps have been saved to `data/`.\n"
+        "- ⏸ Remaining steps were not run.\n\n"
+        "Re-click **▶ Run Pipeline** to restart from the beginning."
+    )
+    st.info(
+        "**Note on saved data:** Partially-completed pipeline data (e.g. scraped reviews) "
+        "is preserved on disk. A fresh run will overwrite it from Step 1."
+    )
+    if st.button("✅ Got it, close", use_container_width=True, type="primary"):
+        st.rerun()
+
+
 @st.dialog("📊 Weekly Pipeline — Complete", width="large")
 def _show_pipeline_dialog(result: dict) -> None:
     pulse  = result.get("pulse", {})
@@ -209,7 +226,7 @@ def _show_pipeline_dialog(result: dict) -> None:
         "- 📊 **Weekly Pulse** — ≤250-word note, top 3 themes, 3 user quotes, 3 action ideas generated\n"
         f"- 🎙️ **Voice Agent briefed** — greeting will now mention: *\"{top3[0] if top3 else '—'}\"*\n"
         "- 💰 **Fee Explainer** — RAG-retrieved fee bullets ready for advisor email\n"
-        "- ✉️ **Pillar C email** — Market Context snippet populated from this pulse\n"
+        "- ✉️ **Advisor Email** — Market Context snippet populated from this pulse\n"
         "- 💾 **Saved to disk** — `pulse_latest.json`, `fee_latest.json`, `analytics_latest.json`"
     )
 
@@ -711,12 +728,45 @@ hr { border-color: var(--border) !important; margin: 24px 0 !important; }
 /* ── Market-context card (Tab 3) ── */
 .mctx-card {
   background:var(--bg-card); border:1px solid VAR_GOLD_BORDER_DIM;
-  border-radius:12px; padding:18px 22px; margin-bottom:20px; box-shadow:VAR_CARD_SHADOW;
+  border-radius:14px; padding:0; margin-bottom:20px; box-shadow:VAR_CARD_SHADOW;
+  overflow:hidden;
 }
-.mctx-label {
-  font-size:0.7rem; font-weight:700; letter-spacing:0.1em;
-  text-transform:uppercase; color:var(--gold-dim); margin-bottom:8px;
+.mctx-header {
+  display:flex; align-items:center; gap:10px;
+  padding:13px 20px;
+  background:rgba(201,168,76,0.07);
+  border-bottom:1px solid rgba(201,168,76,0.15);
 }
+.mctx-header-icon { font-size:1.1rem; }
+.mctx-header-title {
+  font-size:0.72rem; font-weight:700; letter-spacing:0.08em;
+  text-transform:uppercase; color:var(--gold-1);
+}
+.mctx-header-sub {
+  font-size:0.7rem; color:var(--text-3); margin-left:auto;
+  font-style:italic;
+}
+.mctx-body { padding:16px 20px; display:flex; flex-direction:column; gap:14px; }
+.mctx-section-label {
+  font-size:0.68rem; font-weight:700; letter-spacing:0.08em;
+  text-transform:uppercase; color:var(--text-3); margin-bottom:5px;
+}
+.mctx-pulse-text {
+  font-size:0.85rem; color:var(--text-2); line-height:1.75;
+  border-left:3px solid rgba(201,168,76,0.4);
+  padding-left:12px;
+}
+.mctx-fee-list { display:flex; flex-direction:column; gap:6px; }
+.mctx-fee-item {
+  display:flex; align-items:flex-start; gap:8px;
+  font-size:0.82rem; color:var(--text-2); line-height:1.5;
+}
+.mctx-fee-dot {
+  width:6px; height:6px; border-radius:50%;
+  background:var(--gold-1); flex-shrink:0; margin-top:6px;
+}
+.mctx-label { font-size:0.7rem; font-weight:700; letter-spacing:0.1em;
+  text-transform:uppercase; color:var(--gold-dim); margin-bottom:8px; }
 .mctx-text { font-size:0.86rem; color:var(--text-2); line-height:1.7; }
 
 /* Hide audio-input widget — controlled entirely by VAD JS */
@@ -781,6 +831,136 @@ div[data-testid="element-container"]:has(#dsa-hdr-toggle-anchor)
 </style>"""
     for k, v in subs.items():
         css = css.replace(k, v)
+
+    if is_light:
+        css += """<style>
+/* ── Light-mode overrides ── */
+
+/* Force all text to dark in Streamlit native elements */
+.stApp, .stApp * { color: #1A1612; }
+
+/* Headings */
+h1,h2,h3,h4,h5,h6,
+[data-testid="stMarkdownContainer"] h1,
+[data-testid="stMarkdownContainer"] h2,
+[data-testid="stMarkdownContainer"] h3,
+[data-testid="stMarkdownContainer"] h4 { color: #1A1612 !important; }
+
+/* Paragraph text */
+[data-testid="stMarkdownContainer"] p,
+[data-testid="stMarkdownContainer"] li,
+[data-testid="stMarkdownContainer"] span { color: #3D3028 !important; }
+
+/* Captions and labels */
+[data-testid="stCaptionContainer"] p,
+.stCaption, small,
+[data-testid="stWidgetLabel"] label,
+[data-testid="stWidgetLabel"] p,
+[data-testid="stWidgetLabel"] span { color: #6B5E52 !important; }
+
+/* Selectbox / dropdowns */
+[data-testid="stSelectbox"] label,
+[data-testid="stSelectbox"] p { color: #1A1612 !important; }
+[data-testid="stSelectbox"] > div > div,
+[data-testid="stSelectbox"] > div > div > div { color: #1A1612 !important; }
+
+/* Radio buttons */
+[data-testid="stRadio"] label,
+[data-testid="stRadio"] p,
+[data-testid="stRadio"] span { color: #1A1612 !important; }
+
+/* Text inputs */
+[data-testid="stTextInput"] input,
+[data-testid="stTextArea"] textarea { color: #1A1612 !important; }
+[data-testid="stTextInput"] label,
+[data-testid="stTextArea"] label { color: #1A1612 !important; }
+
+/* Expanders */
+[data-testid="stExpander"] summary,
+[data-testid="stExpander"] summary span,
+[data-testid="stExpander"] summary p,
+[data-testid="stExpander"] [data-testid="stMarkdownContainer"] p { color: #1A1612 !important; }
+
+/* Metric values */
+[data-testid="stMetricLabel"] p { color: #6B5E52 !important; }
+[data-testid="stMetricDelta"] p { color: #166534 !important; }
+
+/* Sidebar */
+section[data-testid="stSidebar"],
+section[data-testid="stSidebar"] * { color: #1A1612 !important; }
+section[data-testid="stSidebar"] [data-testid="stMarkdownContainer"] p { color: #3D3028 !important; }
+
+/* Tabs */
+.stTabs [data-baseweb="tab"] { color: #6B5E52 !important; }
+.stTabs [aria-selected="true"] { color: #A67C00 !important; }
+
+/* Alerts / info boxes */
+[data-testid="stNotificationContentInfo"] p,
+[data-testid="stNotificationContentWarning"] p,
+[data-testid="stNotificationContentSuccess"] p,
+[data-testid="stNotificationContentError"] p,
+[data-testid="stAlert"] p,
+[data-testid="stAlert"] * { color: #1A1612 !important; }
+
+/* Buttons — fix white border invisible on light background */
+.stButton > button,
+[data-testid="stBaseButton-primary"],
+[data-testid="stBaseButton-secondary"] {
+  border: 2px solid #A67C00 !important;
+  color: #FFFFFF !important;
+}
+.stButton > button:hover,
+[data-testid="stBaseButton-primary"]:hover,
+[data-testid="stBaseButton-secondary"]:hover {
+  background: #A67C00 !important;
+  color: #FFFFFF !important;
+  border: 2px solid #A67C00 !important;
+  box-shadow: 0 8px 20px rgba(166,124,0,0.3) !important;
+}
+.stButton > button p, .stButton > button span,
+[data-testid="stBaseButton-primary"] p,
+[data-testid="stBaseButton-secondary"] p { color: #FFFFFF !important; }
+
+/* Download buttons */
+[data-testid="stDownloadButton"] > button { color: #FFFFFF !important; }
+[data-testid="stDownloadButton"] > button p,
+[data-testid="stDownloadButton"] > button span { color: #FFFFFF !important; }
+
+/* Chat messages */
+[data-testid="stChatMessage"] [data-testid="stMarkdownContainer"] p { color: #1A1612 !important; }
+
+/* Chat input */
+[data-testid="stChatInput"] textarea { color: #1A1612 !important; }
+[data-testid="stChatInput"] textarea::placeholder { color: #A0918A !important; }
+
+/* Toggle */
+[data-testid="stToggle"] label,
+[data-testid="stToggle"] p,
+[data-testid="stToggle"] span { color: #1A1612 !important; }
+
+/* Spinner */
+.stSpinner p, .stSpinner span { color: #6B5E52 !important; }
+
+/* Code blocks */
+.stCode, pre, code { color: #1A1612 !important; }
+
+/* Custom HTML cards — ensure text is dark */
+.mctx-header-title { color: #A67C00 !important; }
+.mctx-header-sub   { color: #6B5E52 !important; }
+.mctx-section-label { color: #6B5E52 !important; }
+.mctx-pulse-text   { color: #3D3028 !important; border-left-color: rgba(166,124,0,0.5) !important; }
+.mctx-fee-item     { color: #3D3028 !important; }
+.mctx-fee-dot      { background: #A67C00 !important; }
+.ticker-symbol     { color: #A67C00 !important; }
+.ticker-nav        { color: #6B5E52 !important; }
+.fund-name         { color: #A67C00 !important; }
+.fund-meta, .fund-tag, .fund-coverage { color: #6B5E52 !important; }
+.pillar-tooltip-body { color: #1A1612 !important; background: #FFFFFF !important; }
+.info-chip         { color: #6B5E52 !important; }
+.dsa-footer-brand p { color: #6B5E52 !important; }
+.dsa-footer-col a  { color: #6B5E52 !important; }
+.dsa-footer-copy, .dsa-footer-right { color: #6B5E52 !important; }
+</style>"""
     return css
 
 
@@ -827,13 +1007,13 @@ def _source_label(url: str) -> str:
 _QUERY_TYPE_BADGE = {
     "factual_only": ('<span style="font-size:0.72rem;padding:2px 8px;border-radius:100px;'
                      'background:rgba(126,182,255,0.15);color:#7EB6FF;font-weight:600;'
-                     'border:1px solid rgba(126,182,255,0.35);">M1 FAQ</span>'),
+                     'border:1px solid rgba(126,182,255,0.35);">Fund FAQ</span>'),
     "fee_only":     ('<span style="font-size:0.72rem;padding:2px 8px;border-radius:100px;'
                      'background:rgba(201,168,76,0.15);color:#C9A84C;font-weight:600;'
-                     'border:1px solid rgba(201,168,76,0.35);">M2 Fee Explainer</span>'),
+                     'border:1px solid rgba(201,168,76,0.35);">Fee Explainer</span>'),
     "compound":     ('<span style="font-size:0.72rem;padding:2px 8px;border-radius:100px;'
                      'background:rgba(34,197,94,0.15);color:#22C55E;font-weight:600;'
-                     'border:1px solid rgba(34,197,94,0.35);">M1 + M2 Combined</span>'),
+                     'border:1px solid rgba(34,197,94,0.35);">FAQ + Fee Combined</span>'),
 }
 
 
@@ -873,6 +1053,9 @@ if "_show_sync_dialog" in st.session_state:
 
 if "_show_pipeline_dialog" in st.session_state:
     _show_pipeline_dialog(st.session_state.pop("_show_pipeline_dialog"))
+
+if "_show_pipeline_stop_dialog" in st.session_state:
+    _show_pipeline_stop_dialog(st.session_state.pop("_show_pipeline_stop_dialog"))
 
 # ── Theme state ───────────────────────────────────────────────────────────────
 if "theme" not in st.session_state:
@@ -1410,16 +1593,16 @@ with tab1:
   <h3 style="margin:0;color:var(--text-1);">The Smart-Sync Knowledge Base</h3>
   <div class="pillar-tooltip">
     <div class="info-chip">
-      <span class="info-circle">i</span>Pillar A · M1 + M2
+      <span class="info-circle">i</span>FAQ + Fee · Unified Search
     </div>
     <div class="pillar-tooltip-body">
-      <span style="color:#E8C96D;font-weight:700;">Pillar A — Smart-Sync Knowledge Base</span>
+      <span style="color:#E8C96D;font-weight:700;">Smart-Sync Knowledge Base</span>
       <br><br>
-      Merges the <em>Mutual Fund FAQ corpus (M1)</em> with the <em>Fee Explainer (M2)</em>
+      Merges the <em>Mutual Fund FAQ corpus</em> with the <em>Fee Explainer</em>
       into a single Unified Search. Every combined answer maintains the
       <strong>6-bullet structure</strong> and <strong>source citations</strong> from both
-      corpuses — so a question like "What is the exit load for ELSS and why was I charged it?"
-      pulls the Exit Load % from M1 and the Fee Logic from M2 in one response.
+      sources — so a question like "What is the exit load for ELSS and why was I charged it?"
+      pulls the Exit Load % from the FAQ corpus and the Fee Logic from the fee explainer in one response.
     </div>
   </div>
 </div>
@@ -1501,6 +1684,11 @@ with tab1:
 
     with c4:
         st.markdown("<div style='height:14px'></div>", unsafe_allow_html=True)
+        st.markdown(
+            '<p style="margin:0 0 4px 0;font-size:0.78rem;font-weight:600;'
+            'color:var(--text-3);letter-spacing:0.04em;text-transform:uppercase;">📥 Download</p>',
+            unsafe_allow_html=True,
+        )
         _render_download_dropdown([
             {"label": "Fund Snapshot (CSV)",     "path": "data/fund_snapshot.json",   "filename": "fund_snapshot.csv",    "mime": "text/csv"},
             {"label": "Source Manifest (MD)",    "path": "SOURCE_MANIFEST.md",         "filename": "SOURCE_MANIFEST.md",   "mime": "text/markdown"},
@@ -1582,12 +1770,12 @@ with tab2:
   <h3 style="margin:0;color:var(--text-1);">Insight-Driven Agent Optimization</h3>
   <div class="pillar-tooltip">
     <div class="info-chip">
-      <span class="info-circle">i</span>Pillar B · M2 + M3
+      <span class="info-circle">i</span>Review Pulse · Voice Agent
     </div>
     <div class="pillar-tooltip-body">
-      <span style="color:#E8C96D;font-weight:700;">Pillar B — Insight-Driven Optimization</span>
+      <span style="color:#E8C96D;font-weight:700;">Insight-Driven Agent Optimization</span>
       <br><br>
-      Uses the <em>Weekly Product Pulse (M2)</em> to brief the <em>Voice Booking Agent (M3)</em>.
+      Uses the <em>Weekly Review Pulse</em> to brief the <em>Voice Booking Agent</em>.
       The agent is <strong>Theme-Aware</strong>: if the Pulse found "Login Issues" or
       "Nominee Updates" as top themes, the agent proactively mentions them during the
       greeting — e.g. <em>"I see many users are asking about Nominee Updates today;
@@ -1622,7 +1810,7 @@ with tab2:
                 "📤 Outputs saved to: pulse_latest.json, fee_latest.json, analytics_latest.json\n\n"
                 "🔗 Impact on other pillars:\n"
                 "• Voice Agent greeting will mention the new top theme\n"
-                "• Advisor email (Pillar C) Market Context will use the new pulse\n"
+                "• Advisor email Market Context will use the new pulse\n"
                 "• Fee bullets in the advisor email will reflect the top issue\n\n"
                 "⏱ Takes ~30–60 seconds depending on review volume.\n\n"
                 "📅 When to run:\n"
@@ -1634,6 +1822,11 @@ with tab2:
 
     with _col_dl:
         st.markdown("<br>", unsafe_allow_html=True)
+        st.markdown(
+            '<p style="margin:0 0 4px 0;font-size:0.78rem;font-weight:600;'
+            'color:var(--text-3);letter-spacing:0.04em;text-transform:uppercase;">📥 Download</p>',
+            unsafe_allow_html=True,
+        )
         _render_download_dropdown([
             {"label": "Reviews CSV",         "path": "data/reviews_latest.csv",    "filename": "reviews_latest.csv",    "mime": "text/csv"},
             {"label": "Weekly Pulse (CSV)",  "path": "data/pulse_latest.json",     "filename": "pulse_latest.csv",      "mime": "text/csv"},
@@ -1676,13 +1869,11 @@ with tab2:
             st.error(f"❌ Pipeline failed at step {step_idx}: {p_error}")
 
         if stopped and step_idx < len(_PIPELINE_STEPS):
-            st.warning(
-                f"**Pipeline stopped at Step {step_idx + 1}/5.**  \n"
-                f"✅ {step_idx} step(s) completed and saved.  \n"
-                f"⏸ Remaining steps were not run.  \n\n"
-                "Already-generated outputs (reviews CSV, partial pulse) are saved to `data/`. "
-                "Re-click **▶ Run Pipeline** to restart from the beginning."
-            )
+            steps_done = step_idx
+            for k in ["_pipeline_active", "_pipeline_step", "_pipeline_stop", "_pipeline_data", "_pipeline_error"]:
+                st.session_state.pop(k, None)
+            st.session_state["_show_pipeline_stop_dialog"] = {"steps_done": steps_done}
+            st.rerun()
 
         # Render step table
         for i, (key, label) in enumerate(_PIPELINE_STEPS):
@@ -1746,6 +1937,12 @@ with tab2:
                     state["last_pipeline_run"] = ts; state["last_review_count"] = p_data["review_count"]
                     Path("data/system_state.json").write_text(json.dumps(state, indent=2))
                     p_data["pulse"] = pulse_data
+                    # Rebake dashboard.html so the analytics expander reflects fresh data
+                    try:
+                        from scripts.update_dashboard import run as _update_dashboard
+                        _update_dashboard()
+                    except Exception as _dash_exc:
+                        print(f"[pipeline] dashboard update skipped: {_dash_exc}")
 
                 st.session_state["_pipeline_step"] = step_idx + 1
                 st.session_state["_pipeline_data"] = p_data
@@ -1800,7 +1997,7 @@ with tab2:
             _ps_col1, _ps_col2 = st.columns([3, 2])
             with _ps_col1:
                 st.markdown("**Weekly Note**")
-                _note_text = _pulse_note[:600] if _pulse_note else "—"
+                _note_text = _pulse_note if _pulse_note else "—"
                 st.markdown(
                     f'<div style="font-size:0.875rem;line-height:1.7;color:var(--text-2);'
                     f'background:var(--bg-glass);border-radius:8px;'
@@ -1828,11 +2025,6 @@ with tab2:
                     st.markdown("**Action Ideas**")
                     for _act in _actions[:3]:
                         st.markdown(f"- {_act}")
-            st.info(
-                "✉️ Email draft and notes entry have been **queued for approval** in "
-                "the **Super-Agent MCP Workflow** tab — no auto-send.",
-                icon=None,
-            )
 
     # ── Voice Agent section ──────────────────────────────────────────────────
     st.markdown("---")
@@ -2019,21 +2211,111 @@ header p,header a{color:rgba(26,35,64,0.6)!important;}
 .review-badge{background:rgba(59,91,219,0.12)!important;border-color:rgba(59,91,219,0.35)!important;color:#3b5bdb!important;}
 </style>"""
 
+    # CSS that hides the draft tabs (Approval Gate, Email Draft, Markdown Report, Pulse Poster)
+    _HIDE_DRAFT_TABS = """<style>
+    button[onclick*="switchTab('gate'"],
+    button[onclick*="switchTab('draft'"],
+    button[onclick*="switchTab('notes'"],
+    button[onclick*="switchTab('poster'"] { display: none !important; }
+    #tab-gate, #tab-draft, #tab-notes, #tab-poster { display: none !important; }
+    </style>"""
+
+    # CSS that hides the analytics tabs (Analytics, Word Cloud, Categories, Ideation)
+    _HIDE_ANALYTICS_TABS = """<style>
+    button[onclick*="switchTab('analytics'"],
+    button[onclick*="switchTab('wordcloud'"],
+    button[onclick*="switchTab('categories'"],
+    button[onclick*="switchTab('ideation'"] { display: none !important; }
+    #tab-analytics, #tab-wordcloud, #tab-categories, #tab-ideation { display: none !important; }
+    </style>"""
+
+    def _no_data_placeholder():
+        st.markdown("""
+        <div style="text-align:center;padding:60px 20px;color:var(--text-3);">
+          <div style="font-size:2.5rem">📭</div>
+          <h3 style="color:var(--text-2) !important;font-size:1.2rem;">No dashboard data yet</h3>
+          <p style="color:var(--text-3);">Click <strong style="color:var(--gold-1);">▶ Run Pipeline</strong> above
+          to generate the dashboard.</p>
+        </div>
+        """, unsafe_allow_html=True)
+
+    # ── Analytics Dashboard ────────────────────────────────────────────────────
+    st.markdown("---")
+    st.markdown(
+        '<h4 style="margin:0 0 8px 0;color:var(--text-1);">📊 Analytics Dashboard</h4>'
+        '<p style="margin:0 0 12px 0;font-size:0.85rem;color:var(--text-3);">'
+        'Review sentiment, theme distribution, keyword frequency, and rating breakdown — '
+        'generated from the latest pipeline run.</p>',
+        unsafe_allow_html=True,
+    )
     with st.expander("📊 Full Analytics Dashboard", expanded=False):
+        _dash_hdr, _dash_refresh = st.columns([5, 1])
+        with _dash_refresh:
+            if st.button("🔄 Refresh", key="refresh_dashboard", use_container_width=True,
+                         help="Manually rebake the dashboard from the latest pipeline JSON files"):
+                _pulse_src = Path("data/pulse_latest.json")
+                if _pulse_src.exists():
+                    try:
+                        from scripts.update_dashboard import run as _update_dashboard
+                        _update_dashboard()
+                        st.toast("✅ Dashboard refreshed!", icon="✅")
+                        st.rerun()
+                    except Exception as _e:
+                        st.error(f"Refresh failed: {_e}")
+                else:
+                    st.warning("No pipeline data found. Run the pipeline first.")
+
         if _dashboard.exists():
             _dash_html = _dashboard.read_text(encoding="utf-8")
+            _dash_html = _dash_html.replace("</head>", _HIDE_DRAFT_TABS + "</head>", 1)
             if _is_light:
                 _dash_html = _dash_html.replace("</head>", _DASHBOARD_LIGHT_CSS + "</head>", 1)
-            components.html(_dash_html, height=960, scrolling=True)
+            components.html(_dash_html, height=700, scrolling=True)
         else:
-            st.markdown("""
-            <div style="text-align:center;padding:60px 20px;color:var(--text-3);">
-              <div style="font-size:2.5rem">📭</div>
-              <h3 style="color:var(--text-2) !important;font-size:1.2rem;">No dashboard data yet</h3>
-              <p style="color:var(--text-3);">Click <strong style="color:var(--gold-1);">▶ Run Pipeline</strong> above
-              to scrape this week's INDMoney reviews and generate the full dashboard.</p>
-            </div>
-            """, unsafe_allow_html=True)
+            _no_data_placeholder()
+
+    # ── Insights Draft Dashboard ───────────────────────────────────────────────
+    st.markdown("---")
+    st.markdown(
+        '<h4 style="margin:0 0 8px 0;color:var(--text-1);">📋 Insights Draft Dashboard</h4>'
+        '<p style="margin:0 0 12px 0;font-size:0.85rem;color:var(--text-3);">'
+        'AI-generated outputs from the latest pipeline run — review themes, quotes, '
+        'and advisor email content before approving in the Super-Agent MCP Workflow tab.</p>',
+        unsafe_allow_html=True,
+    )
+    with st.expander("📋 Insights Draft Dashboard", expanded=False):
+        _draft_hdr, _draft_refresh = st.columns([5, 1])
+        with _draft_refresh:
+            if st.button("🔄 Refresh", key="refresh_draft_dashboard", use_container_width=True,
+                         help="Manually rebake the dashboard from the latest pipeline JSON files"):
+                _pulse_src = Path("data/pulse_latest.json")
+                if _pulse_src.exists():
+                    try:
+                        from scripts.update_dashboard import run as _update_dashboard
+                        _update_dashboard()
+                        st.toast("✅ Dashboard refreshed!", icon="✅")
+                        st.rerun()
+                    except Exception as _e:
+                        st.error(f"Refresh failed: {_e}")
+                else:
+                    st.warning("No pipeline data found. Run the pipeline first.")
+
+        if _dashboard.exists():
+            _draft_html = _dashboard.read_text(encoding="utf-8")
+            _draft_html = _draft_html.replace("</head>", _HIDE_ANALYTICS_TABS + "</head>", 1)
+            # Make Approval Gate the active tab in this embed
+            _draft_html = _draft_html.replace(
+                'id="tab-gate" class="tab-content"',
+                'id="tab-gate" class="tab-content active"',
+            ).replace(
+                'id="tab-analytics" class="tab-content active"',
+                'id="tab-analytics" class="tab-content"',
+            )
+            if _is_light:
+                _draft_html = _draft_html.replace("</head>", _DASHBOARD_LIGHT_CSS + "</head>", 1)
+            components.html(_draft_html, height=700, scrolling=True)
+        else:
+            _no_data_placeholder()
 
 # ══════════════════════════════════════════════════════════════════════════════
 # Tab 3 — Super-Agent MCP Workflow
@@ -2044,15 +2326,15 @@ with tab3:
   <h3 style="margin:0;color:var(--text-1);">The Super-Agent MCP Workflow</h3>
   <div class="pillar-tooltip">
     <div class="info-chip">
-      <span class="info-circle">i</span>Pillar C · M2 + M3 · HITL
+      <span class="info-circle">i</span>Super-Agent · HITL Approvals
     </div>
     <div class="pillar-tooltip-body">
-      <span style="color:#E8C96D;font-weight:700;">Pillar C — Super-Agent MCP Workflow</span>
+      <span style="color:#E8C96D;font-weight:700;">Super-Agent MCP Workflow</span>
       <br><br>
       Consolidates all MCP actions into a single <strong>Human-in-the-Loop (HITL)
-      Approval Center</strong>. When a voice call ends (M3), the system generates a
+      Approval Center</strong>. When a voice call ends, the system generates a
       Calendar Hold, a Notes entry, and an Email Draft. The Email Draft is enriched
-      with a <em>Market Context snippet</em> from the Weekly Pulse (M2) — so the
+      with a <em>Market Context snippet</em> from the Weekly Review Pulse — so the
       advisor sees current customer sentiment before the meeting.
       <br><br>
       Nothing executes until you approve it here.
@@ -2084,19 +2366,53 @@ with tab3:
             pass
 
     if _pulse_text or _fee_bullets:
-        _pulse_snippet = " ".join(_pulse_text.split()[:80]) + ("…" if len(_pulse_text.split()) > 80 else "")
-        _fee_snippet   = "; ".join(_fee_bullets[:3]) if _fee_bullets else ""
+        import re as _re
+        _pulse_words = _pulse_text.split()
+        _pulse_snippet = " ".join(_pulse_words[:80]) + ("…" if len(_pulse_words) > 80 else "")
+
+        # Strip raw markdown bold/italic syntax from fee bullets for clean HTML display
+        def _strip_md(t: str) -> str:
+            t = _re.sub(r"\*\*(.+?)\*\*", r"<strong>\1</strong>", t)
+            t = _re.sub(r"\*(.+?)\*", r"<em>\1</em>", t)
+            t = _re.sub(r"^[-•*]\s*", "", t.strip())
+            return t
 
         _mctx_html = '<div class="mctx-card">'
-        _mctx_html += '<div class="mctx-label">📊 Market Context — injected into advisor email draft</div>'
+
+        # Header
+        _mctx_html += (
+            '<div class="mctx-header">'
+            '<span class="mctx-header-icon">📋</span>'
+            '<span class="mctx-header-title">Market Context Preview</span>'
+            '<span class="mctx-header-sub">injected into advisor email on approval</span>'
+            '</div>'
+        )
+
+        _mctx_html += '<div class="mctx-body">'
+
+        # Pulse snippet
         if _pulse_snippet:
-            _mctx_html += f'<div class="mctx-text" style="margin-bottom:8px;">{_pulse_snippet}</div>'
-        if _fee_snippet:
             _mctx_html += (
-                f'<div class="mctx-text" style="font-size:0.78rem;color:var(--text-3);">'
-                f'💰 Fee snapshot: {_fee_snippet}</div>'
+                '<div>'
+                '<div class="mctx-section-label">📊 Weekly Review Pulse</div>'
+                f'<div class="mctx-pulse-text">{_pulse_snippet}</div>'
+                '</div>'
             )
-        _mctx_html += '</div>'
+
+        # Fee bullets — clean rendered list, max 3
+        if _fee_bullets:
+            _fee_items = "".join(
+                f'<div class="mctx-fee-item"><div class="mctx-fee-dot"></div><div>{_strip_md(b)}</div></div>'
+                for b in _fee_bullets[:3]
+            )
+            _mctx_html += (
+                '<div>'
+                '<div class="mctx-section-label">💰 Fee Context</div>'
+                f'<div class="mctx-fee-list">{_fee_items}</div>'
+                '</div>'
+            )
+
+        _mctx_html += '</div></div>'
         st.markdown(_mctx_html, unsafe_allow_html=True)
     else:
         st.info(

@@ -1,17 +1,17 @@
 {
   "scenario": "exit_load",
   "bullets": [
-    "• SBI Small Cap Fund carries an exit load of 1.0%, meaning investors are charged this fee if they redeem their units before the stipulated holding period, as per data from https://www.indmoney.com/mutual-funds/sbi-small-cap-fund-direct-plan-growth-3603",
-    "• SBI ELSS Tax Saver Fund has an exit load of 0%, so no exit fee is charged upon redemption; however, it comes with a mandatory 3-year lock-in period during which redemption is not permitted at all.",
-    "• SBI Large Cap Fund (Bluechip) has a tiered exit load structure: 0.25% if redeemed within 0–30 days, and 0.1% if redeemed between 30–90 days, as per data from https://www.indmoney.com/mutual-funds/sbi-bluechip-fund-direct-growth-3046",
-    "• Exit load is a fee levied when an investor exits or redeems their mutual fund units earlier than a stipulated period, and it is deducted from the redemption amount at the time of withdrawal.",
-    "• Among the three funds listed, SBI Small Cap Fund has the highest exit load at 1.0%, followed by SBI Large Cap Fund with a maximum of 0.25% (within 0–30 days), while SBI ELSS Tax Saver Fund charges 0% exit load.",
-    "• The expense ratios for the direct plans are: SBI Small Cap Fund at 0.79%, SBI Large Cap Fund at 0.84%, and SBI ELSS Tax Saver Fund at 0.99%; these are separate annual charges and are distinct from exit load fees."
+    "• **SBI Small Cap Fund** charges an exit load of **1.0%** if units are redeemed before the stipulated holding period, making it the highest exit load among the three funds listed in the provided context.",
+    "• **SBI ELSS Tax Saver Fund** has an exit load of **0%**, meaning no exit load fee is charged upon redemption; however, it carries a mandatory **3-year lock-in period** during which redemption is not permitted.",
+    "• **SBI Large Cap Fund (Bluechip)** has a tiered exit load structure: **0.25%** if redeemed within **0–30 days** and **0.10%** if redeemed within **30–90 days**, as per the detailed fund data provided.",
+    "• Exit load is a fee charged to investors for redeeming or \"exiting\" a mutual fund before a stipulated period; it is deducted from the redemption amount and is **not** a flat fee paid separately.",
+    "• All three funds carry a **Very High risk level** as per the provided context, with expense ratios (Direct Plan) of **0.79%** (Small Cap), **0.99%** (ELSS Tax Saver), and **0.84%** (Large Cap Bluechip).",
+    "• For full and accurate exit load terms and conditions, refer to the official fund pages:"
   ],
   "sources": [
     "https://www.sbimf.com/en-us/investor-service/expense-ratio",
     "https://www.amfiindia.com/investor-corner/knowledge-center/expense-ratio.html"
   ],
-  "checked": "2026-04-29",
-  "generated_at": "2026-04-29T11:34:46.079638"
+  "checked": "2026-05-04",
+  "generated_at": "2026-05-04T21:29:48.606856"
 }

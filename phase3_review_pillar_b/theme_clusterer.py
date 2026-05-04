@@ -35,15 +35,19 @@ def _get_client():
 
 _SYSTEM = (
     "You are an expert INDMoney Product Manager. Analyse user reviews and extract key insights. "
+    "Reviews may be in English, Hindi (Devanagari script), or Hinglish (Hindi written in Roman script). "
+    "Understand all three and synthesise insights across languages. "
+    "All output fields must be in English regardless of the input language. "
     "Do not hallucinate features. Reply ONLY with valid JSON — no markdown, no prose."
 )
 
-_CHUNK_PROMPT = """Process these INDMoney app reviews. Output a strict JSON object with:
-- "themes": list of strings, max 5
-- "top_3": list of strings, exactly 3 (most-mentioned themes)
-- "quotes": list of strings, exactly 3 (real verbatim quotes from the reviews)
-- "weekly_note": string, strict max 250 words
-- "action_ideas": list of strings, exactly 3 action recommendations
+_CHUNK_PROMPT = """Process these INDMoney app reviews. Reviews may be in English, Hindi, or Hinglish — understand all and synthesise across languages.
+Output a strict JSON object with:
+- "themes": list of strings, max 5 (in English)
+- "top_3": list of strings, exactly 3 (most-mentioned themes, in English)
+- "quotes": list of strings, exactly 3 (real verbatim quotes from the reviews — keep original language)
+- "weekly_note": string, strict max 250 words (in English)
+- "action_ideas": list of strings, exactly 3 action recommendations (in English)
 
 Reviews:
 {reviews_text}"""
@@ -99,7 +103,7 @@ def _call_llm(prompt: str, max_retries: int = 3) -> dict | None:
         try:
             msg = _get_client().messages.create(
                 model="claude-sonnet-4-6",
-                max_tokens=1024,
+                max_tokens=2048,
                 system=_SYSTEM,
                 messages=[{"role": "user", "content": prompt}],
             )
@@ -202,9 +206,11 @@ def generate_analytics(reviews: list[dict]) -> dict:
         star = str(max(1, min(5, int(float(r.get("rating", 3))))))
         rating_dist[star] = rating_dist.get(star, 0) + 1
 
-    # Top 20 keywords (filtered by STOPWORDS, min 3 chars)
+    # Top 20 keywords (filtered by STOPWORDS, min 3 chars) — English + Devanagari Hindi
     all_text = " ".join(r.get("review_text", "") for r in reviews).lower()
-    words = re.findall(r"\b[a-z]{3,}\b", all_text)
+    en_words = re.findall(r"\b[a-z]{3,}\b", all_text)
+    hi_words = re.findall(r"[ऀ-ॿ]{2,}", all_text)  # Devanagari script words
+    words = en_words + hi_words
     freq = Counter(w for w in words if w not in STOPWORDS)
     keywords = [
         {"word": w, "count": c, "color": _WORD_COLORS[i % len(_WORD_COLORS)]}

@@ -27,29 +27,24 @@ def _clean_text(text: str) -> str:
     return re.sub(r"\s+", " ", text).strip()
 
 
-def scrape_google_play(
-    app_id: str = INDMONEY_APP_ID,
-    lookback_weeks: int = 12,
-    batch_size: int = 200,
-    cap: int = 1000,
-) -> pd.DataFrame:
-    """Scrape reviews from Google Play — NEWEST sort, all ratings, stopping once
-    reviews fall outside the lookback window. Caps result at `cap` reviews.
-    """
-    from datetime import datetime, timedelta, timezone
+def _scrape_lang(
+    app_id: str,
+    lang: str,
+    cutoff,
+    batch_size: int,
+    cap: int,
+) -> list[dict]:
+    """Scrape one language pass — returns raw review dicts up to cutoff/cap."""
     from google_play_scraper import reviews as gp_reviews, Sort
 
-    cutoff = datetime.now(timezone.utc) - timedelta(weeks=lookback_weeks)
-    print(f"[review_scraper] Fetching reviews since {cutoff.strftime('%Y-%m-%d')} ({lookback_weeks} weeks)")
-
-    all_reviews = []
+    collected = []
     continuation_token = None
 
     while True:
         try:
             kwargs = dict(
                 app_id=app_id,
-                lang="en",
+                lang=lang,
                 country="in",
                 sort=Sort.NEWEST,
                 count=batch_size,
@@ -58,7 +53,7 @@ def scrape_google_play(
                 kwargs["continuation_token"] = continuation_token
             result, continuation_token = gp_reviews(**kwargs)
         except Exception as exc:
-            print(f"[review_scraper] Fetch error: {exc}")
+            print(f"[review_scraper] Fetch error ({lang}): {exc}")
             break
 
         if not result:
@@ -69,28 +64,52 @@ def scrape_google_play(
             ts = r.get("at")
             if ts is None:
                 continue
-            review_dt = ts if ts.tzinfo else ts.replace(tzinfo=timezone.utc)
+            from datetime import timezone as _tz
+            review_dt = ts if ts.tzinfo else ts.replace(tzinfo=_tz.utc)
             if review_dt < cutoff:
                 hit_cutoff = True
                 break
-            all_reviews.append({
+            collected.append({
                 "source":      "Google Play",
                 "review_id":   r.get("reviewId", ""),
                 "date":        str(r.get("at", "")),
                 "rating":      r.get("score", 3),
                 "review_text": _clean_text(r.get("content", "")),
+                "lang":        lang,
             })
 
-        if hit_cutoff or not continuation_token or len(all_reviews) >= cap:
+        if hit_cutoff or not continuation_token or len(collected) >= cap:
             break
 
+    return collected
+
+
+def scrape_google_play(
+    app_id: str = INDMONEY_APP_ID,
+    lookback_weeks: int = 12,
+    batch_size: int = 200,
+    cap: int = 1000,
+) -> pd.DataFrame:
+    """Scrape reviews from Google Play — English + Hindi, NEWEST sort, stopping once
+    reviews fall outside the lookback window. Caps combined result at `cap` reviews.
+    """
+    from datetime import datetime, timedelta, timezone
+
+    cutoff = datetime.now(timezone.utc) - timedelta(weeks=lookback_weeks)
+    print(f"[review_scraper] Fetching EN+HI reviews since {cutoff.strftime('%Y-%m-%d')} ({lookback_weeks} weeks)")
+
+    en_reviews = _scrape_lang(app_id, "en", cutoff, batch_size, cap)
+    hi_reviews = _scrape_lang(app_id, "hi", cutoff, batch_size, cap)
+    print(f"[review_scraper] Raw: {len(en_reviews)} EN + {len(hi_reviews)} HI")
+
+    all_reviews = en_reviews + hi_reviews
     if not all_reviews:
-        return pd.DataFrame(columns=["source", "review_id", "date", "rating", "review_text"])
+        return pd.DataFrame(columns=["source", "review_id", "date", "rating", "review_text", "lang"])
 
     df = pd.DataFrame(all_reviews).drop_duplicates(subset=["review_id"]).reset_index(drop=True)
     if len(df) > cap:
-        df = df.head(cap)  # already newest-first, so head keeps the most recent
-    print(f"[review_scraper] {len(df)} reviews fetched within last {lookback_weeks} weeks")
+        df = df.head(cap)
+    print(f"[review_scraper] {len(df)} reviews after dedup (EN+HI) within last {lookback_weeks} weeks")
     return df
 
 

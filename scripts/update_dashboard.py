@@ -126,6 +126,9 @@ def run() -> None:
     # ── Patch dashboard.html ──────────────────────────────────────────────────
     html = DASHBOARD.read_text(encoding="utf-8")
 
+    # Remove the standalone header block (title + meta) — shown by the Streamlit app instead
+    html = re.sub(r"\s*<header>[\s\S]*?</header>", "", html)
+
     # Always point the email API at the local background server
     html = re.sub(r"const API = '[^']*';", "const API = 'http://localhost:8510';", html)
 
@@ -175,6 +178,8 @@ def run() -> None:
 /* Capstone theme override — charcoal + gold */
 body { background: #0A0C14 !important; }
 .blob-1, .blob-2 { display: none !important; }
+header { display: none !important; }
+.tabs { justify-content: flex-start !important; }
 .tab-btn.active {
   background: linear-gradient(135deg, #C9A84C, #A8863C) !important;
   color: #0A0C14 !important;
