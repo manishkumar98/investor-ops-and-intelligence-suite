@@ -8,7 +8,6 @@ import json
 import os
 import re
 import sys
-import time
 from pathlib import Path
 
 # Make phase6 sub-packages (voice.*, src.*, booking.*, dialogue.*) importable
@@ -29,6 +28,87 @@ from phase7_pillar_c_hitl.mcp_client import MCPClient
 from phase7_pillar_c_hitl.hitl_panel import render as render_hitl
 
 from scripts.run_review_pipeline import run_pipeline as _run_full_pipeline
+
+
+# ── Closeable dialog modals ───────────────────────────────────────────────────
+
+@st.dialog("🔄 Session Reset")
+def _show_reset_dialog(had_mcp: bool) -> None:
+    st.markdown(
+        """
+        <style>
+        .reset-row { display:flex; align-items:center; gap:10px; padding:6px 0; font-size:0.95rem; }
+        .reset-icon { font-size:1.2rem; min-width:24px; }
+        .reset-label { color: var(--text-color, #e0d6c8); }
+        .reset-divider { border:none; border-top:1px solid rgba(255,255,255,0.1); margin:12px 0; }
+        </style>
+        """,
+        unsafe_allow_html=True,
+    )
+    st.success("Your session has been successfully reset.")
+    st.markdown("**The following were cleared:**")
+    st.markdown(
+        "- 💬 Chat history (Smart-Sync FAQ)\n"
+        "- 🎙️ Voice agent state & conversation\n"
+        "- 📋 Booking code & booking details\n"
+        "- 📊 Weekly pulse & top theme\n"
+        "- ✉️ MCP approval queue\n"
+        + ("- 🗑️ Pending MCP actions deleted (calendar hold, notes entry, email draft)" if had_mcp else "- ✅ No pending MCP actions were queued")
+    )
+    st.markdown("---")
+    st.markdown("**What was preserved:**")
+    st.markdown(
+        "- 🗄️ Knowledge base corpus (ChromaDB) — no re-ingestion needed\n"
+        "- ⚙️ App configuration & environment"
+    )
+    st.markdown("---")
+    st.caption("All three pillars are ready for a fresh demo.")
+    if st.button("✅ Got it, close", use_container_width=True, type="primary"):
+        st.rerun()
+
+
+@st.dialog("🔄 Knowledge Base Sync")
+def _show_sync_dialog(skipped: bool, result: dict) -> None:
+    st.markdown(
+        """
+        <style>
+        .sync-row { display:flex; align-items:flex-start; gap:10px; padding:5px 0; font-size:0.92rem; }
+        </style>
+        """,
+        unsafe_allow_html=True,
+    )
+    if skipped:
+        st.info("**No changes detected — sync skipped.**")
+        st.markdown(
+            "The URL list in `SOURCE_MANIFEST.md` hasn't changed since the last run.\n\n"
+            "**What happened:**\n"
+            "- 🔍 Manifest hash checked — matched last ingest\n"
+            "- ⏭️ Web scraping skipped (not needed)\n"
+            "- 📂 Local files from `data/raw/` re-ingested\n"
+            "- 🗄️ ChromaDB unchanged"
+        )
+        st.markdown("---")
+        st.caption("To force a full re-scrape, run `python scripts/ingest_corpus.py --force` from the terminal.")
+    else:
+        st.success("**Knowledge base successfully synchronised.**")
+        col1, col2 = st.columns(2)
+        with col1:
+            st.metric("URLs scraped", result.get("total_urls", "—"))
+        with col2:
+            st.metric("Chunks added", result.get("added", "—"))
+        st.markdown(
+            "**What happened:**\n"
+            f"- 🌐 Scraped {result.get('total_urls', 0)} URLs from `SOURCE_MANIFEST.md`\n"
+            f"- 📄 {result.get('added', 0)} new chunks added to ChromaDB\n"
+            "- ⚡ Embeddings rebuilt with OpenAI `text-embedding-3-small`\n"
+            "- 📂 Local files from `data/raw/` ingested\n"
+            "- 🗄️ ChromaDB updated"
+        )
+        st.markdown("---")
+        st.caption("The FAQ and Fee Explainer are now up-to-date with the latest official sources.")
+    if st.button("✅ Got it, close", use_container_width=True, type="primary"):
+        st.rerun()
+
 
 def _build_css(is_light: bool) -> str:
     """Return full app CSS with palette substituted for the chosen theme."""
@@ -659,6 +739,15 @@ st.set_page_config(
 )
 init_session_state(st.session_state)
 
+# ── Pending dialog triggers ───────────────────────────────────────────────────
+if "_show_reset_dialog" in st.session_state:
+    _d = st.session_state.pop("_show_reset_dialog")
+    _show_reset_dialog(_d["had_mcp"])
+
+if "_show_sync_dialog" in st.session_state:
+    _d = st.session_state.pop("_show_sync_dialog")
+    _show_sync_dialog(_d["skipped"], _d["result"])
+
 # ── Theme state ───────────────────────────────────────────────────────────────
 if "theme" not in st.session_state:
     st.session_state["theme"] = "dark"
@@ -915,15 +1004,7 @@ with h_col2:
             for key in list(st.session_state.keys()):
                 del st.session_state[key]
             Path("data/mcp_state.json").unlink(missing_ok=True)
-            mcp_line = "🗑️ Pending MCP actions cleared" if had_mcp else "✅ No pending MCP actions"
-            st.toast(
-                f"**Session Reset**\n\n"
-                f"Chat history, voice state, booking code & pulse cleared\n\n"
-                f"{mcp_line}\n\n"
-                f"Knowledge base (ChromaDB) preserved",
-                icon="🔄",
-            )
-            time.sleep(1)
+            st.session_state["_show_reset_dialog"] = {"had_mcp": had_mcp}
             st.rerun()
         
     with c_theme:
@@ -1197,30 +1278,14 @@ with tab1:
                 from phase2_corpus_pillar_a.ingest import ingest_corpus, ingest_local_files
                 _sync_placeholder.info("⏳ **Step 1/3** — Checking SOURCE_MANIFEST.md for changes…")
                 result = ingest_corpus(force=False)
-                if result.get("skipped"):
-                    _sync_placeholder.info("⏳ **Step 2/3** — Corpus already current, ingesting local files…")
-                    ingest_local_files()
-                    _sync_placeholder.success(
-                        "**✅ Knowledge Base Already Up-to-Date**\n\n"
-                        "- 🔍 URL list unchanged since last sync — scraping skipped\n"
-                        "- 📂 Local files from `data/raw/` re-ingested\n"
-                        "- No changes to ChromaDB\n\n"
-                        "To force a full re-scrape, run `python scripts/ingest_corpus.py --force` from the terminal."
-                    )
-                else:
-                    _sync_placeholder.info("⏳ **Step 2/3** — Scraping URLs and rebuilding embeddings…")
-                    ingest_local_files()
-                    _added   = result.get("added", 0)
-                    _skipped = result.get("skipped_urls", 0)
-                    _sync_placeholder.success(
-                        f"**✅ Knowledge Base Synchronised**\n\n"
-                        f"- 🌐 Scraped {result.get('total_urls', 0)} URLs from SOURCE_MANIFEST.md\n"
-                        f"- 📄 {_added} new chunks added to ChromaDB\n"
-                        f"- ⚡ Embeddings rebuilt with OpenAI `text-embedding-3-small`\n"
-                        f"- 📂 Local files from `data/raw/` ingested\n\n"
-                        f"The FAQ and Fee Explainer are now up-to-date."
-                    )
-                time.sleep(2)
+                _sync_placeholder.info("⏳ **Step 2/3** — Ingesting local files from data/raw/…")
+                ingest_local_files()
+                _sync_placeholder.info("⏳ **Step 3/3** — Finalising…")
+                _sync_placeholder.empty()
+                st.session_state["_show_sync_dialog"] = {
+                    "skipped": result.get("skipped", False),
+                    "result":  result,
+                }
                 st.rerun()
             except Exception as e:
                 _sync_placeholder.error(f"❌ Sync failed: {e}")
