@@ -5,6 +5,18 @@ A unified three-pillar dashboard that merges a RAG FAQ chatbot (M1), a review in
 
 ---
 
+## Capstone Submission
+
+| Deliverable | Link |
+|---|---|
+| GitHub Repository | https://github.com/manishkumar98/investor-ops-and-intelligence-suit |
+| Demo Video (5 min) | *(to be added)* |
+| Evals Report | [EVALS_REPORT.md](EVALS_REPORT.md) |
+| Source Manifest (34 URLs) | [SOURCE_MANIFEST.md](SOURCE_MANIFEST.md) |
+| Sample Q&A (10 queries) | [SAMPLE_QA.md](SAMPLE_QA.md) |
+
+---
+
 ## Setup
 
 ### 1. Install dependencies
