@@ -27,38 +27,71 @@ def _clean_text(text: str) -> str:
     return re.sub(r"\s+", " ", text).strip()
 
 
-def scrape_google_play(app_id: str = INDMONEY_APP_ID, max_per_rating: int = 400) -> pd.DataFrame:
-    """Scrape reviews from Google Play — both MOST_RELEVANT and NEWEST sorts."""
+def scrape_google_play(
+    app_id: str = INDMONEY_APP_ID,
+    lookback_weeks: int = 12,
+    batch_size: int = 200,
+    cap: int = 1000,
+) -> pd.DataFrame:
+    """Scrape reviews from Google Play — NEWEST sort, all ratings, stopping once
+    reviews fall outside the lookback window. Caps result at `cap` reviews.
+    """
+    from datetime import datetime, timedelta, timezone
     from google_play_scraper import reviews as gp_reviews, Sort
 
+    cutoff = datetime.now(timezone.utc) - timedelta(weeks=lookback_weeks)
+    print(f"[review_scraper] Fetching reviews since {cutoff.strftime('%Y-%m-%d')} ({lookback_weeks} weeks)")
+
     all_reviews = []
-    for sort_method in [Sort.MOST_RELEVANT, Sort.NEWEST]:
-        for score in range(1, 6):
-            try:
-                result, _ = gp_reviews(
-                    app_id,
-                    lang="en",
-                    country="in",
-                    sort=sort_method,
-                    count=max_per_rating,
-                    filter_score_with=score,
-                )
-                for r in result:
-                    all_reviews.append({
-                        "source":      "Google Play",
-                        "review_id":   r.get("reviewId", ""),
-                        "date":        str(r.get("at", "")),
-                        "rating":      r.get("score", 3),
-                        "review_text": _clean_text(r.get("content", "")),
-                    })
-            except Exception as exc:
-                print(f"[review_scraper] ({sort_method.name}, {score}★): {exc}")
+    continuation_token = None
+
+    while True:
+        try:
+            kwargs = dict(
+                app_id=app_id,
+                lang="en",
+                country="in",
+                sort=Sort.NEWEST,
+                count=batch_size,
+            )
+            if continuation_token:
+                kwargs["continuation_token"] = continuation_token
+            result, continuation_token = gp_reviews(**kwargs)
+        except Exception as exc:
+            print(f"[review_scraper] Fetch error: {exc}")
+            break
+
+        if not result:
+            break
+
+        hit_cutoff = False
+        for r in result:
+            ts = r.get("at")
+            if ts is None:
+                continue
+            review_dt = ts if ts.tzinfo else ts.replace(tzinfo=timezone.utc)
+            if review_dt < cutoff:
+                hit_cutoff = True
+                break
+            all_reviews.append({
+                "source":      "Google Play",
+                "review_id":   r.get("reviewId", ""),
+                "date":        str(r.get("at", "")),
+                "rating":      r.get("score", 3),
+                "review_text": _clean_text(r.get("content", "")),
+            })
+
+        if hit_cutoff or not continuation_token or len(all_reviews) >= cap:
+            break
 
     if not all_reviews:
         return pd.DataFrame(columns=["source", "review_id", "date", "rating", "review_text"])
 
-    df = pd.DataFrame(all_reviews)
-    return df.drop_duplicates(subset=["review_id"]).reset_index(drop=True)
+    df = pd.DataFrame(all_reviews).drop_duplicates(subset=["review_id"]).reset_index(drop=True)
+    if len(df) > cap:
+        df = df.head(cap)  # already newest-first, so head keeps the most recent
+    print(f"[review_scraper] {len(df)} reviews fetched within last {lookback_weeks} weeks")
+    return df
 
 
 def run_scraper(output_path: Path | None = None) -> pd.DataFrame:
