@@ -3,7 +3,7 @@
     "SBI Large Cap Fund": {
       "fund_name": "SBI Large Cap Fund",
       "source_url": "https://www.sbimf.com/sbimf-scheme-details/sbi-large-cap-fund-(formerly-known-as-sbi-bluechip-fund)-43",
-      "last_scraped": "2026-04-24",
+      "last_scraped": "2026-05-04",
       "exit_load": "0.2%",
       "expense_ratio": "0.84%",
       "risk": "VERY HIGH",
@@ -20,7 +20,7 @@
     "SBI Flexicap Fund": {
       "fund_name": "SBI Flexicap Fund",
       "source_url": "https://www.sbimf.com/sbimf-scheme-details/SBI-Flexicap-Fund-39",
-      "last_scraped": "2026-04-24",
+      "last_scraped": "2026-05-04",
       "exit_load": "0.1%",
       "expense_ratio": "0.86%",
       "risk": "VERY HIGH",
@@ -36,7 +36,7 @@
     "SBI ELSS Tax Saver Fund": {
       "fund_name": "SBI ELSS Tax Saver Fund",
       "source_url": "https://www.sbimf.com/sbimf-scheme-details/SBI-ELSS-Tax-Saver-Fund-(formerly-known-as-SBI-Long-Term-Equity-Fund)-3",
-      "last_scraped": "2026-04-24",
+      "last_scraped": "2026-05-04",
       "exit_load": "0%",
       "expense_ratio": "0.99%",
       "risk": "VERY HIGH",
@@ -54,7 +54,7 @@
     "SBI Small Cap Fund": {
       "fund_name": "SBI Small Cap Fund",
       "source_url": "https://www.sbimf.com/sbimf-scheme-details/SBI-Small-Cap-Fund-329",
-      "last_scraped": "2026-04-24",
+      "last_scraped": "2026-05-04",
       "exit_load": "1.0%",
       "expense_ratio": "0.79%",
       "risk": "VERY HIGH",
@@ -69,7 +69,7 @@
     "SBI Midcap Fund": {
       "fund_name": "SBI Midcap Fund",
       "source_url": "https://www.sbimf.com/sbimf-scheme-details/SBI-Midcap-Fund-34",
-      "last_scraped": "2026-04-24",
+      "last_scraped": "2026-05-04",
       "exit_load": "0.2%",
       "expense_ratio": "0.86%",
       "risk": "VERY HIGH",
@@ -86,7 +86,7 @@
     "Sip Calculator": {
       "fund_name": "Sip Calculator",
       "source_url": "https://www.sbimf.com/en-us/sip-calculator",
-      "last_scraped": "2026-04-24"
+      "last_scraped": "2026-05-04"
     },
     "SBI Focused Equity Fund": {
       "fund_name": "SBI Focused Equity Fund",
@@ -121,8 +121,17 @@
     "Capital Gains Statements": {
       "fund_name": "Capital Gains Statements",
       "source_url": "https://www.camsonline.com/Investors/Statements/Capital-Gains-Statement",
-      "last_scraped": "2026-04-24",
+      "last_scraped": "2026-05-04",
       "lock_in": "3 years"
+    },
+    "Net Asset Value": {
+      "fund_name": "Net Asset Value",
+      "source_url": "https://www.amfiindia.com/net-asset-value",
+      "last_scraped": "2026-05-04"
+    },
+    "": {
+      "source_url": "https://www.mfcentral.com",
+      "last_scraped": "2026-05-04"
     }
   }
 }

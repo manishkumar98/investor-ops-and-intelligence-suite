@@ -27,8 +27,6 @@ from phase4_voice_pillar_b.voice_agent import VoiceAgent
 from phase7_pillar_c_hitl.mcp_client import MCPClient
 from phase7_pillar_c_hitl.hitl_panel import render as render_hitl
 
-from scripts.run_review_pipeline import run_pipeline as _run_full_pipeline
-
 
 # ── Closeable dialog modals ───────────────────────────────────────────────────
 
@@ -107,6 +105,61 @@ def _show_sync_dialog(done: list, stopped: bool) -> None:
 
     if st.button("✅ Got it, close", use_container_width=True, type="primary"):
         st.rerun()
+
+
+# ── Shared download helpers ───────────────────────────────────────────────────
+
+def _json_to_csv_bytes(path: Path) -> bytes:
+    """Convert a JSON file to CSV bytes for download. Handles list-of-dicts and nested dicts."""
+    import csv, io
+    data = json.loads(path.read_text())
+    buf  = io.StringIO()
+    if isinstance(data, list):
+        if data and isinstance(data[0], dict):
+            w = csv.DictWriter(buf, fieldnames=data[0].keys())
+            w.writeheader(); w.writerows(data)
+        else:
+            w = csv.writer(buf)
+            for row in data: w.writerow([row])
+    elif isinstance(data, dict):
+        # Flatten top-level dict — each key becomes a row
+        w = csv.writer(buf)
+        w.writerow(["key", "value"])
+        for k, v in data.items():
+            w.writerow([k, json.dumps(v) if isinstance(v, (dict, list)) else v])
+    return buf.getvalue().encode()
+
+
+def _render_download_dropdown(options: list[dict], key_prefix: str) -> None:
+    """Render a selectbox + download button for a list of downloadable files.
+
+    Each option dict: {label, path, filename, mime}
+    """
+    available = [o for o in options if Path(o["path"]).exists()]
+    if not available:
+        st.caption("No files available yet")
+        return
+
+    labels   = [o["label"] for o in available]
+    selected = st.selectbox("📥 Download", labels, key=f"{key_prefix}_select", label_visibility="collapsed")
+    opt      = next(o for o in available if o["label"] == selected)
+    p        = Path(opt["path"])
+
+    if opt["mime"] == "text/csv" and p.suffix == ".json":
+        data = _json_to_csv_bytes(p)
+        fname = opt["filename"]
+    else:
+        data  = p.read_bytes()
+        fname = opt["filename"]
+
+    st.download_button(
+        label     = f"⬇ {opt['label']}",
+        data      = data,
+        file_name = fname,
+        mime      = opt["mime"],
+        key       = f"{key_prefix}_dl",
+        use_container_width = True,
+    )
 
 
 @st.dialog("📊 Weekly Pipeline — Complete", width="large")
@@ -1373,7 +1426,7 @@ with tab1:
     </style>
     """, unsafe_allow_html=True)
 
-    c1, c2, c3 = st.columns([1, 1, 0.6])
+    c1, c2, c3, c4 = st.columns([1, 1, 0.7, 0.8])
     with c1:
         try:
             count = get_collection("mf_faq_corpus").count()
@@ -1421,7 +1474,15 @@ with tab1:
             st.session_state["_sync_total"]    = len(entries)
             st.session_state.pop("_sync_snapshot", None)
             st.rerun()
-    
+
+    with c4:
+        st.markdown("<div style='height:14px'></div>", unsafe_allow_html=True)
+        _render_download_dropdown([
+            {"label": "Fund Snapshot (CSV)",     "path": "data/fund_snapshot.json",   "filename": "fund_snapshot.csv",    "mime": "text/csv"},
+            {"label": "Source Manifest (MD)",    "path": "SOURCE_MANIFEST.md",         "filename": "SOURCE_MANIFEST.md",   "mime": "text/markdown"},
+            {"label": "Eval Results (CSV)",      "path": "data/eval_results.json",    "filename": "eval_results.csv",     "mime": "text/csv"},
+        ], key_prefix="kb_dl")
+
     st.markdown("</div>", unsafe_allow_html=True)
 
     with st.expander("📋 Supported Mutual Funds", expanded=True):
@@ -1490,7 +1551,7 @@ with tab1:
 # ══════════════════════════════════════════════════════════════════════════════
 with tab2:
     # ── Header row ──────────────────────────────────────────────────────────
-    _col_title, _col_btn = st.columns([5, 1])
+    _col_title, _col_btn, _col_dl = st.columns([4, 1, 1])
     with _col_title:
         st.markdown("""
 <div class="pillar-header">
@@ -1547,46 +1608,148 @@ with tab2:
             ),
         )
 
-    # ── Run pipeline inline ──────────────────────────────────────────────────
+    with _col_dl:
+        st.markdown("<br>", unsafe_allow_html=True)
+        _render_download_dropdown([
+            {"label": "Reviews CSV",         "path": "data/reviews_latest.csv",    "filename": "reviews_latest.csv",    "mime": "text/csv"},
+            {"label": "Weekly Pulse (CSV)",  "path": "data/pulse_latest.json",     "filename": "pulse_latest.csv",      "mime": "text/csv"},
+            {"label": "Analytics (CSV)",     "path": "data/analytics_latest.json", "filename": "analytics_latest.csv",  "mime": "text/csv"},
+            {"label": "Fee Explainer (CSV)", "path": "data/fee_latest.json",       "filename": "fee_latest.csv",        "mime": "text/csv"},
+        ], key_prefix="pipeline_dl")
+
+    # ── Iterative pipeline runner ─────────────────────────────────────────────
+    _PIPELINE_STEPS = [
+        ("scrape",    "Step 1/5 — Scraping last 12 weeks of Google Play reviews"),
+        ("pii",       "Step 2/5 — Scrubbing PII from reviews"),
+        ("cluster",   "Step 3/5 — Clustering themes with Claude (2-pass)"),
+        ("analytics", "Step 4/5 — Generating analytics"),
+        ("fee",       "Step 5/5 — RAG fee explainer for top theme"),
+    ]
+
     if _run_pipeline:
-        _step_box = st.empty()
-        _STEPS = [
-            "⏳ Step 1/5 — Scraping last 12 weeks of Google Play reviews…",
-            "⏳ Step 2/5 — Scrubbing PII from reviews…",
-            "⏳ Step 3/5 — Clustering themes with Claude (2-pass)…",
-            "⏳ Step 4/5 — Generating analytics…",
-            "⏳ Step 5/5 — RAG fee explainer for top theme…",
-        ]
-        _current_step = [0]
+        st.session_state["_pipeline_active"] = True
+        st.session_state["_pipeline_step"]   = 0
+        st.session_state["_pipeline_stop"]   = False
+        st.session_state["_pipeline_data"]   = {}
+        st.session_state["_pipeline_error"]  = None
+        st.rerun()
 
-        def _pipeline_cb(_msg: str) -> None:
-            idx = _current_step[0]
-            done   = [s.replace("⏳", "✅") for s in _STEPS[:idx]]
-            active = [_STEPS[idx]] if idx < len(_STEPS) else []
-            pending= [s for s in _STEPS[idx+1:]]
-            _step_box.info("\n\n".join(done + active + pending))
-            _current_step[0] = min(idx + 1, len(_STEPS) - 1)
+    if st.session_state.get("_pipeline_active"):
+        step_idx = st.session_state.get("_pipeline_step", 0)
+        stopped  = st.session_state.get("_pipeline_stop", False)
+        p_data   = st.session_state.get("_pipeline_data", {})
+        p_error  = st.session_state.get("_pipeline_error")
 
-        # Show initial state
-        _step_box.info("\n\n".join(_STEPS))
-        try:
-            _result = _run_full_pipeline(status_cb=_pipeline_cb)
-            _pulse = _result["pulse"]
-            _top3  = _pulse.get("top_3_themes", [])
-            st.session_state["weekly_pulse"]    = _pulse.get("weekly_note", "")
-            st.session_state["top_theme"]       = _top3[0] if _top3 else "General Feedback"
-            st.session_state["top_3_themes"]    = _top3
-            st.session_state["action_ideas"]    = _pulse.get("action_ideas", [])
-            st.session_state["fee_bullets"]     = _result["fee"].get("bullets", [])
-            st.session_state["fee_sources"]     = _result["fee"].get("sources", [])
+        st.markdown("### ▶ Running Pipeline…")
+        _p_stop_col, _ = st.columns([1, 3])
+        with _p_stop_col:
+            if not stopped and step_idx < len(_PIPELINE_STEPS):
+                if st.button("⏹ Stop Pipeline", type="secondary", use_container_width=True):
+                    st.session_state["_pipeline_stop"] = True
+                    stopped = True
+
+        if p_error:
+            st.error(f"❌ Pipeline failed at step {step_idx}: {p_error}")
+
+        if stopped and step_idx < len(_PIPELINE_STEPS):
+            st.warning(
+                f"**Pipeline stopped at Step {step_idx + 1}/5.**  \n"
+                f"✅ {step_idx} step(s) completed and saved.  \n"
+                f"⏸ Remaining steps were not run.  \n\n"
+                "Already-generated outputs (reviews CSV, partial pulse) are saved to `data/`. "
+                "Re-click **▶ Run Pipeline** to restart from the beginning."
+            )
+
+        # Render step table
+        for i, (key, label) in enumerate(_PIPELINE_STEPS):
+            if i < step_idx:
+                st.markdown(f"✅ {label}")
+            elif i == step_idx and not stopped and not p_error:
+                st.markdown(f"🔄 {label}…")
+            elif stopped or p_error:
+                icon = "⏸" if i > step_idx else ("❌" if p_error and i == step_idx else "✅")
+                st.markdown(f"{icon} {label}")
+            else:
+                st.markdown(f"⏳ {label}")
+
+        if not stopped and not p_error and step_idx < len(_PIPELINE_STEPS):
+            step_key = _PIPELINE_STEPS[step_idx][0]
+            try:
+                if step_key == "scrape":
+                    from phase3_review_pillar_b.review_scraper import run_scraper
+                    df = run_scraper(Path("data/reviews_latest.csv"))
+                    p_data["df"] = df.to_dict("records")
+                    p_data["review_count"] = len(df)
+
+                elif step_key == "pii":
+                    from phase3_review_pillar_b.pii_scrubber import scrub
+                    import pandas as pd
+                    df = pd.DataFrame(p_data["df"])
+                    clean = []
+                    for _, row in df.iterrows():
+                        ct, _ = scrub(str(row["review_text"]))
+                        clean.append({"review_id": str(row.get("review_id","")), "review_text": ct, "rating": row["rating"], "date": str(row.get("date",""))})
+                    p_data["clean_reviews"] = clean
+
+                elif step_key == "cluster":
+                    from phase3_review_pillar_b.theme_clusterer import cluster, generate_analytics
+                    result = cluster(p_data["clean_reviews"])
+                    p_data["cluster_result"] = result
+
+                elif step_key == "analytics":
+                    from phase3_review_pillar_b.theme_clusterer import generate_analytics
+                    from datetime import datetime as _dt2
+                    analytics = generate_analytics(p_data["clean_reviews"])
+                    analytics["generated_at"] = _dt2.now().isoformat()
+                    analytics["review_count"] = p_data["review_count"]
+                    p_data["analytics"] = analytics
+                    Path("data/analytics_latest.json").write_text(json.dumps(analytics, indent=2, ensure_ascii=False))
+
+                elif step_key == "fee":
+                    from phase3_review_pillar_b.fee_explainer import explain
+                    from datetime import datetime as _dt3
+                    top_theme = p_data["cluster_result"].get("top_3", ["General Feedback"])[0]
+                    fee = explain(top_theme, {})
+                    p_data["fee"] = fee
+                    # Build and save all final outputs
+                    cr = p_data["cluster_result"]
+                    ts = _dt3.now().isoformat()
+                    pulse_data = {"themes": cr.get("themes",[]), "top_3_themes": cr.get("top_3",[]), "quotes": cr.get("quotes",[]), "weekly_note": cr.get("weekly_note",""), "action_ideas": cr.get("action_ideas",[]), "generated_at": ts, "review_count": p_data["review_count"]}
+                    fee_data   = {"scenario": fee.get("scenario",""), "bullets": fee.get("bullets",[]), "sources": fee.get("sources",[]), "checked": fee.get("checked",""), "generated_at": ts}
+                    Path("data/pulse_latest.json").write_text(json.dumps(pulse_data, indent=2, ensure_ascii=False))
+                    Path("data/fee_latest.json").write_text(json.dumps(fee_data, indent=2, ensure_ascii=False))
+                    state = json.loads(Path("data/system_state.json").read_text()) if Path("data/system_state.json").exists() else {}
+                    state["last_pipeline_run"] = ts; state["last_review_count"] = p_data["review_count"]
+                    Path("data/system_state.json").write_text(json.dumps(state, indent=2))
+                    p_data["pulse"] = pulse_data
+
+                st.session_state["_pipeline_step"] = step_idx + 1
+                st.session_state["_pipeline_data"] = p_data
+                st.rerun()
+
+            except Exception as exc:
+                st.session_state["_pipeline_error"] = str(exc)
+                st.rerun()
+
+        elif not stopped and not p_error and step_idx >= len(_PIPELINE_STEPS):
+            # All steps done — write session state and show dialog
+            cr    = p_data.get("cluster_result", {})
+            top3  = cr.get("top_3", [])
+            pulse = p_data.get("pulse", {})
+            st.session_state["weekly_pulse"]    = pulse.get("weekly_note", "")
+            st.session_state["top_theme"]       = top3[0] if top3 else "General Feedback"
+            st.session_state["top_3_themes"]    = top3
+            st.session_state["action_ideas"]    = pulse.get("action_ideas", [])
+            st.session_state["fee_bullets"]     = p_data.get("fee", {}).get("bullets", [])
+            st.session_state["fee_sources"]     = p_data.get("fee", {}).get("sources", [])
             st.session_state["pulse_generated"] = True
-            st.session_state["analytics_data"]  = _result["analytics"]
-            _step_box.empty()
-            st.session_state["_show_pipeline_dialog"] = _result
+            st.session_state["analytics_data"]  = p_data.get("analytics", {})
+            for k in ["_pipeline_active","_pipeline_step","_pipeline_stop","_pipeline_data","_pipeline_error"]:
+                st.session_state.pop(k, None)
+            st.session_state["_show_pipeline_dialog"] = {"pulse": pulse, "analytics": p_data.get("analytics",{}), "fee": p_data.get("fee",{})}
             st.rerun()
-        except Exception as _exc:
-            _step_box.empty()
-            st.error(f"Pipeline failed: {_exc}")
+
+        st.stop()
 
     # ── Seed session state from saved JSONs (handles page reloads) ─────────────
     if not st.session_state.get("pulse_generated"):
