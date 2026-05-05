@@ -1,0 +1,45 @@
+Source URL: https://api.mfapi.in/mf/119800
+Scraped Date: 2026-05-05
+--------------------------------------------------
+SBI Liquid Fund
+Fund House: SBI Mutual Fund
+AMFI Scheme Name: SBI Liquid Fund - DIRECT PLAN -Growth
+Scheme Code: 119800
+Category: Debt Scheme - Liquid Fund
+Scheme Type: Open Ended Schemes
+
+NAV: ₹4337.80 (as on 2026-05-04)
+1-Year Return (CAGR): 6.25%
+3-Year Return (CAGR): 6.95%
+5-Year Return (CAGR): 6.07%
+Inception Date: 2013-01-01
+
+About SBI Liquid Fund:
+SBI Liquid Fund is a mutual fund scheme offered by SBI Mutual Fund.
+It is classified under: Debt Scheme - Liquid Fund.
+The scheme is of type: Open Ended Schemes.
+
+NAV History (recent 10 entries):
+  04-05-2026 — NAV: ₹4337.80100
+  03-05-2026 — NAV: ₹4337.09170
+  01-05-2026 — NAV: ₹4335.66310
+  30-04-2026 — NAV: ₹4334.94960
+  29-04-2026 — NAV: ₹4334.59740
+  28-04-2026 — NAV: ₹4334.04780
+  27-04-2026 — NAV: ₹4333.57210
+  26-04-2026 — NAV: ₹4333.49080
+  25-04-2026 — NAV: ₹4332.82300
+  24-04-2026 — NAV: ₹4332.15540
+
+Frequently Asked Questions:
+What is the current NAV of SBI Liquid Fund?
+The current NAV is ₹4337.80 as on 2026-05-04.
+
+What is the 1-year return of SBI Liquid Fund?
+The 1-year CAGR is 6.25%.
+
+What is the 3-year return of SBI Liquid Fund?
+The 3-year CAGR is 6.95%.
+
+Mutual Fund investments are subject to market risks, read all scheme related documents carefully.
+Data sourced from AMFI via api.mfapi.in

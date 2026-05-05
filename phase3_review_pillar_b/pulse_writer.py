@@ -18,27 +18,27 @@ def _get_client():
 
 _SYSTEM = (
     "You are a product analyst writing a concise internal weekly note. "
-    "Reply with plain text only — no markdown headers, no bullet symbols other than "
-    "numbered action lines."
+    "Reply with plain text only — no markdown headers, no bullet points, no numbered lists."
 )
 
-_PROMPT = """Write a weekly product pulse for the INDMoney app based on these themes and quotes.
+_PROMPT = """Write a weekly product pulse narrative for the INDMoney app based on these themes and quotes.
 
 Top 3 themes: {themes}
 
-User quotes:
+User quotes (one per theme, in theme order):
 {quotes}
 
 Requirements:
 - Maximum 250 words total (strictly enforced — count every word)
-- End with exactly 3 numbered action ideas (format: "1. ...", "2. ...", "3. ...")
-- Each action idea must be ONE short sentence, maximum 15 words
+- Pure narrative prose only — NO action ideas, NO numbered lists, NO bullet points
+- Cover all 3 themes and reference the quotes naturally in the narrative
 - No PII in the output
 - Neutral, facts-only tone
 - Do NOT include a header or title"""
 
 
 def write(themes: list[str], quotes: list[dict]) -> str:
+    """Write a ≤250-word narrative note. Action ideas come from theme_clusterer, not here."""
     quotes_text = "\n".join(
         f'- "{q["quote"]}" (Rating: {q["rating"]}/5)' for q in quotes
     )
@@ -50,37 +50,20 @@ def write(themes: list[str], quotes: list[dict]) -> str:
     for attempt in range(1, MAX_RETRIES + 1):
         msg = _get_client().messages.create(
             model="claude-sonnet-4-6",
-            max_tokens=600,
+            max_tokens=500,
             system=_SYSTEM,
             messages=[{"role": "user", "content": prompt}],
         )
         pulse = msg.content[0].text.strip()
+        # Strip any numbered lines the model may still emit
+        pulse = re.sub(r"(?m)^\d+\. .+$\n?", "", pulse).strip()
 
-        word_count = len(pulse.split())
-        action_count = len(re.findall(r"^\d+\.", pulse, re.MULTILINE))
-
-        if word_count <= MAX_WORDS and action_count == 3:
+        if len(pulse.split()) <= MAX_WORDS:
             return pulse
 
-        if attempt < MAX_RETRIES:
-            continue
+        if attempt == MAX_RETRIES:
+            # Hard-truncate to 250 words
+            return " ".join(pulse.split()[:MAX_WORDS])
 
-    # Hard-truncate: trim each action line to ≤15 words, then fit narrative in remaining budget
-    action_lines = re.findall(r"(?m)^[1-3]\. .+$", pulse)
-    narrative    = re.sub(r"(?m)^[1-3]\. .+$\n?", "", pulse).strip()
-
-    if len(action_lines) >= 3:
-        trimmed_actions = [
-            " ".join(line.split()[:16])   # "1. " prefix + 15 content words
-            for line in action_lines[:3]
-        ]
-        action_word_count = sum(len(a.split()) for a in trimmed_actions)
-        narrative_limit   = MAX_WORDS - action_word_count - 3   # -3 for newline tokens
-        narrative         = " ".join(narrative.split()[:max(30, narrative_limit)])
-        return narrative + "\n" + "\n".join(trimmed_actions)
-
-    return (narrative.rsplit(" ", max(0, len(narrative.split()) - (MAX_WORDS - 20)))[0]
-            + "\n1. Improve login reliability."
-            + "\n2. Simplify nominee update flow."
-            + "\n3. Enhance SIP failure notifications.")
+    return "User feedback this week highlights concerns around app performance, support responsiveness, and investment flow usability."
 

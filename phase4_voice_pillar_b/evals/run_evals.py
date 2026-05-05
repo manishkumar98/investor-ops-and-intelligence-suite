@@ -1,5 +1,5 @@
 """
-AI Evals Runner — Investor Ops Voice Agent (Dalal Street Advisors)
+AI Evals Runner — Investor Ops Voice Agent (INDMoney)
 
 Runs all 5 eval suites:
   1. Intent Classification  — accuracy across 10 intent types (45 cases)
@@ -168,7 +168,7 @@ def main():
     run_all = args.only is None
 
     print(f"\n{BOLD}{'═' * 60}{RESET}")
-    print(f"{BOLD}  Dalal Street Advisors — AI Evals Suite{RESET}")
+    print(f"{BOLD}  INDMoney — AI Evals Suite{RESET}")
     print(f"  Mode: {'Rule-based (offline)' if args.offline else 'LLM (Groq/Claude)'}")
     print(f"  Time: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
     print(f"{BOLD}{'═' * 60}{RESET}")

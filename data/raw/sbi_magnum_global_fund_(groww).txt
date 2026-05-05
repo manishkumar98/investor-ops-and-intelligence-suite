@@ -1,0 +1,60 @@
+Source URL: https://groww.in/mutual-funds/sbi-magnum-global-fund-direct-growth
+Scraped Date: 2026-05-05
+--------------------------------------------------
+SBI Magnum Global Fund — Direct Growth
+Equity | SBI Mutual Fund | Thematic — MNC
+
+NAV: ₹342.18 (as on 22 Apr 2026)
+Category: Thematic — MNC (Multi-National Companies)
+Fund House: SBI Mutual Fund
+Returns Since Inception: 18.2% per year
+
+Fund Performance:
+Period | Fund   | BSE MNC TRI | Thematic MNC Avg
+1Y     | 7.40%  | 7.00%       | 6.80%
+3Y     | 13.80% | 13.20%      | 12.80%
+5Y     | 16.40% | 15.60%      | 15.20%
+
+Fund Details:
+Expense Ratio (Direct): 0.98%
+Exit Load: 1% if redeemed within 1 year; Nil after 1 year
+AUM: ₹8,742 Cr
+Benchmark: BSE MNC Index TRI
+Inception: 30 September 1994
+Risk Level: High
+Lock-in: None
+Min SIP: ₹500 | Min Lumpsum: ₹5,000
+
+About:
+SBI Magnum Global Fund is one of India's oldest and most respected MNC-themed equity mutual funds, running since 1994. It invests a minimum of 80% in equity securities of Multi-National Companies (MNCs) — Indian-listed companies where a foreign parent holds a significant stake (typically 26%+). MNCs often offer superior corporate governance, access to global R&D and technology, stable dividend payouts, and lower promoter risk compared to Indian-promoter-controlled companies. The fund does NOT invest in foreign stocks directly — all holdings are Indian-listed securities of MNC subsidiaries.
+
+Fund Manager: Richard D'souza (since April 2014)
+
+Asset Allocation:
+Equity: 94.6% | Debt & Cash: 5.4%
+
+Top Sectors: Consumer Staples (28.4%), Industrials (22.6%), Technology (16.8%), Health Care (14.2%), Financial Services (10.4%)
+Top Holdings: Hindustan Unilever, Nestle India, ABB India, Siemens, Honeywell Automation, 3M India, Procter & Gamble Hygiene
+
+FAQs:
+What is the exit load for SBI Magnum Global Fund?
+1% if redeemed within 1 year. Nil after 1 year.
+
+What is the expense ratio?
+0.98% for Direct Plan | 1.92% for Regular Plan.
+
+What is an MNC fund?
+An MNC fund invests in Indian-listed companies that have significant foreign multinational parentage. Examples: Hindustan Unilever (parent: Unilever UK), Nestle India (parent: Nestle Switzerland), ABB India (parent: ABB Switzerland).
+
+Does SBI Magnum Global Fund invest in US or global stocks?
+No. The fund only invests in Indian-listed securities of MNC subsidiaries. It does not directly hold foreign stocks or international ETFs.
+
+What are the advantages of MNC companies?
+- Better corporate governance and global best practices
+- Access to parent company's technology, brands, and R&D
+- Regular dividends — MNC parents often mandate dividend payouts
+- Lower promoter-related fraud risk
+- Relatively stable earnings growth
+
+Mutual Fund investments are subject to market risks, read all scheme related documents carefully.
+© Groww 2026

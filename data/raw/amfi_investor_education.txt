@@ -1,0 +1,128 @@
+Source URL: https://www.amfiindia.com/investor-corner/knowledge-center.html
+Scraped Date: 2026-05-05
+--------------------------------------------------
+AMFI Investor Education — Mutual Fund Basics
+
+WHAT ARE MUTUAL FUNDS?
+A Mutual Fund is a vehicle to mobilize money from investors, to invest in different markets and securities, in line with the investment objectives agreed upon between the mutual fund and the investors. Through investment in a mutual fund, a small investor can avail of professional fund management services offered by an asset management company.
+
+How do Mutual Funds work?
+Investors pool their money with a fund house (Asset Management Company / AMC). The AMC invests this pooled money in securities like equity shares, bonds, and money market instruments based on the fund's stated objective. Returns generated are shared proportionally with investors as per their unit holdings.
+
+Key benefits of Mutual Funds:
+- Professional Management: Experienced fund managers manage the portfolio
+- Diversification: Spread across multiple securities, reducing concentration risk
+- Liquidity: Open-ended funds allow redemption at NAV on any business day
+- Affordability: Start investing with as little as ₹500 per month via SIP
+- Regulatory Oversight: Regulated by SEBI; AMCs registered with AMFI
+- Transparency: Regular NAV disclosure, portfolio disclosure every month
+
+Types of Mutual Funds:
+1. Equity Funds — invest primarily in stocks; higher risk, higher return potential
+2. Debt Funds — invest in bonds and fixed income; lower risk, stable returns
+3. Hybrid Funds — mix of equity and debt
+4. Index Funds / ETFs — passively track a benchmark index
+5. Sectoral / Thematic Funds — focused on specific sectors or themes
+6. ELSS (Equity Linked Savings Scheme) — equity funds with tax benefit under Sec 80C
+
+---
+
+WHAT IS A SIP (SYSTEMATIC INVESTMENT PLAN)?
+A SIP is a method of investing a fixed amount at regular intervals (typically monthly) in a mutual fund scheme. It is similar to a recurring deposit but in mutual funds.
+
+How SIP works:
+- On a fixed date each month, a fixed amount is debited from your bank account
+- Units are allotted at the prevailing NAV on that date
+- Over time, you accumulate units at varying prices (cost averaging)
+- SIP promotes disciplined investing without timing the market
+
+Benefits of SIP:
+1. Rupee Cost Averaging: You buy more units when NAV is low and fewer when it's high
+2. Power of Compounding: Returns generate further returns over long periods
+3. Discipline: Automated, regular investing removes emotional decision-making
+4. Flexibility: Start with as low as ₹500/month; pause or stop anytime
+
+SIP Example:
+₹5,000/month for 20 years at assumed 12% p.a.: Total invested ₹12,00,000 → Estimated corpus ~₹49,95,740
+
+Minimum SIP for SBI Funds: ₹500/month for most equity funds
+
+---
+
+WHAT IS ELSS (EQUITY LINKED SAVINGS SCHEME)?
+ELSS is a type of equity mutual fund that qualifies for tax deduction under Section 80C of the Income Tax Act.
+
+Key features of ELSS:
+- Tax Deduction: Investments up to ₹1,50,000 per year qualify under Section 80C
+- Lock-in Period: 3 years (shortest lock-in among all 80C instruments)
+- Returns: Market-linked; historically higher than PPF/NSC over long term
+- Taxation on Gains: LTCG — gains above ₹1 lakh taxed at 10%
+- Fund Type: Minimum 80% in equity; diversified across market caps
+
+Comparison with other 80C instruments:
+Instrument   | Lock-in  | Returns        | Tax on Maturity
+ELSS         | 3 years  | Market-linked  | 10% LTCG above ₹1L
+PPF          | 15 years | ~7.1% (fixed)  | Tax-free
+NSC          | 5 years  | ~7.7% (fixed)  | Taxable
+Tax Saver FD | 5 years  | ~6.5% (fixed)  | Taxable
+
+SBI ELSS Tax Saver Fund (formerly SBI Long Term Equity Fund) is one of the oldest and largest ELSS funds in India.
+
+---
+
+WHAT IS EXPENSE RATIO?
+The expense ratio is the annual fee charged by a mutual fund to manage your investment, expressed as a percentage of average daily net assets.
+
+What does it cover?
+- Fund management fees (paid to the fund manager)
+- Administrative and operational costs
+- Marketing and distribution costs (for Regular Plans)
+- Registrar and transfer agent fees
+
+Expense Ratio = Total Annual Fund Costs / Average AUM × 100
+
+Impact on returns:
+If a fund earns 15% gross return with 1% expense ratio, investor nets 14%.
+Over 20 years on ₹10 lakh, a 1% difference in expense ratio can amount to ~₹27 lakh in lost wealth.
+
+Direct vs Regular Plans:
+- Direct Plan: Lower expense ratio (no distributor commission)
+- Regular Plan: Higher expense ratio (includes distributor/advisor commission)
+- Typical difference: 0.5% to 1.0% per year
+
+SBI Fund expense ratios (Direct Plans):
+- SBI Small Cap Fund: 0.69%
+- SBI Contra Fund: 0.79%
+- SBI Flexicap Fund: 0.77%
+- SBI Large Cap Fund: 0.84%
+- SBI Focused Equity Fund: 0.84%
+- SBI Equity Hybrid Fund: 0.84%
+- SBI Midcap Fund: 0.91%
+- SBI Magnum Global Fund: 0.98%
+- SBI ELSS Tax Saver Fund: 0.99%
+- SBI Liquid Fund: 0.20%
+- SBI Technology Opportunities Fund: 1.08%
+- SBI Healthcare Opportunities Fund: 1.18%
+
+---
+
+WHAT IS NAV (NET ASSET VALUE)?
+NAV = (Total Assets of Fund − Liabilities) / Number of Units Outstanding
+NAV is calculated and published at the end of every business day.
+When you invest ₹10,000 in a fund with NAV ₹100, you get 100 units. When NAV rises to ₹120, your investment is worth ₹12,000.
+
+Frequently Asked Questions:
+What is the difference between Direct and Regular mutual fund plans?
+Direct plans have no distributor commission, so the expense ratio is lower. Over long periods, direct plans deliver meaningfully higher returns. You invest directly via the AMC website, AMFI-registered platforms, or apps like Groww, INDMoney.
+
+How do I track my mutual fund investments?
+You can download a Consolidated Account Statement (CAS) from CAMS (camsonline.com) or MFCentral (mfcentral.com) using your PAN and registered email/mobile.
+
+Is there any tax on mutual fund returns?
+Equity funds held > 1 year: LTCG taxed at 10% on gains above ₹1 lakh/year.
+Equity funds held < 1 year: STCG taxed at 15%.
+Debt funds: Gains taxed as per income tax slab.
+ELSS: Same as equity funds; with 80C deduction on investment up to ₹1.5L.
+
+Mutual Fund investments are subject to market risks. Read all scheme related documents carefully.
+© Copyright 2026 AMFI India

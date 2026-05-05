@@ -1,0 +1,50 @@
+Source URL: https://groww.in/mutual-funds/sbi-focused-equity-fund-direct-growth
+Scraped Date: 2026-05-05
+--------------------------------------------------
+SBI Focused Equity Fund — Direct Growth
+Equity | SBI Mutual Fund | Focused Fund
+
+NAV: ₹312.48 (as on 22 Apr 2026)
+Category: Focused Fund (max 30 stocks)
+Fund House: SBI Mutual Fund
+Returns Since Inception: 19.6% per year
+
+Fund Performance:
+Period | Fund   | Nifty 50 TRI | Focused Fund Avg
+1Y     | 8.20%  | 7.40%        | 7.10%
+3Y     | 14.60% | 13.20%       | 13.00%
+5Y     | 17.40% | 15.80%       | 15.60%
+
+Fund Details:
+Expense Ratio (Direct): 0.84%
+Exit Load: 1% if redeemed within 1 year; Nil after 1 year
+AUM: ₹34,182 Cr
+Benchmark: S&P BSE 500 TRI
+Inception: 11 October 2004
+Risk Level: Very High
+Lock-in: None
+Min SIP: ₹500 | Min Lumpsum: ₹5,000
+
+About:
+SBI Focused Equity Fund is an open-ended equity scheme investing in maximum 30 stocks across market caps. The concentrated portfolio allows deeper conviction bets while maintaining diversification across at least 3 sectors. The fund follows a bottom-up stock selection approach with long-term horizon.
+
+Fund Manager: R. Srinivasan (since January 2011)
+
+Asset Allocation:
+Equity: 96.8% | Cash & Equivalents: 3.2%
+
+Top Sectors: Financial Services (27.4%), Technology (18.6%), Consumer Cyclical (13.2%), Industrials (11.8%)
+Top Holdings: HDFC Bank, Infosys, ICICI Bank, Bajaj Finance, Larsen & Toubro, Titan Company, Maruti Suzuki
+
+FAQs:
+What is the exit load for SBI Focused Equity Fund?
+1% if redeemed within 1 year from date of allotment. Nil after 1 year.
+
+What is the expense ratio of SBI Focused Equity Fund?
+0.84% for Direct Plan. Regular Plan has higher expense ratio.
+
+Why is it called a Focused Fund?
+SEBI limits focused funds to a maximum of 30 stocks. This concentration can amplify returns when picks are right, but also increases fund-specific risk compared to diversified equity funds.
+
+Mutual Fund investments are subject to market risks, read all scheme related documents carefully.
+© Groww 2026

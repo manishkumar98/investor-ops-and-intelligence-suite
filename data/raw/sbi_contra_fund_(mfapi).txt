@@ -1,0 +1,45 @@
+Source URL: https://api.mfapi.in/mf/119835
+Scraped Date: 2026-05-05
+--------------------------------------------------
+SBI Contra Fund
+Fund House: SBI Mutual Fund
+AMFI Scheme Name: SBI CONTRA FUND - DIRECT PLAN - GROWTH
+Scheme Code: 119835
+Category: Equity Scheme - Contra Fund
+Scheme Type: Open Ended Schemes
+
+NAV: ₹410.42 (as on 2026-05-04)
+1-Year Return (CAGR): 2.07%
+3-Year Return (CAGR): 17.29%
+5-Year Return (CAGR): 20.14%
+Inception Date: 2013-01-02
+
+About SBI Contra Fund:
+SBI Contra Fund is a mutual fund scheme offered by SBI Mutual Fund.
+It is classified under: Equity Scheme - Contra Fund.
+The scheme is of type: Open Ended Schemes.
+
+NAV History (recent 10 entries):
+  04-05-2026 — NAV: ₹410.41670
+  30-04-2026 — NAV: ₹409.20750
+  29-04-2026 — NAV: ₹411.45570
+  28-04-2026 — NAV: ₹410.02470
+  27-04-2026 — NAV: ₹410.87790
+  24-04-2026 — NAV: ₹405.99140
+  23-04-2026 — NAV: ₹409.49870
+  22-04-2026 — NAV: ₹412.81940
+  21-04-2026 — NAV: ₹414.04740
+  20-04-2026 — NAV: ₹411.04950
+
+Frequently Asked Questions:
+What is the current NAV of SBI Contra Fund?
+The current NAV is ₹410.42 as on 2026-05-04.
+
+What is the 1-year return of SBI Contra Fund?
+The 1-year CAGR is 2.07%.
+
+What is the 3-year return of SBI Contra Fund?
+The 3-year CAGR is 17.29%.
+
+Mutual Fund investments are subject to market risks, read all scheme related documents carefully.
+Data sourced from AMFI via api.mfapi.in

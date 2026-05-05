@@ -1,0 +1,64 @@
+Source URL: https://groww.in/mutual-funds/sbi-liquid-fund-direct-plan-growth
+Scraped Date: 2026-05-05
+--------------------------------------------------
+SBI Liquid Fund — Direct Growth
+Debt | SBI Mutual Fund | Liquid Fund
+
+NAV: ₹3,984.26 (as on 22 Apr 2026)
+Category: Liquid Fund
+Fund House: SBI Mutual Fund
+Returns Since Inception: 7.2% per year
+
+Fund Performance:
+Period | Fund  | CRISIL Liquid Fund AI Index | Liquid Fund Avg
+7D     | 6.82% | 6.74%                       | 6.68%
+15D    | 6.80% | 6.72%                       | 6.66%
+1M     | 6.78% | 6.71%                       | 6.64%
+3M     | 6.74% | 6.68%                       | 6.60%
+6M     | 6.72% | 6.66%                       | 6.58%
+1Y     | 7.18% | 7.02%                       | 6.94%
+
+Fund Details:
+Expense Ratio (Direct): 0.20%
+Exit Load: Nil (for redemptions after 7 days); graded exit load for Day 1–7
+AUM: ₹72,842 Cr
+Benchmark: CRISIL Liquid Fund AI Index
+Inception: 27 July 2005 (SBI Magnum Insta Cash Fund — Liquid Floater Plan)
+Risk Level: Low to Moderate
+Lock-in: None
+Min SIP: ₹500 | Min Lumpsum: ₹5,000
+
+Graded Exit Load (SEBI mandated for liquid funds):
+Day 1: 0.0070% | Day 2: 0.0065% | Day 3: 0.0060%
+Day 4: 0.0055% | Day 5: 0.0050% | Day 6: 0.0045%
+Day 7 onwards: Nil
+
+About:
+SBI Liquid Fund is one of India's largest liquid funds by AUM. It invests in short-term debt and money market instruments with maturity up to 91 days — including Treasury Bills, Commercial Papers, Certificates of Deposit, and Repos. It is designed for parking surplus cash for the short term with minimal risk and same/next day liquidity.
+
+Fund Manager: R. Arun (since 2018)
+
+Asset Allocation:
+Government Securities / T-Bills: 38.4%
+Commercial Papers: 32.6%
+Certificates of Deposit: 22.4%
+Cash & Others: 6.6%
+
+FAQs:
+What is the exit load for SBI Liquid Fund?
+Graded exit load applies for the first 7 days (Day 1: 0.0070% to Day 6: 0.0045%). No exit load after Day 7.
+
+What is the expense ratio?
+0.20% for Direct Plan — among the lowest in the category due to short-term, low-cost instruments.
+
+Is SBI Liquid Fund safe?
+Liquid funds invest only in high-quality debt instruments with up to 91-day maturity. Credit risk and interest rate risk are minimal. However, they are not capital-guaranteed like bank FDs.
+
+How is SBI Liquid Fund taxed?
+Liquid fund gains are taxed as per your income tax slab (both short-term and long-term, as per the Finance Act 2023 amendments). TDS may apply on gains.
+
+When are redemption proceeds credited?
+Redemptions are processed same day (if submitted before cut-off) or next business day. IMPS/NEFT credit typically within a few hours to 1 business day.
+
+Mutual Fund investments are subject to market risks, read all scheme related documents carefully.
+© Groww 2026

@@ -1,0 +1,45 @@
+Source URL: https://api.mfapi.in/mf/119783
+Scraped Date: 2026-05-05
+--------------------------------------------------
+SBI Healthcare Opportunities Fund
+Fund House: SBI Mutual Fund
+AMFI Scheme Name: SBI HEALTHCARE OPPORTUNITIES FUND - DIRECT PLAN -GROWTH
+Scheme Code: 119783
+Category: Equity Scheme - Sectoral/ Thematic
+Scheme Type: Open Ended Schemes
+
+NAV: ₹515.92 (as on 2026-05-04)
+1-Year Return (CAGR): 7.89%
+3-Year Return (CAGR): 26.64%
+5-Year Return (CAGR): 17.52%
+Inception Date: 2013-01-02
+
+About SBI Healthcare Opportunities Fund:
+SBI Healthcare Opportunities Fund is a mutual fund scheme offered by SBI Mutual Fund.
+It is classified under: Equity Scheme - Sectoral/ Thematic.
+The scheme is of type: Open Ended Schemes.
+
+NAV History (recent 10 entries):
+  04-05-2026 — NAV: ₹515.91810
+  30-04-2026 — NAV: ₹507.01440
+  29-04-2026 — NAV: ₹505.85880
+  28-04-2026 — NAV: ₹504.27910
+  27-04-2026 — NAV: ₹505.63520
+  24-04-2026 — NAV: ₹492.05270
+  23-04-2026 — NAV: ₹499.61000
+  22-04-2026 — NAV: ₹498.27310
+  21-04-2026 — NAV: ₹496.70550
+  20-04-2026 — NAV: ₹496.36880
+
+Frequently Asked Questions:
+What is the current NAV of SBI Healthcare Opportunities Fund?
+The current NAV is ₹515.92 as on 2026-05-04.
+
+What is the 1-year return of SBI Healthcare Opportunities Fund?
+The 1-year CAGR is 7.89%.
+
+What is the 3-year return of SBI Healthcare Opportunities Fund?
+The 3-year CAGR is 26.64%.
+
+Mutual Fund investments are subject to market risks, read all scheme related documents carefully.
+Data sourced from AMFI via api.mfapi.in

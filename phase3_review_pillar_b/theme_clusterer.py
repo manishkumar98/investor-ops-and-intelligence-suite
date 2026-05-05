@@ -42,12 +42,13 @@ _SYSTEM = (
 )
 
 _CHUNK_PROMPT = """Process these INDMoney app reviews. Reviews may be in English, Hindi, or Hinglish — understand all and synthesise across languages.
-Output a strict JSON object with:
-- "themes": list of strings, max 5 (in English)
-- "top_3": list of strings, exactly 3 (most-mentioned themes, in English)
-- "quotes": list of strings, exactly 3 (real verbatim quotes from the reviews — keep original language)
-- "weekly_note": string, strict max 250 words (in English)
-- "action_ideas": list of strings, exactly 3 action recommendations (in English)
+
+Output a strict JSON object with these fields IN ORDER:
+- "themes": list of strings, max 5 — all themes found across reviews (in English)
+- "top_3": list of strings, exactly 3 — the 3 most-mentioned themes from "themes", ranked by frequency (in English)
+- "quotes": list of strings, exactly 3 — one verbatim quote per top_3 theme, IN THE SAME ORDER as top_3. quotes[0] illustrates top_3[0], quotes[1] illustrates top_3[1], quotes[2] illustrates top_3[2]. Keep original language of the quote.
+- "weekly_note": string, strict max 250 words summary (in English)
+- "action_ideas": list of strings, exactly 3 — one concrete action recommendation per top_3 theme, IN THE SAME ORDER as top_3. action_ideas[0] addresses top_3[0], action_ideas[1] addresses top_3[1], action_ideas[2] addresses top_3[2]. (in English)
 
 Reviews:
 {reviews_text}"""
@@ -55,11 +56,11 @@ Reviews:
 _SYNTH_PROMPT = """Synthesize these partial review analyses into ONE master report.
 
 STRICT OUTPUT RULES:
-- "themes": list of strings, EXACTLY 5 items
-- "top_3": list of strings, EXACTLY 3 items
-- "quotes": list of strings, EXACTLY 3 items (most impactful)
-- "weekly_note": string, STRICT MAX 250 words
-- "action_ideas": list of strings, EXACTLY 3 items
+- "themes": list of strings, EXACTLY 5 items — top themes across all reviews (in English)
+- "top_3": list of strings, EXACTLY 3 items — the 3 most prominent themes, ranked (in English)
+- "quotes": list of strings, EXACTLY 3 items — one verbatim quote per top_3 theme IN THE SAME ORDER. quotes[0] illustrates top_3[0], quotes[1] illustrates top_3[1], quotes[2] illustrates top_3[2].
+- "weekly_note": string, STRICT MAX 250 words (in English)
+- "action_ideas": list of strings, EXACTLY 3 items — one action per top_3 theme IN THE SAME ORDER. action_ideas[0] addresses top_3[0], action_ideas[1] addresses top_3[1], action_ideas[2] addresses top_3[2]. (in English)
 
 Output only valid JSON. Partial analyses:
 {master_payload}"""

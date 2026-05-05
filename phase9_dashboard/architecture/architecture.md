@@ -91,7 +91,7 @@ if not st.session_state["mcp_queue"]:
 
 # ── 2. Sidebar ────────────────────────────────────────────
 with st.sidebar:
-    st.title("Investor Ops & Intelligence Suite by Dalal Street Advisors")
+    st.title("INDMoney Investor Ops & Intelligence Suite")
     st.markdown("---")
 
     # Corpus status

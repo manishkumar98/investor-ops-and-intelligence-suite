@@ -1,0 +1,45 @@
+Source URL: https://api.mfapi.in/mf/119609
+Scraped Date: 2026-05-05
+--------------------------------------------------
+SBI Equity Hybrid Fund
+Fund House: SBI Mutual Fund
+AMFI Scheme Name: SBI EQUITY HYBRID FUND - DIRECT PLAN - Growth
+Scheme Code: 119609
+Category: Hybrid Scheme - Aggressive Hybrid Fund
+Scheme Type: Open Ended Schemes
+
+NAV: ₹342.97 (as on 2026-05-04)
+1-Year Return (CAGR): 7.72%
+3-Year Return (CAGR): 14.87%
+5-Year Return (CAGR): 13.02%
+Inception Date: 2013-01-02
+
+About SBI Equity Hybrid Fund:
+SBI Equity Hybrid Fund is a mutual fund scheme offered by SBI Mutual Fund.
+It is classified under: Hybrid Scheme - Aggressive Hybrid Fund.
+The scheme is of type: Open Ended Schemes.
+
+NAV History (recent 10 entries):
+  04-05-2026 — NAV: ₹342.96540
+  30-04-2026 — NAV: ₹341.25230
+  29-04-2026 — NAV: ₹343.00860
+  28-04-2026 — NAV: ₹343.45600
+  27-04-2026 — NAV: ₹343.78630
+  24-04-2026 — NAV: ₹341.43520
+  23-04-2026 — NAV: ₹343.93510
+  22-04-2026 — NAV: ₹345.46410
+  21-04-2026 — NAV: ₹344.33500
+  20-04-2026 — NAV: ₹342.13980
+
+Frequently Asked Questions:
+What is the current NAV of SBI Equity Hybrid Fund?
+The current NAV is ₹342.97 as on 2026-05-04.
+
+What is the 1-year return of SBI Equity Hybrid Fund?
+The 1-year CAGR is 7.72%.
+
+What is the 3-year return of SBI Equity Hybrid Fund?
+The 3-year CAGR is 14.87%.
+
+Mutual Fund investments are subject to market risks, read all scheme related documents carefully.
+Data sourced from AMFI via api.mfapi.in

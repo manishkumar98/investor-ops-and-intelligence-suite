@@ -1,0 +1,57 @@
+Source URL: https://groww.in/mutual-funds/sbi-equity-hybrid-fund-direct-growth
+Scraped Date: 2026-05-05
+--------------------------------------------------
+SBI Equity Hybrid Fund — Direct Growth
+Hybrid | SBI Mutual Fund | Aggressive Hybrid
+
+NAV: ₹284.36 (as on 22 Apr 2026)
+Category: Aggressive Hybrid Fund
+Fund House: SBI Mutual Fund
+Returns Since Inception: 17.2% per year
+
+Fund Performance:
+Period | Fund   | CRISIL Hybrid 35+65 Aggressive | Aggressive Hybrid Avg
+1Y     | 7.80%  | 7.20%                          | 7.00%
+3Y     | 13.40% | 12.60%                         | 12.20%
+5Y     | 15.20% | 14.10%                         | 13.80%
+
+Fund Details:
+Expense Ratio (Direct): 0.84%
+Exit Load: 1% if redeemed within 1 year; Nil after 1 year
+AUM: ₹68,142 Cr
+Benchmark: CRISIL Hybrid 35+65 Aggressive Index
+Inception: 9 January 1995
+Risk Level: Moderately High
+Lock-in: None
+Min SIP: ₹500 | Min Lumpsum: ₹1,000
+
+About:
+SBI Equity Hybrid Fund is one of India's largest aggressive hybrid mutual funds, with over ₹68,000 Cr AUM. As per SEBI classification, aggressive hybrid funds invest 65–80% in equity and 20–35% in debt. The equity component aims for long-term capital appreciation while the debt portion (government securities, AAA corporate bonds, money market instruments) provides stability and cushions against sharp equity market drawdowns. The fund is suitable for first-time equity investors and those wanting equity growth with some downside protection.
+
+Fund Managers: R. Srinivasan (Equity, since Jan 2013), Dinesh Ahuja (Debt, since Jan 2014)
+
+Asset Allocation (Apr 2026):
+Equity: 72.4% | Debt: 22.8% | Cash & Equivalents: 4.8%
+
+Debt Breakdown: Government Securities 48.2% | Corporate Bonds (AAA) 36.4% | Money Market 15.4%
+Top Equity Sectors: Financial Services (26.4%), Technology (12.8%), Consumer Cyclical (14.2%), Health Care (8.6%)
+Top Holdings: HDFC Bank, ICICI Bank, Reliance Industries, Infosys, Larsen & Toubro, Bajaj Finance
+
+FAQs:
+What is the exit load for SBI Equity Hybrid Fund?
+1% if redeemed within 1 year. Nil after 1 year.
+
+What is the expense ratio?
+0.84% for Direct Plan | 1.62% for Regular Plan.
+
+What is the equity-debt allocation?
+65–80% in equity, 20–35% in debt and money market instruments as per SEBI's aggressive hybrid fund rules. Current allocation: ~72% equity, ~23% debt.
+
+Is SBI Equity Hybrid Fund good for first-time investors?
+Yes. The debt component (20–35%) reduces overall portfolio volatility compared to pure equity funds, making it a gentler introduction to equity markets for new investors.
+
+How is SBI Equity Hybrid Fund taxed?
+Since equity allocation is ≥65%, it is taxed like an equity fund: LTCG at 10% (above ₹1L) for > 1 year holding; STCG at 15% for < 1 year.
+
+Mutual Fund investments are subject to market risks, read all scheme related documents carefully.
+© Groww 2026

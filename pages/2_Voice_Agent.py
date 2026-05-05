@@ -1,5 +1,5 @@
 """
-Page 2 — Full Voice Agent (Dalal Street Advisors Advisor Scheduling)
+Page 2 — Full Voice Agent (INDMoney Advisor Scheduling)
 Adapted from voice-agent/phase5/ui/app.py and wired to phase6_pillar_b_voice.
 """
 from __future__ import annotations
@@ -580,7 +580,7 @@ st.markdown(f"""
   <div class="dsa-logo-wrap">
     <div class="dsa-logo-icon">📈</div>
     <div>
-      <div class="dsa-logo-text">Dalal Street Advisors</div>
+      <div class="dsa-logo-text">INDMoney</div>
       <div class="dsa-logo-sub">SEBI Registered · IA-0000347</div>
     </div>
   </div>
@@ -692,7 +692,7 @@ st.markdown(f"""
   <div class="dsa-logo-wrap">
     <div class="dsa-logo-icon">📈</div>
     <div>
-      <div class="dsa-logo-text">Dalal Street Advisors</div>
+      <div class="dsa-logo-text">INDMoney</div>
       <div class="dsa-logo-sub">SEBI Registered · IA-0000347</div>
     </div>
   </div>
@@ -893,7 +893,7 @@ st.markdown(f"""
     <div class="caller-avatar">🤖</div>
   </div>
   <div class="caller-name">Advisor Agent</div>
-  <div class="caller-firm">{"Dalal Street Advisors · AI Scheduling" if _lang == "en-IN" else "Dalal Street Advisors · AI शेड्यूलिंग"}</div>
+  <div class="caller-firm">{"INDMoney · AI Scheduling" if _lang == "en-IN" else "INDMoney · AI शेड्यूलिंग"}</div>
   <div class="status-pill">
     <span class="s-dot {_dot_cls}"></span>
     {_status}
@@ -972,7 +972,7 @@ st.markdown("""
 <div style="background:#07080F;border-top:1px solid rgba(255,255,255,0.06);
      padding:20px 48px;text-align:center;margin-top:32px;">
   <div style="font-size:0.75rem;color:#4A4540;line-height:1.7;">
-    © 2025 <span style="color:#6B6358;">Dalal Street Advisors Pvt. Ltd.</span> ·
+    © 2025 <span style="color:#6B6358;">INDMoney</span> ·
     SEBI IA Reg. No. IA-0000347 ·
     No personal information is collected on this call.
   </div>

@@ -1,0 +1,53 @@
+Source URL: https://groww.in/mutual-funds/sbi-contra-fund-direct-plan-growth
+Scraped Date: 2026-05-05
+--------------------------------------------------
+SBI Contra Fund — Direct Growth
+Equity | SBI Mutual Fund | Contra Fund
+
+NAV: ₹364.72 (as on 22 Apr 2026)
+Category: Contra Fund
+Fund House: SBI Mutual Fund
+Returns Since Inception: 18.4% per year
+
+Fund Performance:
+Period | Fund   | BSE 500 TRI | Contra Fund Avg
+1Y     | 11.40% | 8.40%       | 9.20%
+3Y     | 19.80% | 14.20%      | 15.60%
+5Y     | 22.40% | 16.80%      | 17.80%
+
+Fund Details:
+Expense Ratio (Direct): 0.79%
+Exit Load: 1% if redeemed within 1 year; Nil after 1 year
+AUM: ₹38,246 Cr
+Benchmark: BSE 500 TRI
+Inception: 11 July 1999
+Risk Level: Very High
+Lock-in: None
+Min SIP: ₹500 | Min Lumpsum: ₹5,000
+
+About:
+SBI Contra Fund follows a contrarian investment philosophy — it invests in fundamentally strong companies that are currently out-of-favour, undervalued, or overlooked by the broader market. The fund bets on a mean reversion thesis: that quality businesses trading at a discount will eventually recover. This approach requires patience (typically 3–5 year horizon) and may underperform during momentum-driven bull markets, but can significantly outperform during recoveries.
+
+Fund Manager: Dinesh Balachandran (since November 2016)
+
+Asset Allocation:
+Equity: 97.4% | Cash & Equivalents: 2.6%
+
+Top Sectors: Financial Services (22.6%), Industrials (18.4%), Materials (14.2%), Energy (12.8%), Consumer Discretionary (10.4%)
+Top Holdings: NTPC, Power Grid, Coal India, GAIL India, Bank of Baroda, NMDC, Bharat Electronics
+
+FAQs:
+What is the exit load for SBI Contra Fund?
+1% if redeemed within 1 year from date of allotment. Nil after 1 year.
+
+What is the expense ratio?
+0.79% for Direct Plan — relatively low due to value/contrarian style (lower portfolio churn).
+
+What does "contra" or "contrarian" investing mean?
+Contrarian investing means buying stocks that the broader market has ignored or sold off, betting they are undervalued. SBI Contra Fund seeks to buy quality businesses at beaten-down prices and hold until the market recognises their value.
+
+Is SBI Contra Fund suitable for short-term investors?
+No. Contrarian strategies require patience — value unlocking can take 3–5 years. The fund is suitable for investors with a long-term horizon (5+ years) and ability to tolerate periods of underperformance.
+
+Mutual Fund investments are subject to market risks, read all scheme related documents carefully.
+© Groww 2026

@@ -1,0 +1,45 @@
+Source URL: https://api.mfapi.in/mf/125497
+Scraped Date: 2026-05-05
+--------------------------------------------------
+SBI Small Cap Fund
+Fund House: SBI Mutual Fund
+AMFI Scheme Name: SBI Small Cap Fund - Direct Plan - Growth
+Scheme Code: 125497
+Category: Equity Scheme - Small Cap Fund
+Scheme Type: Open Ended Schemes
+
+NAV: ₹195.45 (as on 2026-05-04)
+1-Year Return (CAGR): 7.58%
+3-Year Return (CAGR): 15.10%
+5-Year Return (CAGR): 16.43%
+Inception Date: 2013-11-18
+
+About SBI Small Cap Fund:
+SBI Small Cap Fund is a mutual fund scheme offered by SBI Mutual Fund.
+It is classified under: Equity Scheme - Small Cap Fund.
+The scheme is of type: Open Ended Schemes.
+
+NAV History (recent 10 entries):
+  04-05-2026 — NAV: ₹195.44690
+  30-04-2026 — NAV: ₹193.41310
+  29-04-2026 — NAV: ₹194.15230
+  28-04-2026 — NAV: ₹193.48430
+  27-04-2026 — NAV: ₹193.83170
+  24-04-2026 — NAV: ₹191.04250
+  23-04-2026 — NAV: ₹193.03170
+  22-04-2026 — NAV: ₹194.19280
+  21-04-2026 — NAV: ₹192.63970
+  20-04-2026 — NAV: ₹191.05830
+
+Frequently Asked Questions:
+What is the current NAV of SBI Small Cap Fund?
+The current NAV is ₹195.45 as on 2026-05-04.
+
+What is the 1-year return of SBI Small Cap Fund?
+The 1-year CAGR is 7.58%.
+
+What is the 3-year return of SBI Small Cap Fund?
+The 3-year CAGR is 15.10%.
+
+Mutual Fund investments are subject to market risks, read all scheme related documents carefully.
+Data sourced from AMFI via api.mfapi.in

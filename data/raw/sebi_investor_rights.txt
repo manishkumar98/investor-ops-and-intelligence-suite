@@ -1,0 +1,95 @@
+Source URL: https://www.sebi.gov.in/investors.html
+Scraped Date: 2026-05-05
+--------------------------------------------------
+SEBI — Investor Education & Regulatory Framework for Mutual Funds
+
+ABOUT SEBI
+The Securities and Exchange Board of India (SEBI) is the statutory regulatory body for securities and commodity markets in India, established under the SEBI Act, 1992. SEBI's primary mandate is to protect the interests of investors in securities, promote the development of the securities market, and regulate it.
+
+SEBI AND MUTUAL FUNDS
+All mutual funds in India are registered with and regulated by SEBI under the SEBI (Mutual Funds) Regulations, 1996. Key regulatory requirements include:
+
+1. AMC Registration: All Asset Management Companies must be registered with SEBI
+2. Trustee Oversight: Every mutual fund must have a Board of Trustees to safeguard unitholder interests
+3. Scheme Classification: SEBI has defined categories (large cap, mid cap, small cap, ELSS, liquid, etc.) to standardize fund types
+4. Expense Ratio Caps: SEBI sets maximum TER (Total Expense Ratio) limits to protect investors
+5. Disclosure Requirements: AMCs must disclose portfolio holdings monthly, NAV daily, and financial statements periodically
+6. Risk-o-Meter: SEBI mandates a risk label on every scheme (Low / Low-to-Moderate / Moderate / Moderately High / High / Very High)
+
+INVESTOR RIGHTS
+As a mutual fund investor in India, you have the following rights:
+
+1. Right to Information
+   - Access to Scheme Information Document (SID), Key Information Memorandum (KIM), Statement of Additional Information (SAI)
+   - Monthly portfolio disclosure
+   - Daily NAV publication
+   - Annual report and half-yearly portfolio statements
+
+2. Right to Redemption
+   - Open-ended funds: Redemption at prevailing NAV on any business day
+   - Proceeds must be credited within 3 working days for equity funds and 1 working day for liquid/overnight funds
+
+3. Right to Exit
+   - No lock-in for most open-ended funds (except ELSS — 3 years)
+   - Exit load must be disclosed upfront and cannot be changed without notice period
+
+4. Right to Lodge Complaints
+   - SEBI SCORES (SEBI Complaint Redress System): scores.sebi.gov.in
+   - AMFI-registered distributors have a grievance redressal mechanism
+   - AMC must resolve complaints within 30 days
+
+5. Right Against Mis-selling
+   - Distributors must follow KYC (Know Your Customer) norms
+   - Suitability assessment required before recommending schemes
+   - SEBI prohibits upfront commissions to distributors since 2018
+
+WHAT IS KYC (KNOW YOUR CUSTOMER)?
+KYC is mandatory for all mutual fund investors. Required documents:
+- PAN card (mandatory)
+- Aadhaar-based e-KYC or in-person verification
+- Photograph, signature, address proof
+
+KYC is a one-time process — once completed through any SEBI-registered intermediary, it is valid across all mutual fund investments.
+
+INVESTOR PROTECTION MEASURES
+- Segregation of Investor Assets: AMC's own funds are kept completely separate from investor funds
+- Custodian: Securities held in a separate custodian account — not accessible by the AMC
+- Trustee Oversight: Independent trustees monitor AMC compliance
+- AMFI Code of Conduct: Distributors must follow AMFI's code; violations can lead to cancellation of ARN (AMFI Registration Number)
+- Investor Education Fund: SEBI mandates AMCs to spend a portion of AUM on investor awareness
+
+EXIT LOAD REGULATIONS
+- Exit load is a fee charged when investors redeem units before a specified holding period
+- SEBI requires exit loads to be credited back to the scheme (not retained by the AMC)
+- Exit load schedule must be disclosed in scheme documents and cannot exceed 2% for equity funds
+- Any change in exit load must be given 30 days advance notice to investors
+
+EXPENSE RATIO REGULATIONS
+SEBI TER limits for equity mutual funds (based on AUM):
+- Up to ₹500 Cr: 2.25%
+- ₹500 Cr – ₹750 Cr: 2.00%
+- ₹750 Cr – ₹2,000 Cr: 1.75%
+- ₹2,000 Cr – ₹5,000 Cr: 1.60%
+- ₹5,000 Cr – ₹10,000 Cr: 1.50%
+- ₹10,000 Cr – ₹50,000 Cr: 1.05% (blended)
+- Above ₹50,000 Cr: 1.05%
+Direct plans must have TER at least 0.05% lower than Regular plans.
+
+HOW TO FILE A COMPLAINT AGAINST A MUTUAL FUND?
+1. First contact the AMC's Investor Service Centre or email their grievance team
+2. If unresolved in 30 days, escalate to SEBI SCORES: scores.sebi.gov.in
+3. For disputes, approach the Securities Appellate Tribunal (SAT)
+
+Frequently Asked Questions:
+Is my money safe in a mutual fund?
+Mutual fund investments are market-linked — capital is not guaranteed. However, investor assets are held in a separate custodian account and cannot be misappropriated by the AMC. SEBI regulations ensure segregation of investor money.
+
+What happens if an AMC shuts down?
+SEBI regulations require that investor assets be transferred to another AMC or returned to investors. Since securities are held by an independent custodian, investors' assets are protected even if the AMC winds up.
+
+Can SEBI cancel a mutual fund?
+Yes. SEBI can cancel an AMC's registration for regulatory violations. In such cases, investor assets are protected and returned via the custodian/trustee structure.
+
+Mutual Fund investments are subject to market risks. Read all scheme related documents carefully.
+Regulated by SEBI under the SEBI (Mutual Funds) Regulations, 1996.
+© SEBI India 2026

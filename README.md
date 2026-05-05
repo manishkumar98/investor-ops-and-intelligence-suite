@@ -12,8 +12,10 @@ A unified three-pillar dashboard that merges a RAG FAQ chatbot (M1), a review in
 | GitHub Repository | https://github.com/manishkumar98/investor-ops-and-intelligence-suit |
 | Demo Video (5 min) | *(to be added)* |
 | Evals Report | [EVALS_REPORT.md](EVALS_REPORT.md) |
-| Source Manifest (34 URLs) | [SOURCE_MANIFEST.md](SOURCE_MANIFEST.md) |
+| Source Manifest (42 URLs) | [SOURCE_MANIFEST.md](SOURCE_MANIFEST.md) |
 | Sample Q&A (10 queries) | [SAMPLE_QA.md](SAMPLE_QA.md) |
+| Weekly Product Pulse & Fee Explainer | [Google Doc](https://docs.google.com/document/d/1erfYuwVB6nNieTNwjxO6cTX9Be2FIXg6rQiEfSov0so/edit?tab=t.0) |
+| Advisor Booking Sheet | [Google Sheet](https://docs.google.com/spreadsheets/d/1rIGbbWXwfEJW7Y77iFGqpjbN5UK_Ef1gJMM6O6asJiI/edit?gid=0#gid=0) |
 
 ---
 
@@ -35,7 +37,12 @@ cp .env.example .env
 ```bash
 python scripts/ingest_corpus.py
 ```
-Fetches 30+ official SBI MF / INDMoney pages, extracts structured fund fields (AUM, NAV, exit load, expense ratio, etc.) into `data/fund_snapshot.json`, chunks the text, embeds with OpenAI `text-embedding-3-small` (fallback: `all-MiniLM-L6-v2`), and stores in ChromaDB under `data/chroma/`. Also ingests pre-scraped local files from `data/raw/`.
+Builds the RAG corpus for all 12 SBI Mutual Fund schemes from three sources:
+- **42 live URLs** from `SOURCE_MANIFEST.md` (sbimf.com, Groww, INDMoney, AMFI, SEBI, MFCentral) — some may be blocked; failures are handled gracefully
+- **Local raw files** in `data/raw/` — pre-authored `.txt` files for all 12 funds (official, INDMoney, Groww variants) plus AMFI education and SEBI regulatory content; always succeeds, no network dependency
+- **mfapi.in (AMFI live data)** — `mfapi_loader.py` fetches live NAV + calculated 1Y/3Y/5Y returns for all 12 funds directly from AMFI via `api.mfapi.in`; no API key, no scraping, no blocks
+
+All data is chunked, embedded with OpenAI `text-embedding-3-small` (fallback: `all-MiniLM-L6-v2`), and stored in ChromaDB under `data/chroma/`. Structured fields (AUM, NAV, exit load, expense ratio, etc.) are also written to `data/fund_snapshot.json`.
 
 Use `--force` to re-fetch even if the source list hasn't changed.
 
@@ -222,9 +229,17 @@ python scripts/health_monitor.py
 python scripts/backup_data.py
 ```
 
-## Source Manifest
+## Source Manifest & Data Sources
 
-All 30+ official URLs used for corpus ingestion are listed in `SOURCE_MANIFEST.md`. Add new URLs with prefix `mf_faq:` or `fee:` then re-run `ingest_corpus.py --force`.
+The knowledge base is built from three layers:
+
+| Layer | Where | What |
+|---|---|---|
+| **Live URL scraping** | `SOURCE_MANIFEST.md` (42 URLs) | sbimf.com, Groww, INDMoney, AMFI, SEBI, MFCentral — scraped on every Sync KB |
+| **Local raw files** | `data/raw/*.txt` (35+ files) | Pre-authored for all 12 funds: `*official*`, `*indmoney*`, `*groww*` variants + AMFI education + SEBI regulatory |
+| **mfapi.in live API** | `phase2_corpus_pillar_a/mfapi_loader.py` | Fetches live NAV + 1Y/3Y/5Y returns from AMFI via `api.mfapi.in` on every Sync — no API key, no scraping, no blocks |
+
+To add a new URL: prefix with `mf_faq:` or `fee:` in `SOURCE_MANIFEST.md`, then re-run `ingest_corpus.py --force` or click **Sync Knowledge Base** in the app.
 
 ---
 
@@ -235,7 +250,7 @@ investor_ops-and-intelligence_suit/
 ├── app.py                          # Main entry point (Streamlit)
 ├── config.py                       # Env vars + SESSION_KEYS
 ├── session_init.py                 # Idempotent session initialiser
-├── SOURCE_MANIFEST.md              # 30+ official URLs for ingest
+├── SOURCE_MANIFEST.md              # 42 URLs for live scraping (mf_faq: / fee: prefixes)
 ├── requirements.txt                # Python dependencies
 │
 ├── phase1_foundation/              # Infrastructure (config, session, ChromaDB init)
@@ -246,7 +261,8 @@ investor_ops-and-intelligence_suit/
 │   ├── chunker.py                  # Text chunker + structured chunk builder
 │   ├── embedder.py                 # OpenAI / local sentence-transformer embedder
 │   ├── ingest.py                   # Full ingest pipeline → ChromaDB + fund_snapshot.json
-│   ├── structured_extractor.py     # Regex field extractor (14 named slots per fund)
+│   ├── mfapi_loader.py             # Live NAV + returns via api.mfapi.in (AMFI) — no scraping
+│   ├── structured_extractor.py     # Regex field extractor (14 named slots per fund, all 12 funds)
 │   └── prd/ architecture/ tests/ evals/
 │
 ├── phase3_review_pillar_b/         # Review pipeline (M2 adapted)
@@ -296,7 +312,7 @@ investor_ops-and-intelligence_suit/
 │
 └── data/
     ├── chroma/                     # ChromaDB (created by ingest)
-    ├── raw/                        # Pre-scraped Playwright txt files
+    ├── raw/                        # 35+ fund txt files (official/indmoney/groww/mfapi variants)
     ├── fund_snapshot.json          # Structured fields for all funds (written on ingest)
     ├── nav_snapshot.json           # NAV + prev_nav for ticker display
     ├── system_state.json           # Last ingest / backup / health-check timestamps

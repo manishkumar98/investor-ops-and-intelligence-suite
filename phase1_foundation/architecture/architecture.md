@@ -98,7 +98,7 @@ These are the environment variables this phase reads and validates. They live in
 | `CHROMA_PERSIST_DIR` | No | Path to ChromaDB storage on disk. Default: `./data/chroma` | Set in `.env` |
 | `MCP_MODE` | No | `mock` (default, no HTTP calls) or `live` (calls real MCP server) | Set in `.env` |
 | `MCP_SERVER_URL` | No | Live MCP endpoint. Default: `http://localhost:3000` | Set in `.env` |
-| `PRODUCT_NAME` | No | Display name shown in the UI. Default: `Investor Ops & Intelligence Suite by Dalal Street Advisors` | Set in `.env` |
+| `PRODUCT_NAME` | No | Display name shown in the UI. Default: `INDMoney Investor Ops & Intelligence Suite` | Set in `.env` |
 | `SECURE_BASE_URL` | No | Base URL for booking links. Default: `https://app.example.com` | Set in `.env` |
 | `ROUTER_MODE` | No | `keyword` (default, no LLM call) or `llm` (1-shot Claude classification) | Set in `.env` |
 
@@ -182,7 +182,7 @@ OPENAI_API_KEY=sk-...
 CHROMA_PERSIST_DIR=./data/chroma
 MCP_MODE=mock
 MCP_SERVER_URL=http://localhost:3000
-PRODUCT_NAME=Investor Ops & Intelligence Suite by Dalal Street Advisors
+PRODUCT_NAME=INDMoney Investor Ops & Intelligence Suite
 SECURE_BASE_URL=https://app.example.com
 ROUTER_MODE=keyword
 ```

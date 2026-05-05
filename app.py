@@ -403,6 +403,31 @@ section[data-testid="stSidebar"] * { color: var(--text-1) !important; }
 .stTabs [data-baseweb="tab"]:hover {
   color: var(--gold-2) !important; background-color: var(--gold-glow) !important;
 }
+/* ── Tab hover tooltips ── */
+.stTabs [data-baseweb="tab"] { position: relative; }
+.stTabs [data-baseweb="tab"]::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: #1A1612;
+  color: rgba(255,255,255,0.88);
+  font-size: 11.5px;
+  line-height: 1.5;
+  padding: 7px 12px;
+  border-radius: 8px;
+  border: 1px solid rgba(201,168,76,0.25);
+  white-space: normal;
+  width: 220px;
+  text-align: center;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.18s ease;
+  z-index: 10000;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+}
+.stTabs [data-baseweb="tab"]:hover::after { opacity: 1; }
 .stTabs [role="tabpanel"] {
   padding: 32px 48px !important;
 }
@@ -488,8 +513,8 @@ button[kind="primary"] p, button[kind="secondary"] p {
   font-weight: 800 !important;
 }
 [data-testid="stChatInput"] textarea::placeholder {
-  color: rgba(0,0,0,0.6) !important;
-  -webkit-text-fill-color: rgba(0,0,0,0.6) !important;
+  color: #3D2208 !important;
+  -webkit-text-fill-color: #3D2208 !important;
   font-weight: 700 !important;
 }
 [data-testid="stChatInput"] button {
@@ -586,7 +611,7 @@ hr { border-color: var(--border) !important; margin: 24px 0 !important; }
   color: var(--text-1) !important; font-size: 0.93rem !important;
   padding: 12px 16px !important; border-radius: 12px !important; box-shadow: none !important;
 }
-[data-testid="stChatInput"] textarea::placeholder { color: var(--text-3) !important; }
+[data-testid="stChatInput"] textarea::placeholder { color: #3D2208 !important; -webkit-text-fill-color: #3D2208 !important; }
 [data-testid="stChatInput"] button {
   background: linear-gradient(135deg, VAR_GOLD_1, VAR_GOLD_1B) !important;
   border: none !important; border-radius: 10px !important; color: #0A0C14 !important; margin: 4px !important;
@@ -936,7 +961,7 @@ section[data-testid="stSidebar"] [data-testid="stCaptionContainer"] p { color: #
 
 /* Chat input text */
 [data-testid="stChatInput"] textarea { color: #1A1612 !important; -webkit-text-fill-color: #1A1612 !important; }
-[data-testid="stChatInput"] textarea::placeholder { color: #A0918A !important; -webkit-text-fill-color: #A0918A !important; }
+[data-testid="stChatInput"] textarea::placeholder { color: #3D2208 !important; -webkit-text-fill-color: #3D2208 !important; }
 
 /* Toggle label */
 [data-testid="stToggle"] p { color: #3D3028 !important; }
@@ -1051,7 +1076,7 @@ def _warm_embedder():
 _warm_embedder()
 
 st.set_page_config(
-    page_title="Investor Ops & Intelligence Suite by Dalal Street Advisors",
+    page_title="INDMoney Investor Ops & Intelligence Suite",
     page_icon="assets/logo.jpg",
     layout="wide",
 )
@@ -1270,7 +1295,7 @@ with h_col1:
     <div class="dsa-header-logo-container" style="display:flex; align-items:center; gap:20px;">
       {logo_img_tag}
       <div>
-        <h2 style="margin:0; font-size:1.4rem; color:var(--text-1); letter-spacing:-0.01em;">Investor Ops & Intelligence Suite by Dalal Street Advisors</h2>
+        <h2 style="margin:0; font-size:1.4rem; color:var(--text-1); letter-spacing:-0.01em;">INDMoney Investor Ops & Intelligence Suite</h2>
         <div style="font-size:0.8rem; color:var(--text-3); text-transform:uppercase; letter-spacing:0.1em; font-weight:600;">Investor Ops & Intelligence Platform</div>
       </div>
     </div>
@@ -1410,6 +1435,8 @@ if not st.session_state.get("pulse_generated"):
             st.session_state["weekly_pulse"]    = _pd.get("weekly_note", "")
             st.session_state["top_3_themes"]    = _pd.get("top_3_themes", [])
             st.session_state["top_theme"]       = (_pd.get("top_3_themes") or [""])[0]
+            st.session_state["pulse_quotes"]    = _pd.get("quotes", [])
+            st.session_state["action_ideas"]    = _pd.get("action_ideas", [])
             st.session_state["pulse_generated"] = True
         except Exception:
             pass
@@ -1423,95 +1450,207 @@ if not st.session_state.get("pulse_generated"):
 
 
 
-# ── 3. Iterative sync loop (runs one URL per rerun) ──────────────────────────
+# ── 3. Iterative sync loop — Phase 1: URL scraping, Phase 2: mfapi.in ────────
 if st.session_state.get("_sync_active"):
-    from phase2_corpus_pillar_a.ingest import ingest_single_url, ingest_local_files, _load_snapshot, _save_snapshot, _INDEX_HASH_FILE, _parse_manifest, _MANIFEST_PATH
+    from phase2_corpus_pillar_a.ingest import (
+        ingest_single_url, ingest_local_files, _load_snapshot, _save_snapshot,
+        _INDEX_HASH_FILE, _parse_manifest, _MANIFEST_PATH, _RAW_DIR as _MFAPI_RAW_DIR,
+    )
+    from phase2_corpus_pillar_a.mfapi_loader import (
+        FUND_SEARCH_TERMS, _fetch_all_funds, _find_scheme_code,
+        _fetch_scheme_data, format_fund_as_text,
+    )
     import hashlib
 
-    queue   = st.session_state.get("_sync_queue", [])
-    done    = st.session_state.get("_sync_done",  [])
-    stopped = st.session_state.get("_sync_stop",  False)
-    total   = st.session_state.get("_sync_total", len(queue) + len(done))
+    # ── Read state ────────────────────────────────────────────────────────
+    phase      = st.session_state.get("_sync_phase", "urls")   # "urls" | "mfapi"
+    url_queue  = st.session_state.get("_sync_queue", [])
+    mfapi_queue= st.session_state.get("_sync_mfapi_queue", [])
+    done       = st.session_state.get("_sync_done",  [])
+    stopped    = st.session_state.get("_sync_stop",  False)
+    total      = st.session_state.get("_sync_total", len(url_queue) + len(done))
 
-    # ── Render progress UI ─────────────────────────────────────────────────
+    # ── Header + stop button ──────────────────────────────────────────────
     st.markdown("### 🔄 Syncing Knowledge Base…")
     stop_col, _ = st.columns([1, 3])
     with stop_col:
-        if not stopped and st.button("⏹ Stop Scraping", type="secondary", use_container_width=True):
+        if not stopped and st.button("⏹ Stop", type="secondary", use_container_width=True):
             st.session_state["_sync_stop"] = True
             stopped = True
 
     if stopped:
         st.warning(
             "**Sync stopped.**  \n"
-            f"✅ {len(done)} URLs processed and saved to ChromaDB (data persisted to disk).  \n"
-            f"⏸ {len(queue)} URLs were not processed.  \n\n"
-            "**Important:** The sync index has **not** been updated — next time you click "
-            "Sync, all URLs will be re-processed from scratch to ensure consistency.  \n"
-            "Already-ingested chunks from this session remain in ChromaDB and are usable immediately."
+            f"✅ {len(done)} items processed and saved to ChromaDB.  \n"
+            f"⏸ {len(url_queue) + len(mfapi_queue)} items were not processed.  \n\n"
+            "Already-ingested chunks remain in ChromaDB and are usable immediately."
         )
 
-    st.caption(f"Processing URL {len(done) + (0 if stopped or not queue else 1)} of {total}  •  {len(done)} done  •  {len(queue)} remaining")
-    st.progress(len(done) / total if total else 1.0)
+    # ── Progress bar (urls + mfapi items together) ────────────────────────
+    mfapi_total = len(FUND_SEARCH_TERMS)
+    grand_total = st.session_state.get("_sync_total", 0) + mfapi_total
+    grand_done  = len(done)
+    st.caption(
+        f"{'Phase 1 — Scraping URLs' if phase == 'urls' else 'Phase 2 — Live data via mfapi.in (AMFI)'}  •  "
+        f"{grand_done} done  •  {grand_total - grand_done} remaining"
+    )
+    st.progress(grand_done / grand_total if grand_total else 1.0)
 
-    # Render full URL table
-    for r in done:
-        icon = "✅" if r["status"] == "ok" else "⚠️"
-        label = r["url"].replace("https://", "").replace("http://", "")
-        detail = f"{r['chunks']} chunks" if r["status"] == "ok" else r.get("error", "skipped")
-        st.markdown(f"{icon} `{label[:70]}` — *{detail}*")
+    # ── Render completed items ────────────────────────────────────────────
+    url_done   = [r for r in done if r.get("source") != "mfapi"]
+    mfapi_done = [r for r in done if r.get("source") == "mfapi"]
 
-    if queue and not stopped:
-        next_url, next_corpus = queue[0]
+    if url_done:
+        for r in url_done:
+            icon   = "✅" if r["status"] == "ok" else "⚠️"
+            label  = r["url"].replace("https://", "").replace("http://", "")
+            detail = f"{r['chunks']} chunks" if r["status"] == "ok" else r.get("error", "skipped")
+            st.markdown(f"{icon} `{label[:70]}` — *{detail}*")
+
+    # Separator + mfapi section label once URL phase is done or mfapi has started
+    if phase == "mfapi" or mfapi_done:
+        st.markdown("---")
+        st.markdown("**📡 mfapi.in (AMFI live data) — fetching NAV & returns for each fund**")
+        for r in mfapi_done:
+            icon   = "✅" if r["status"] == "ok" else "⚠️"
+            detail = f"NAV: {r.get('nav', '')}  •  {r['chunks']} chunks" if r["status"] == "ok" else r.get("error", "failed")
+            st.markdown(f"{icon} `{r['fund']}` — *{detail}*")
+
+    # ── Render pending items ──────────────────────────────────────────────
+    if phase == "urls" and url_queue and not stopped:
+        next_url, _ = url_queue[0]
         label = next_url.replace("https://", "").replace("http://", "")
         st.markdown(f"🔄 `{label[:70]}` — *scraping…*")
-        for u, c in queue[1:]:
-            lbl = u.replace("https://", "").replace("http://", "")
-            st.markdown(f"⏳ `{lbl[:70]}` — *pending*")
-    elif queue and stopped:
-        for u, c in queue:
-            lbl = u.replace("https://", "").replace("http://", "")
-            st.markdown(f"⏸ `{lbl[:70]}` — *not processed (stopped)*")
+        for u, _ in url_queue[1:]:
+            st.markdown(f"⏳ `{u.replace('https://','').replace('http://','')[:70]}` — *pending*")
+        if not mfapi_done:
+            st.markdown("---")
+            st.markdown("**📡 mfapi.in — will start after URL scraping**")
+            for name in FUND_SEARCH_TERMS:
+                st.markdown(f"⏳ `{name}` — *pending*")
+    elif phase == "urls" and url_queue and stopped:
+        for u, _ in url_queue:
+            st.markdown(f"⏸ `{u.replace('https://','').replace('http://','')[:70]}` — *not processed*")
+    elif phase == "mfapi" and mfapi_queue and not stopped:
+        next_fund = mfapi_queue[0]
+        st.markdown(f"🔄 `{next_fund}` — *fetching from mfapi.in…*")
+        for name in mfapi_queue[1:]:
+            st.markdown(f"⏳ `{name}` — *pending*")
+    elif phase == "mfapi" and mfapi_queue and stopped:
+        for name in mfapi_queue:
+            st.markdown(f"⏸ `{name}` — *not processed*")
 
-    # ── Process next URL or finish ─────────────────────────────────────────
-    if queue and not stopped:
-        next_url, next_corpus = queue.pop(0)
-        snapshot = st.session_state.get("_sync_snapshot", _load_snapshot())
-        result   = ingest_single_url(next_url, next_corpus, snapshot)
-        done.append(result)
-        st.session_state["_sync_queue"]    = queue
-        st.session_state["_sync_done"]     = done
-        st.session_state["_sync_snapshot"] = snapshot
-        st.rerun()
-    else:
-        # All done or stopped — finalise
+    # ── Process next item ─────────────────────────────────────────────────
+    if stopped:
+        # Finalise with whatever we have
         snapshot = st.session_state.get("_sync_snapshot", _load_snapshot())
         _save_snapshot(snapshot)
-        if not stopped:
-            # Write hash so CLI knows we're current
-            entries     = _parse_manifest(_MANIFEST_PATH)
-            urls_sorted = sorted(e[0] for e in entries)
-            new_hash    = hashlib.sha256("|".join(urls_sorted).encode()).hexdigest()
-            _INDEX_HASH_FILE.parent.mkdir(parents=True, exist_ok=True)
-            _INDEX_HASH_FILE.write_text(new_hash)
         try:
             ingest_local_files()
         except Exception:
             pass
-        # Clear sync state
-        for k in ["_sync_active", "_sync_queue", "_sync_done", "_sync_stop", "_sync_total", "_sync_snapshot"]:
+        for k in ["_sync_active", "_sync_queue", "_sync_mfapi_queue", "_sync_done",
+                  "_sync_stop", "_sync_total", "_sync_phase", "_sync_snapshot",
+                  "_sync_mfapi_all_funds"]:
             st.session_state.pop(k, None)
-        st.session_state["_show_sync_dialog"] = {"done": done, "stopped": stopped}
+        st.session_state["_show_sync_dialog"] = {"done": done, "stopped": True}
+        st.rerun()
+
+    elif phase == "urls" and url_queue:
+        # Process next URL
+        next_url, next_corpus = url_queue.pop(0)
+        snapshot = st.session_state.get("_sync_snapshot", _load_snapshot())
+        result   = ingest_single_url(next_url, next_corpus, snapshot)
+        done.append(result)
+        st.session_state["_sync_queue"]    = url_queue
+        st.session_state["_sync_done"]     = done
+        st.session_state["_sync_snapshot"] = snapshot
+        st.rerun()
+
+    elif phase == "urls" and not url_queue:
+        # URL phase complete — write hash, transition to mfapi phase
+        snapshot = st.session_state.get("_sync_snapshot", _load_snapshot())
+        _save_snapshot(snapshot)
+        entries     = _parse_manifest(_MANIFEST_PATH)
+        urls_sorted = sorted(e[0] for e in entries)
+        new_hash    = hashlib.sha256("|".join(urls_sorted).encode()).hexdigest()
+        _INDEX_HASH_FILE.parent.mkdir(parents=True, exist_ok=True)
+        _INDEX_HASH_FILE.write_text(new_hash)
+        # Fetch AMFI fund list once, cache in session
+        all_funds = _fetch_all_funds()
+        st.session_state["_sync_mfapi_all_funds"] = all_funds
+        st.session_state["_sync_mfapi_queue"]     = list(FUND_SEARCH_TERMS.keys())
+        st.session_state["_sync_phase"]           = "mfapi"
+        st.rerun()
+
+    elif phase == "mfapi" and mfapi_queue:
+        # Process next fund via mfapi.in
+        fund_name   = mfapi_queue.pop(0)
+        search_name = FUND_SEARCH_TERMS[fund_name]
+        all_funds   = st.session_state.get("_sync_mfapi_all_funds", [])
+        result      = {"fund": fund_name, "url": f"mfapi.in/{fund_name}", "source": "mfapi",
+                       "chunks": 0, "nav": "", "status": "error", "error": ""}
+        try:
+            code = _find_scheme_code(all_funds, search_name)
+            if not code:
+                result["error"] = "scheme not found in AMFI list"
+            else:
+                data = _fetch_scheme_data(code)
+                if not data or data.get("status") != "SUCCESS":
+                    result["error"] = "mfapi fetch failed"
+                else:
+                    meta     = data.get("meta", {})
+                    nav_data = data.get("data", [])
+                    text     = format_fund_as_text(fund_name, meta, nav_data)
+                    safe     = fund_name.lower().replace(" ", "_")
+                    out      = _MFAPI_RAW_DIR / f"{safe}_(mfapi).txt"
+                    out.write_text(text, encoding="utf-8")
+                    # Quick NAV extraction for display
+                    nav_val  = nav_data[0].get("nav", "") if nav_data else ""
+                    result.update({"status": "ok", "chunks": len(nav_data), "nav": f"₹{nav_val}"})
+        except Exception as exc:
+            result["error"] = str(exc)
+        done.append(result)
+        st.session_state["_sync_mfapi_queue"] = mfapi_queue
+        st.session_state["_sync_done"]        = done
+        st.rerun()
+
+    else:
+        # Both phases done — final local file ingest
+        try:
+            ingest_local_files()
+        except Exception:
+            pass
+        for k in ["_sync_active", "_sync_queue", "_sync_mfapi_queue", "_sync_done",
+                  "_sync_stop", "_sync_total", "_sync_phase", "_sync_snapshot",
+                  "_sync_mfapi_all_funds"]:
+            st.session_state.pop(k, None)
+        st.session_state["_show_sync_dialog"] = {"done": done, "stopped": False}
         st.rerun()
 
     st.stop()   # don't render tabs while sync is in progress
 
 # ── 3. Tabs ───────────────────────────────────────────────────────────────────
 tab1, tab2, tab3 = st.tabs([
-    "📚  Smart-Sync Knowledge Base",
-    "📊  Insight-Driven Optimization",
-    "🤖  Super-Agent MCP Workflow",
+    "📚  Knowledge Base",
+    "📊  Product Pulse",
+    "🤖  Action Center",
 ])
+st.components.v1.html("""<script>
+(function() {
+    const tips = [
+        "Sync SBI fund data from live sources and scrape the knowledge base used by the FAQ & Voice agents.",
+        "Run the review pipeline — cluster themes, extract quotes, generate the weekly pulse and fee explainer.",
+        "Review and approve AI-generated calendar holds, notes entries, and advisor emails before they are sent."
+    ];
+    function applyTooltips() {
+        const tabs = window.parent.document.querySelectorAll('[data-baseweb="tab"]');
+        if (tabs.length < 3) { setTimeout(applyTooltips, 200); return; }
+        tabs.forEach((t, i) => { if (tips[i]) t.setAttribute('data-tooltip', tips[i]); });
+    }
+    setTimeout(applyTooltips, 300);
+})();
+</script>""", height=0)
 
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -1975,6 +2114,7 @@ with tab2:
             st.session_state["weekly_pulse"]    = pulse.get("weekly_note", "")
             st.session_state["top_theme"]       = top3[0] if top3 else "General Feedback"
             st.session_state["top_3_themes"]    = top3
+            st.session_state["pulse_quotes"]    = cr.get("quotes", [])
             st.session_state["action_ideas"]    = pulse.get("action_ideas", [])
             st.session_state["fee_bullets"]     = p_data.get("fee", {}).get("bullets", [])
             st.session_state["fee_sources"]     = p_data.get("fee", {}).get("sources", [])
@@ -1996,6 +2136,7 @@ with tab2:
             st.session_state["weekly_pulse"]    = _p.get("weekly_note", "")
             st.session_state["top_theme"]       = _top3[0] if _top3 else "General Feedback"
             st.session_state["top_3_themes"]    = _top3
+            st.session_state["pulse_quotes"]    = _p.get("quotes", [])
             st.session_state["action_ideas"]    = _p.get("action_ideas", [])
             st.session_state["fee_bullets"]     = _f.get("bullets", [])
             st.session_state["fee_sources"]     = _f.get("sources", [])
@@ -2006,40 +2147,44 @@ with tab2:
     # ── Pulse Summary card (bridges M2 pulse → M3 voice briefing) ───────────
     _pulse_note   = st.session_state.get("weekly_pulse", "")
     _top3_display = st.session_state.get("top_3_themes", [])
+    _pulse_quotes = st.session_state.get("pulse_quotes", [])
     _actions      = st.session_state.get("action_ideas", [])
     if _pulse_note or _top3_display:
         with st.expander("📊 Weekly Pulse Summary — feeds Voice Agent briefing", expanded=True):
-            _ps_col1, _ps_col2 = st.columns([3, 2])
-            with _ps_col1:
-                st.markdown("**Weekly Note**")
-                _note_text = _pulse_note if _pulse_note else "—"
-                st.markdown(
-                    f'<div style="font-size:0.875rem;line-height:1.7;color:var(--text-2);'
-                    f'background:var(--bg-glass);border-radius:8px;'
-                    f'padding:12px 16px;border:1px solid var(--border);">'
-                    f'{_note_text}</div>',
-                    unsafe_allow_html=True,
-                )
-            with _ps_col2:
-                if _top3_display:
-                    st.markdown("**Top Themes → Voice Agent Briefing**")
-                    for _i, _th in enumerate(_top3_display[:3], 1):
-                        _chip_c  = "#C9A84C" if _i == 1 else "#7EB6FF"
-                        _rgb     = "201,168,76" if _i == 1 else "126,182,255"
-                        _weight  = "700" if _i == 1 else "500"
-                        _tag     = '&nbsp;<span style="font-size:0.7rem;color:#22C55E;">↑ Agent greeting</span>' if _i == 1 else ""
-                        st.markdown(
-                            f'<div style="display:flex;align-items:center;gap:8px;margin:4px 0;font-size:0.875rem;">'
-                            f'<span style="background:rgba({_rgb},0.15);color:{_chip_c};padding:2px 10px;'
-                            f'border-radius:100px;border:1px solid rgba({_rgb},0.35);'
-                            f'font-weight:{_weight};white-space:nowrap;">#{_i} {_th}</span>'
-                            f'{_tag}</div>',
-                            unsafe_allow_html=True,
-                        )
-                if _actions:
-                    st.markdown("**Action Ideas**")
-                    for _act in _actions[:3]:
-                        st.markdown(f"- {_act}")
+            # Weekly note
+            _note_text = _pulse_note if _pulse_note else "—"
+            st.markdown("**Weekly Note**")
+            st.markdown(
+                f'<div style="font-size:0.875rem;line-height:1.7;color:var(--text-2);'
+                f'background:var(--bg-glass);border-radius:8px;'
+                f'padding:12px 16px;border:1px solid var(--border);margin-bottom:16px;">'
+                f'{_note_text}</div>',
+                unsafe_allow_html=True,
+            )
+            # Aligned theme → quote → action rows
+            if _top3_display:
+                st.markdown("**Top 3 Themes — User Quote — Action Idea**")
+                _row_colors = [
+                    ("#C9A84C", "201,168,76"),
+                    ("#7EB6FF", "126,182,255"),
+                    ("#A78BFA", "167,139,250"),
+                ]
+                for _i, _th in enumerate(_top3_display[:3]):
+                    _chip_c, _rgb = _row_colors[_i]
+                    _quote  = _pulse_quotes[_i] if _i < len(_pulse_quotes) else "—"
+                    _action = _actions[_i] if _i < len(_actions) else "—"
+                    _agent_tag = '&nbsp;<span style="font-size:0.68rem;color:#22C55E;font-weight:600;">↑ Agent greeting</span>' if _i == 0 else ""
+                    st.markdown(
+                        f'<div style="display:grid;grid-template-columns:1fr 2fr 1.5fr;gap:10px;'
+                        f'align-items:start;padding:10px 12px;margin:4px 0;border-radius:8px;'
+                        f'background:rgba({_rgb},0.07);border:1px solid rgba({_rgb},0.2);">'
+                        f'<div style="font-size:0.82rem;font-weight:700;color:{_chip_c};">#{_i+1} {_th}{_agent_tag}</div>'
+                        f'<div style="font-size:0.8rem;color:var(--text-2);font-style:italic;">'
+                        f'&ldquo;{_quote}&rdquo;</div>'
+                        f'<div style="font-size:0.8rem;color:var(--text-2);">→ {_action}</div>'
+                        f'</div>',
+                        unsafe_allow_html=True,
+                    )
 
     # ── Voice Agent section ──────────────────────────────────────────────────
     st.markdown("---")
@@ -2199,7 +2344,9 @@ with tab2:
         if _is_terminal:
             code = st.session_state.get("booking_code", "N/A")
             st.success(f"✓ Appointment booked! Code: **{code}**")
-            st.info("Check the **Super-Agent MCP Workflow** tab to review and approve calendar, notes, and email.")
+            if st.button("→ Go to Super-Agent MCP Workflow", key="goto_mcp_btn", type="primary", use_container_width=True):
+                st.session_state["_goto_tab3"] = True
+                st.rerun()
 
     # ── Full Analytics Dashboard (collapsed — available for deep review) ─────
     st.markdown("---")
@@ -2354,6 +2501,21 @@ header p,header a{color:rgba(26,35,64,0.6)!important;}
 # Tab 3 — Super-Agent MCP Workflow
 # ══════════════════════════════════════════════════════════════════════════════
 with tab3:
+    if st.session_state.pop("_goto_tab3", False):
+        st.components.v1.html(
+            """<script>
+            (function() {
+                function clickTab() {
+                    const btns = window.parent.document.querySelectorAll('[data-baseweb="tab"]');
+                    if (btns.length >= 3) { btns[2].click(); }
+                    else { setTimeout(clickTab, 100); }
+                }
+                setTimeout(clickTab, 100);
+            })();
+            </script>""",
+            height=0,
+        )
+
     st.markdown("""
 <div class="pillar-header">
   <h3 style="margin:0;color:var(--text-1);">The Super-Agent MCP Workflow</h3>
@@ -2382,8 +2544,6 @@ with tab3:
 
     # ── Market Context card ──────────────────────────────────────────────────
     _pulse_text   = st.session_state.get("weekly_pulse", "")
-    _fee_bullets  = st.session_state.get("fee_bullets", [])
-
     # Fallback: load from saved JSON if session is fresh
     if not _pulse_text:
         try:
@@ -2391,61 +2551,24 @@ with tab3:
             _pulse_text = _p2.get("weekly_note", "")
         except Exception:
             pass
-    if not _fee_bullets:
-        try:
-            _f2 = json.loads(Path("data/fee_latest.json").read_text())
-            _fee_bullets = _f2.get("bullets", [])
-        except Exception:
-            pass
 
-    if _pulse_text or _fee_bullets:
-        import re as _re
-        _pulse_words = _pulse_text.split()
-        _pulse_snippet = " ".join(_pulse_words[:80]) + ("…" if len(_pulse_words) > 80 else "")
+    if _pulse_text:
+        _pulse_snippet = _pulse_text
 
-        # Strip raw markdown bold/italic syntax from fee bullets for clean HTML display
-        def _strip_md(t: str) -> str:
-            t = _re.sub(r"\*\*(.+?)\*\*", r"<strong>\1</strong>", t)
-            t = _re.sub(r"\*(.+?)\*", r"<em>\1</em>", t)
-            t = _re.sub(r"^[-•*]\s*", "", t.strip())
-            return t
-
-        _mctx_html = '<div class="mctx-card">'
-
-        # Header
-        _mctx_html += (
+        _mctx_html = (
+            '<div class="mctx-card">'
             '<div class="mctx-header">'
             '<span class="mctx-header-icon">📋</span>'
             '<span class="mctx-header-title">Market Context Preview</span>'
             '<span class="mctx-header-sub">injected into advisor email on approval</span>'
             '</div>'
+            '<div class="mctx-body">'
+            '<div>'
+            '<div class="mctx-section-label">📊 Weekly Review Pulse</div>'
+            f'<div class="mctx-pulse-text">{_pulse_snippet}</div>'
+            '</div>'
+            '</div></div>'
         )
-
-        _mctx_html += '<div class="mctx-body">'
-
-        # Pulse snippet
-        if _pulse_snippet:
-            _mctx_html += (
-                '<div>'
-                '<div class="mctx-section-label">📊 Weekly Review Pulse</div>'
-                f'<div class="mctx-pulse-text">{_pulse_snippet}</div>'
-                '</div>'
-            )
-
-        # Fee bullets — clean rendered list, max 3
-        if _fee_bullets:
-            _fee_items = "".join(
-                f'<div class="mctx-fee-item"><div class="mctx-fee-dot"></div><div>{_strip_md(b)}</div></div>'
-                for b in _fee_bullets[:3]
-            )
-            _mctx_html += (
-                '<div>'
-                '<div class="mctx-section-label">💰 Fee Context</div>'
-                f'<div class="mctx-fee-list">{_fee_items}</div>'
-                '</div>'
-            )
-
-        _mctx_html += '</div></div>'
         st.markdown(_mctx_html, unsafe_allow_html=True)
     else:
         st.info(
@@ -2465,7 +2588,7 @@ st.markdown("""
     <div class="dsa-footer-brand">
       <div style="display:flex;align-items:center;gap:10px;margin-bottom:4px;">
         <div class="dsa-logo-icon" style="width:30px;height:30px;font-size:16px;">📊</div>
-        <div style="font-size:0.95rem;font-weight:800;color:var(--text-1);">Investor Ops & Intelligence Suite by Dalal Street Advisors</div>
+        <div style="font-size:0.95rem;font-weight:800;color:var(--text-1);">INDMoney Investor Ops & Intelligence Suite</div>
       </div>
       <p>AI-powered mutual fund intelligence platform. RAG-driven FAQ, weekly review pulse, voice appointment booking, and human-in-the-loop approvals — all in one place.</p>
       <div style="margin-top:14px;font-size:0.72rem;color:var(--text-3);">AI Bootcamp Capstone · 2026</div>

@@ -1,0 +1,45 @@
+Source URL: https://api.mfapi.in/mf/120578
+Scraped Date: 2026-05-05
+--------------------------------------------------
+SBI Technology Opportunities Fund
+Fund House: SBI Mutual Fund
+AMFI Scheme Name: SBI TECHNOLOGY OPPORTUNITIES FUND - DIRECT PLAN - GROWTH
+Scheme Code: 120578
+Category: Equity Scheme - Sectoral/ Thematic
+Scheme Type: Open Ended Schemes
+
+NAV: ₹213.19 (as on 2026-05-04)
+1-Year Return (CAGR): -5.57%
+3-Year Return (CAGR): 11.67%
+5-Year Return (CAGR): 12.17%
+Inception Date: 2013-01-10
+
+About SBI Technology Opportunities Fund:
+SBI Technology Opportunities Fund is a mutual fund scheme offered by SBI Mutual Fund.
+It is classified under: Equity Scheme - Sectoral/ Thematic.
+The scheme is of type: Open Ended Schemes.
+
+NAV History (recent 10 entries):
+  04-05-2026 — NAV: ₹213.18540
+  30-04-2026 — NAV: ₹213.94350
+  29-04-2026 — NAV: ₹214.23370
+  28-04-2026 — NAV: ₹213.18100
+  27-04-2026 — NAV: ₹213.22770
+  24-04-2026 — NAV: ₹210.80800
+  23-04-2026 — NAV: ₹216.93100
+  22-04-2026 — NAV: ₹219.39660
+  21-04-2026 — NAV: ₹223.24470
+  20-04-2026 — NAV: ₹221.88460
+
+Frequently Asked Questions:
+What is the current NAV of SBI Technology Opportunities Fund?
+The current NAV is ₹213.19 as on 2026-05-04.
+
+What is the 1-year return of SBI Technology Opportunities Fund?
+The 1-year CAGR is -5.57%.
+
+What is the 3-year return of SBI Technology Opportunities Fund?
+The 3-year CAGR is 11.67%.
+
+Mutual Fund investments are subject to market risks, read all scheme related documents carefully.
+Data sourced from AMFI via api.mfapi.in

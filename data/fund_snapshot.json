@@ -3,8 +3,8 @@
     "SBI Large Cap Fund": {
       "fund_name": "SBI Large Cap Fund",
       "source_url": "https://www.sbimf.com/sbimf-scheme-details/sbi-large-cap-fund-(formerly-known-as-sbi-bluechip-fund)-43",
-      "last_scraped": "2026-05-04",
-      "exit_load": "0.2%",
+      "last_scraped": "2026-05-05",
+      "exit_load": "1.0% if redeemed within 1 year; Nil after 1 year",
       "expense_ratio": "0.84%",
       "risk": "VERY HIGH",
       "aum": "48925.75Cr",
@@ -20,7 +20,7 @@
     "SBI Flexicap Fund": {
       "fund_name": "SBI Flexicap Fund",
       "source_url": "https://www.sbimf.com/sbimf-scheme-details/SBI-Flexicap-Fund-39",
-      "last_scraped": "2026-05-04",
+      "last_scraped": "2026-05-05",
       "exit_load": "0.1%",
       "expense_ratio": "0.86%",
       "risk": "VERY HIGH",
@@ -36,8 +36,8 @@
     "SBI ELSS Tax Saver Fund": {
       "fund_name": "SBI ELSS Tax Saver Fund",
       "source_url": "https://www.sbimf.com/sbimf-scheme-details/SBI-ELSS-Tax-Saver-Fund-(formerly-known-as-SBI-Long-Term-Equity-Fund)-3",
-      "last_scraped": "2026-05-04",
-      "exit_load": "0%",
+      "last_scraped": "2026-05-05",
+      "exit_load": "Nil (mandatory 3-year lock-in applies)",
       "expense_ratio": "0.99%",
       "risk": "VERY HIGH",
       "lock_in": "3 years",
@@ -54,7 +54,7 @@
     "SBI Small Cap Fund": {
       "fund_name": "SBI Small Cap Fund",
       "source_url": "https://www.sbimf.com/sbimf-scheme-details/SBI-Small-Cap-Fund-329",
-      "last_scraped": "2026-05-04",
+      "last_scraped": "2026-05-05",
       "exit_load": "1.0%",
       "expense_ratio": "0.79%",
       "risk": "VERY HIGH",
@@ -69,7 +69,7 @@
     "SBI Midcap Fund": {
       "fund_name": "SBI Midcap Fund",
       "source_url": "https://www.sbimf.com/sbimf-scheme-details/SBI-Midcap-Fund-34",
-      "last_scraped": "2026-05-04",
+      "last_scraped": "2026-05-05",
       "exit_load": "0.2%",
       "expense_ratio": "0.86%",
       "risk": "VERY HIGH",
@@ -86,15 +86,21 @@
     "Sip Calculator": {
       "fund_name": "Sip Calculator",
       "source_url": "https://www.sbimf.com/en-us/sip-calculator",
-      "last_scraped": "2026-05-04"
+      "last_scraped": "2026-05-05"
     },
     "SBI Focused Equity Fund": {
       "fund_name": "SBI Focused Equity Fund",
-      "source_url": "https://www.indmoney.com/mutual-funds/sbi-focused-equity-fund-direct-growth-3532",
-      "last_scraped": "2026-04-24",
-      "exit_load": "1.0%",
-      "expense_ratio": "2.49%",
-      "risk": "Very High"
+      "source_url": "https://www.sbimf.com/sbimf-scheme-details/SBI-Focused-Equity-Fund-37",
+      "last_scraped": "2026-05-05",
+      "exit_load": "1% if redeemed within 1 year from date of allotment",
+      "expense_ratio": "0.84%",
+      "risk": "VERY HIGH",
+      "aum": "34,107.45 Cr",
+      "inception_date": "11 October 2004 Min Lumps",
+      "min_sip": "500",
+      "min_lumpsum": "5,000",
+      "benchmark": "BSE 500 TRI",
+      "lock_in": "None - Riskometer: Very High - Minimum SIP: \u20b9500 -"
     },
     "Sbi Mutual Fund": {
       "fund_name": "Sbi Mutual Fund",
@@ -104,34 +110,200 @@
     },
     "SBI Liquid Fund": {
       "fund_name": "SBI Liquid Fund",
-      "source_url": "https://www.indmoney.com/mutual-funds/sbi-liquid-fund-direct-growth-2831",
-      "last_scraped": "2026-04-24",
-      "exit_load": "0.2%",
-      "expense_ratio": "1.56%",
-      "risk": "Very High"
+      "source_url": "https://www.sbimf.com/sbimf-scheme-details/SBI-Liquid-Fund-42",
+      "last_scraped": "2026-05-05",
+      "exit_load": "Day 1: 0.0070% Day 2: 0.0065% Day 3: 0.0060% Day 4: 0.0055% Day 5: 0.0050% Day 6",
+      "expense_ratio": "0.20%",
+      "risk": "MODERATE",
+      "aum": "71,204.32 Cr",
+      "inception_date": "2013-01-01  About SBI Liq",
+      "min_sip": "1,000",
+      "min_lumpsum": "5,000",
+      "benchmark": "CRISIL Liquid Fund AI Index",
+      "lock_in": "None - Riskometer: Low to Moderate - Minimum SIP"
     },
     "SBI Contra Fund": {
       "fund_name": "SBI Contra Fund",
-      "source_url": "https://www.indmoney.com/mutual-funds/sbi-contra-fund-direct-growth-3081",
-      "last_scraped": "2026-04-24",
-      "exit_load": "0.5%",
-      "expense_ratio": "0.52%",
-      "risk": "Very High"
+      "source_url": "https://www.sbimf.com/sbimf-scheme-details/SBI-Contra-Fund-33",
+      "last_scraped": "2026-05-05",
+      "exit_load": "1% if redeemed within 1 year from date of allotment",
+      "expense_ratio": "0.62%",
+      "risk": "VERY HIGH",
+      "aum": "42,861.73 Cr",
+      "fund_manager": "Dinesh Balachandran",
+      "inception_date": "2013-01-02  About SBI Con",
+      "min_sip": "500",
+      "min_lumpsum": "5,000",
+      "benchmark": "BSE 500 TRI",
+      "lock_in": "None - Riskometer: Very High - Minimum SIP: \u20b9500 -"
     },
     "Capital Gains Statements": {
       "fund_name": "Capital Gains Statements",
       "source_url": "https://www.camsonline.com/Investors/Statements/Capital-Gains-Statement",
-      "last_scraped": "2026-05-04",
+      "last_scraped": "2026-05-05",
       "lock_in": "3 years"
     },
     "Net Asset Value": {
       "fund_name": "Net Asset Value",
       "source_url": "https://www.amfiindia.com/net-asset-value",
-      "last_scraped": "2026-05-04"
+      "last_scraped": "2026-05-05"
     },
     "": {
       "source_url": "https://www.mfcentral.com",
-      "last_scraped": "2026-05-04"
+      "last_scraped": "2026-05-05"
+    },
+    "Sbi Technology Opportunities Fund Direct Growth": {
+      "fund_name": "Sbi Technology Opportunities Fund Direct Growth",
+      "source_url": "https://www.indmoney.com/mutual-funds/sbi-technology-opportunities-fund-direct-growth-4769",
+      "last_scraped": "2026-05-05",
+      "exit_load": "0%",
+      "expense_ratio": "0.39%",
+      "risk": "Moderate"
+    },
+    "Sbi Equity Hybrid Fund Direct Growth": {
+      "fund_name": "Sbi Equity Hybrid Fund Direct Growth",
+      "source_url": "https://www.indmoney.com/mutual-funds/sbi-equity-hybrid-fund-direct-growth-2755",
+      "last_scraped": "2026-05-05",
+      "exit_load": "0%",
+      "expense_ratio": "1.6%",
+      "risk": "Very High",
+      "lock_in": "3 years"
+    },
+    "Sbi Magnum Global Fund Direct Growth": {
+      "fund_name": "Sbi Magnum Global Fund Direct Growth",
+      "source_url": "https://www.indmoney.com/mutual-funds/sbi-magnum-global-fund-direct-growth-2803",
+      "last_scraped": "2026-05-05",
+      "exit_load": "1.0%",
+      "expense_ratio": "2.09%",
+      "risk": "Very High"
+    },
+    "Sbi Equity Hybrid Fund": {
+      "fund_name": "Sbi Equity Hybrid Fund",
+      "source_url": "https://www.sbimf.com/sbimf-scheme-details/SBI-Equity-Hybrid-Fund-35",
+      "last_scraped": "2026-05-05",
+      "aum": "68,142.56 Cr",
+      "exit_load": "1% if redeemed within 1 year from date of allotment",
+      "expense_ratio": "0.84%",
+      "risk": "MODERATELY HIGH",
+      "inception_date": "9 January 1995 Min Lumpsu",
+      "min_sip": "500",
+      "min_lumpsum": "1,000",
+      "lock_in": "None - Riskometer: Moderately High - Minimum SIP"
+    },
+    "Sbi Healthcare Opportunities Fund": {
+      "fund_name": "Sbi Healthcare Opportunities Fund",
+      "source_url": "https://www.sbimf.com/sbimf-scheme-details/SBI-Healthcare-Opportunities-Fund-36",
+      "last_scraped": "2026-05-05",
+      "aum": "3,124.82 Cr",
+      "exit_load": "1% if redeemed within 15 days from date of allotment",
+      "expense_ratio": "1.18%",
+      "fund_manager": "Tanmaya Desai",
+      "risk": "VERY HIGH",
+      "inception_date": "7 July 1999 Min Lumpsum/S",
+      "min_sip": "500",
+      "min_lumpsum": "5,000",
+      "lock_in": "None - Riskometer: Very High - Minimum SIP: \u20b9500 -"
+    },
+    "Sbi Magnum Global Fund": {
+      "fund_name": "Sbi Magnum Global Fund",
+      "source_url": "https://www.sbimf.com/sbimf-scheme-details/SBI-Magnum-Global-Fund-44",
+      "last_scraped": "2026-05-05",
+      "aum": "8,742.18 Cr",
+      "exit_load": "1% if redeemed within 1 year from date of allotment",
+      "expense_ratio": "0.98%",
+      "risk": "HIGH",
+      "inception_date": "30 September 1994 Min Lum",
+      "min_sip": "500",
+      "min_lumpsum": "5,000",
+      "benchmark": "BSE MNC Index TRI",
+      "lock_in": "None - Riskometer: High - Minimum SIP: \u20b9500 - Mini"
+    },
+    "Sbi Technology Opportunities Fund": {
+      "fund_name": "Sbi Technology Opportunities Fund",
+      "source_url": "https://www.sbimf.com/sbimf-scheme-details/SBI-Technology-Opportunities-Fund-48",
+      "last_scraped": "2026-05-05",
+      "aum": "4,892.34 Cr",
+      "exit_load": "1% if redeemed within 15 days from date of allotment",
+      "expense_ratio": "1.14%",
+      "fund_manager": "Saurabh Pant",
+      "risk": "VERY HIGH",
+      "inception_date": "9 January 2013 Min Lumpsu",
+      "min_sip": "500",
+      "min_lumpsum": "5,000",
+      "benchmark": "BSE Teck Index TRI",
+      "lock_in": "None - Riskometer: Very High - Minimum SIP: \u20b9500 -"
+    },
+    "Expense Ratio": {
+      "fund_name": "Expense Ratio",
+      "source_url": "https://groww.in/p/mutual-funds/expense-ratio",
+      "last_scraped": "2026-05-05"
+    },
+    "Amfi Investor Education": {
+      "fund_name": "Amfi Investor Education",
+      "source_url": "https://www.amfiindia.com/investor-corner/knowledge-center.html",
+      "last_scraped": "2026-05-05",
+      "lock_in": "3 years (shortest lock-in among all 80C instrument"
+    },
+    "Sebi Investor Rights": {
+      "fund_name": "Sebi Investor Rights",
+      "source_url": "https://www.sebi.gov.in/investors.html",
+      "last_scraped": "2026-05-05"
+    },
+    "SBI Technology Opportunities Fund": {
+      "fund_name": "SBI Technology Opportunities Fund",
+      "source_url": "https://www.sbimf.com/sbimf-scheme-details/SBI-Technology-Opportunities-Fund-48",
+      "last_scraped": "2026-05-05",
+      "exit_load": "1% if redeemed within 15 days from date of allotment",
+      "expense_ratio": "1.14%",
+      "risk": "VERY HIGH",
+      "aum": "4,892.34 Cr",
+      "min_sip": "500",
+      "min_lumpsum": "5,000",
+      "fund_manager": "Saurabh Pant",
+      "inception_date": "2013-01-10  About SBI Tec",
+      "benchmark": "BSE Teck Index TRI",
+      "lock_in": "None - Riskometer: Very High - Minimum SIP: \u20b9500 -"
+    },
+    "SBI Equity Hybrid Fund": {
+      "fund_name": "SBI Equity Hybrid Fund",
+      "source_url": "https://www.sbimf.com/sbimf-scheme-details/SBI-Equity-Hybrid-Fund-35",
+      "last_scraped": "2026-05-05",
+      "aum": "68,142.56 Cr",
+      "min_sip": "500",
+      "min_lumpsum": "1,000",
+      "exit_load": "1% if redeemed within 1 year from date of allotment",
+      "expense_ratio": "0.84%",
+      "risk": "MODERATELY HIGH",
+      "inception_date": "2013-01-02  About SBI Equ",
+      "lock_in": "None - Riskometer: Moderately High - Minimum SIP"
+    },
+    "SBI Healthcare Opportunities Fund": {
+      "fund_name": "SBI Healthcare Opportunities Fund",
+      "source_url": "https://www.sbimf.com/sbimf-scheme-details/SBI-Healthcare-Opportunities-Fund-36",
+      "last_scraped": "2026-05-05",
+      "aum": "3,124.82 Cr",
+      "min_sip": "500",
+      "min_lumpsum": "5,000",
+      "exit_load": "1% if redeemed within 15 days from date of allotment",
+      "expense_ratio": "1.18%",
+      "fund_manager": "Tanmaya Desai",
+      "risk": "VERY HIGH",
+      "inception_date": "2013-01-02  About SBI Hea",
+      "lock_in": "None - Riskometer: Very High - Minimum SIP: \u20b9500 -"
+    },
+    "SBI Magnum Global Fund": {
+      "fund_name": "SBI Magnum Global Fund",
+      "source_url": "https://www.sbimf.com/sbimf-scheme-details/SBI-Magnum-Global-Fund-44",
+      "last_scraped": "2026-05-05",
+      "aum": "8,742.18 Cr",
+      "min_sip": "500",
+      "min_lumpsum": "5,000",
+      "exit_load": "1% if redeemed within 1 year from date of allotment",
+      "expense_ratio": "0.98%",
+      "risk": "HIGH",
+      "inception_date": "30 September 1994 Min Lum",
+      "benchmark": "BSE MNC Index TRI",
+      "lock_in": "None - Riskometer: High - Minimum SIP: \u20b9500 - Mini"
     }
   }
 }

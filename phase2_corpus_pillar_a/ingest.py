@@ -9,6 +9,7 @@ from .url_loader import fetch_url
 from .chunker import chunk_text, make_structured_chunk
 from .embedder import get_embeddings
 from .structured_extractor import extract as extract_fields, to_summary_text, fund_name_from_filename
+from .mfapi_loader import fetch_all_sbi_funds
 
 ROOT = Path(__file__).resolve().parents[1]
 _INDEX_HASH_FILE  = ROOT / "data" / ".index_hash"
@@ -52,6 +53,20 @@ def _parse_raw_file(path: Path) -> tuple[str, str]:
             break
     text = " ".join(lines[content_start:])
     return source_url, text
+
+
+def ingest_mfapi_funds(raw_dir: Path = _RAW_DIR) -> dict:
+    """Fetch live NAV + metadata for all 12 SBI funds from mfapi.in (AMFI data).
+
+    Writes *_(mfapi).txt files into raw_dir so the subsequent ingest_local_files()
+    call picks them up automatically. Returns fetch status per fund.
+    """
+    print("[ingest] Fetching SBI fund data from mfapi.in (AMFI)...")
+    results = fetch_all_sbi_funds(raw_dir)
+    ok    = sum(1 for s in results.values() if s == "ok")
+    fails = sum(1 for s in results.values() if s != "ok")
+    print(f"[ingest] mfapi fetch complete: {ok} ok, {fails} failed")
+    return results
 
 
 def ingest_local_files(raw_dir: Path = _RAW_DIR) -> dict:

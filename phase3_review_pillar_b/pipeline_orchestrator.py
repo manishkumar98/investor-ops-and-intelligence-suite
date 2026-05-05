@@ -61,9 +61,12 @@ def run_pipeline(csv_source: Union[str, io.IOBase], session: dict) -> dict:
         {"quote": q, "rating": 3} for q in cluster_quotes
     ]
 
-    # ── 5. Pulse writing ────────────────────────────────────────────────────
-    pulse = write(top_3, quotes)
-    word_count = len(pulse.split())
+    # ── 5. Pulse writing — narrative note only (action ideas come from clusterer) ─
+    # Use weekly_note from cluster_result if available; otherwise generate via pulse_writer
+    weekly_note = cluster_result.get("weekly_note", "")
+    if not weekly_note or len(weekly_note.split()) < 20:
+        weekly_note = write(top_3, quotes)
+    word_count = len(weekly_note.split())
 
     # ── 6. Fee explainer ────────────────────────────────────────────────────
     fee_result = explain(top_theme, session)
@@ -72,9 +75,11 @@ def run_pipeline(csv_source: Union[str, io.IOBase], session: dict) -> dict:
     analytics = generate_analytics(clean_reviews)
 
     # ── 8. Write session state ──────────────────────────────────────────────
-    session["weekly_pulse"]    = pulse
+    session["weekly_pulse"]    = weekly_note
     session["top_theme"]       = top_theme
     session["top_3_themes"]    = top_3
+    session["pulse_quotes"]    = cluster_result.get("quotes", [q["quote"] for q in quotes])
+    session["action_ideas"]    = action_ideas
     session["fee_bullets"]     = fee_result["bullets"]
     session["fee_sources"]     = fee_result["sources"]
     session["pulse_generated"] = True
@@ -83,7 +88,7 @@ def run_pipeline(csv_source: Union[str, io.IOBase], session: dict) -> dict:
     return {
         "top_3":        top_3,
         "quotes":       quotes,
-        "pulse":        pulse,
+        "pulse":        {"weekly_note": weekly_note, "action_ideas": action_ideas},
         "word_count":   word_count,
         "action_ideas": action_ideas,
         "fee_bullets":  fee_result["bullets"],

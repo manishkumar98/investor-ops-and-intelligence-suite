@@ -54,12 +54,24 @@ def run() -> None:
 
     # ── Append entry to pulse_notes.md ────────────────────────────────────────
     notes_file = DATA / "pulse_notes.md"
+    # Build aligned theme → quote → action triplets for the notes entry
+    triplet_lines = []
+    for i, theme in enumerate(top_3):
+        quote  = quotes[i]  if i < len(quotes)       else ""
+        action = action_ideas[i] if i < len(action_ideas) else ""
+        triplet_lines.append(f"**{i+1}. {theme}**")
+        if quote:
+            triplet_lines.append(f"> \"{quote}\"")
+        if action:
+            triplet_lines.append(f"→ {action}")
+        triplet_lines.append("")
+
     new_entry = (
         f"## Week of {today_str}\n\n"
         f"### Weekly Note\n{weekly_note}\n\n"
-        f"### Top 3 Themes\n" + "\n".join(f"- {t}" for t in top_3) + "\n\n"
-        f"### Action Ideas\n" + "\n".join(f"{i+1}. {a}" for i, a in enumerate(action_ideas)) + "\n\n"
-        f"---\n\n"
+        f"### Top 3 Themes — Quotes — Actions\n\n"
+        + "\n".join(triplet_lines)
+        + "\n---\n\n"
     )
     existing = notes_file.read_text(encoding="utf-8") if notes_file.exists() else ""
     notes_file.write_text(new_entry + existing, encoding="utf-8")

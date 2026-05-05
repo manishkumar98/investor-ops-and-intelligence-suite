@@ -1,0 +1,45 @@
+Source URL: https://api.mfapi.in/mf/119718
+Scraped Date: 2026-05-05
+--------------------------------------------------
+SBI Flexicap Fund
+Fund House: SBI Mutual Fund
+AMFI Scheme Name: SBI Flexicap Fund - DIRECT PLAN - Growth Option
+Scheme Code: 119718
+Category: Equity Scheme - Flexi Cap Fund
+Scheme Type: Open Ended Schemes
+
+NAV: ₹119.05 (as on 2026-05-04)
+1-Year Return (CAGR): 2.15%
+3-Year Return (CAGR): 11.66%
+5-Year Return (CAGR): 11.99%
+Inception Date: 2013-01-07
+
+About SBI Flexicap Fund:
+SBI Flexicap Fund is a mutual fund scheme offered by SBI Mutual Fund.
+It is classified under: Equity Scheme - Flexi Cap Fund.
+The scheme is of type: Open Ended Schemes.
+
+NAV History (recent 10 entries):
+  04-05-2026 — NAV: ₹119.04970
+  30-04-2026 — NAV: ₹118.28860
+  29-04-2026 — NAV: ₹119.23400
+  28-04-2026 — NAV: ₹119.15310
+  27-04-2026 — NAV: ₹119.72070
+  24-04-2026 — NAV: ₹118.83130
+  23-04-2026 — NAV: ₹119.78430
+  22-04-2026 — NAV: ₹120.97540
+  21-04-2026 — NAV: ₹121.38310
+  20-04-2026 — NAV: ₹120.77010
+
+Frequently Asked Questions:
+What is the current NAV of SBI Flexicap Fund?
+The current NAV is ₹119.05 as on 2026-05-04.
+
+What is the 1-year return of SBI Flexicap Fund?
+The 1-year CAGR is 2.15%.
+
+What is the 3-year return of SBI Flexicap Fund?
+The 3-year CAGR is 11.66%.
+
+Mutual Fund investments are subject to market risks, read all scheme related documents carefully.
+Data sourced from AMFI via api.mfapi.in

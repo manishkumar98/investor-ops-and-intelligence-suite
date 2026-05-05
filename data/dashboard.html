@@ -107,6 +107,7 @@
         .accordion-body { display: none; padding: 16px 18px; border-top: 1px solid rgba(255,255,255,0.06); }
         .accordion.open .accordion-body { display: block; }
         .accordion-quote { font-size: 13px; font-style: italic; color: rgba(255,255,255,0.7); border-left: 3px solid #4361ee; padding-left: 12px; margin-top: 8px; line-height: 1.6; }
+        .accordion-action { font-size: 12px; color: #a5b4fc; margin-top: 8px; padding: 4px 10px; background: rgba(165,180,252,0.08); border-radius: 6px; border: 1px solid rgba(165,180,252,0.2); }
         .accordion-desc { font-size: 13px; color: rgba(255,255,255,0.6); line-height: 1.6; }
 
         .action-row { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 20px; }
@@ -182,7 +183,7 @@
         .tab-btn::after {
             content: attr(title);
             position: absolute;
-            bottom: calc(100% + 8px);
+            top: calc(100% + 8px);
             left: 50%;
             transform: translateX(-50%);
             background: #1a1f35;
@@ -198,7 +199,7 @@
             pointer-events: none;
             opacity: 0;
             transition: opacity 0.18s ease;
-            z-index: 999;
+            z-index: 10000;
             box-shadow: 0 4px 16px rgba(0,0,0,0.4);
         }
         .tab-btn:hover::after { opacity: 1; }
@@ -795,21 +796,38 @@ Reviews this week present a polarised but telling picture of INDmoney's trading 
             document.getElementById('gate-summary').value = PULSE_DATA.weekly_note || '';
             document.getElementById('gen-timestamp').textContent = `Generated: ${runDate} by AI Pulse System`;
 
-            // Theme accordions (use all themes, show quote for each)
-            const themeAccordions = PULSE_DATA.themes.map((theme, i) => {
-                const quote = PULSE_DATA.quotes[i] || PULSE_DATA.quotes[0] || '';
-                const isTop = PULSE_DATA.top_3_themes.includes(theme);
-                return `<div class="accordion" id="acc-${i}">
-                    <div class="accordion-header" onclick="toggleAccordion('acc-${i}')">
-                        <span>${escapeHtml(theme)} ${isTop ? '<span style="font-size:11px;color:#a5b4fc;margin-left:6px">★ Top Theme</span>' : ''}</span>
-                        <span class="accordion-arrow">▼</span>
-                    </div>
-                    <div class="accordion-body">
-                        <p class="accordion-desc">User feedback cluster related to ${escapeHtml(theme.toLowerCase())} experiences in the INDmoney app.</p>
-                        ${quote ? `<div class="accordion-quote">"${escapeHtml(quote)}"</div>` : ''}
-                    </div>
-                </div>`;
-            }).join('');
+            // Top 3 theme accordions — quotes[i] and action_ideas[i] are aligned with top_3_themes[i]
+            const top3Themes = PULSE_DATA.top_3_themes || [];
+            const allThemes  = PULSE_DATA.themes || [];
+            // Show top 3 first (aligned with quotes/actions), then remaining themes without quotes
+            const themeAccordions = [
+                ...top3Themes.map((theme, i) => {
+                    const quote  = PULSE_DATA.quotes[i] || '';
+                    const action = PULSE_DATA.action_ideas[i] || '';
+                    return `<div class="accordion" id="acc-${i}">
+                        <div class="accordion-header" onclick="toggleAccordion('acc-${i}')">
+                            <span>${escapeHtml(theme)} <span style="font-size:11px;color:#a5b4fc;margin-left:6px">★ Top Theme</span></span>
+                            <span class="accordion-arrow">▼</span>
+                        </div>
+                        <div class="accordion-body">
+                            <p class="accordion-desc">User feedback cluster related to ${escapeHtml(theme.toLowerCase())} experiences in the INDmoney app.</p>
+                            ${quote  ? `<div class="accordion-quote">"${escapeHtml(quote)}"</div>` : ''}
+                            ${action ? `<div class="accordion-action">→ ${escapeHtml(action)}</div>` : ''}
+                        </div>
+                    </div>`;
+                }),
+                ...allThemes.filter(t => !top3Themes.includes(t)).map((theme, i) => {
+                    return `<div class="accordion" id="acc-other-${i}">
+                        <div class="accordion-header" onclick="toggleAccordion('acc-other-${i}')">
+                            <span>${escapeHtml(theme)}</span>
+                            <span class="accordion-arrow">▼</span>
+                        </div>
+                        <div class="accordion-body">
+                            <p class="accordion-desc">User feedback cluster related to ${escapeHtml(theme.toLowerCase())} experiences in the INDmoney app.</p>
+                        </div>
+                    </div>`;
+                })
+            ].join('');
             document.getElementById('gate-themes').innerHTML = themeAccordions;
 
             // Gate action ideas
@@ -850,30 +868,27 @@ Reviews this week present a polarised but telling picture of INDmoney's trading 
 
             // ── Pulse Poster tab ──
             const d = PULSE_DATA;
-            const themes = d.top_3_themes.map(t => `<span class="pill">${escapeHtml(t)}</span>`).join('');
-            const quotes = d.quotes.map(q => `<div class="quote-card">"${escapeHtml(q)}"</div>`).join('');
-            const actions = d.action_ideas.map((a, i) => `
-                <div class="action-item">
-                    <div class="action-num">${i+1}</div>
-                    <div class="action-text">${escapeHtml(a)}</div>
-                </div>`).join('');
+            const triplets = d.top_3_themes.map((t, i) => {
+                const q = d.quotes[i] || '';
+                const a = d.action_ideas[i] || '';
+                return `<div class="action-item" style="flex-direction:column;align-items:flex-start;gap:6px;padding:16px;">
+                    <div style="display:flex;align-items:center;gap:10px;">
+                        <div class="action-num">${i+1}</div>
+                        <div style="font-weight:600;color:#F5F0E8;">${escapeHtml(t)}</div>
+                    </div>
+                    ${q ? `<div style="font-style:italic;color:rgba(255,255,255,0.65);font-size:13px;padding-left:36px;">"${escapeHtml(q)}"</div>` : ''}
+                    ${a ? `<div class="accordion-action" style="padding-left:36px;">→ ${escapeHtml(a)}</div>` : ''}
+                </div>`;
+            }).join('');
 
             document.getElementById('poster-content').innerHTML = `
                 <div class="poster-section">
-                    <h3>Top Themes</h3>
-                    <div class="theme-pills">${themes}</div>
-                </div>
-                <div class="poster-section">
-                    <h3>User Quotes</h3>
-                    ${quotes}
+                    <h3>Top 3 Themes — Quotes — Actions</h3>
+                    ${triplets}
                 </div>
                 <div class="poster-section">
                     <h3>Weekly Summary</h3>
                     <p class="note-text">${escapeHtml(d.weekly_note)}</p>
-                </div>
-                <div class="poster-section">
-                    <h3>Action Ideas</h3>
-                    ${actions}
                 </div>
                 ${FEE_DATA ? `<div class="poster-section">
                     <h3>Fee Explainer — ${escapeHtml(FEE_DATA.scenario_name)}</h3>

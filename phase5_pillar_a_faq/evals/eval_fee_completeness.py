@@ -71,6 +71,62 @@ FUND_FEE_TESTS = [
         "expected_er":    None,
         "has_lockin":     False,
     },
+    {
+        "fund":           "SBI Focused Equity Fund",
+        "question":       "What is the exit load and expense ratio for SBI Focused Equity Fund?",
+        "expected_exit":  "1%",
+        "expected_er":    "0.84%",
+        "has_lockin":     False,
+        "skip_source_sbimf": True,
+    },
+    {
+        "fund":           "SBI Liquid Fund",
+        "question":       "What are the fees and exit load structure for SBI Liquid Fund?",
+        "expected_exit":  None,
+        "expected_er":    "0.20%",
+        "has_lockin":     False,
+        "skip_source_sbimf": True,
+    },
+    {
+        "fund":           "SBI Contra Fund",
+        "question":       "What is the exit load and expense ratio for SBI Contra Fund?",
+        "expected_exit":  "1%",
+        "expected_er":    "0.79%",
+        "has_lockin":     False,
+        "skip_source_sbimf": True,
+    },
+    {
+        "fund":           "SBI Technology Opportunities Fund",
+        "question":       "What are the fee components for SBI Technology Opportunities Fund?",
+        "expected_exit":  "1%",
+        "expected_er":    "1.08%",
+        "has_lockin":     False,
+        "skip_source_sbimf": True,
+    },
+    {
+        "fund":           "SBI Healthcare Opportunities Fund",
+        "question":       "What is the exit load and expense ratio for SBI Healthcare Opportunities Fund?",
+        "expected_exit":  "1%",
+        "expected_er":    "1.18%",
+        "has_lockin":     False,
+        "skip_source_sbimf": True,
+    },
+    {
+        "fund":           "SBI Equity Hybrid Fund",
+        "question":       "What fees does SBI Equity Hybrid Fund charge and is there a lock-in?",
+        "expected_exit":  "1%",
+        "expected_er":    "0.84%",
+        "has_lockin":     False,
+        "skip_source_sbimf": True,
+    },
+    {
+        "fund":           "SBI Magnum Global Fund",
+        "question":       "What is the exit load and expense ratio for SBI Magnum Global Fund?",
+        "expected_exit":  "1%",
+        "expected_er":    "0.98%",
+        "has_lockin":     False,
+        "skip_source_sbimf": True,
+    },
 ]
 
 # ── Checkers ─────────────────────────────────────────────────────────────────
@@ -86,7 +142,11 @@ def check_mentions(text: str, *keywords) -> bool:
 def check_sources(sources: list[str]) -> dict:
     has_sbimf    = any("sbimf.com"    in s for s in sources)
     has_indmoney = any("indmoney.com" in s for s in sources)
-    return {"sbimf": has_sbimf, "indmoney": has_indmoney}
+    has_groww    = any("groww.in"     in s for s in sources)
+    has_mfapi    = any("mfapi.in"     in s or "mfapi" in s for s in sources)
+    has_any      = bool(sources)
+    return {"sbimf": has_sbimf, "indmoney": has_indmoney,
+            "groww": has_groww, "mfapi": has_mfapi, "any": has_any}
 
 
 # ── Runner ───────────────────────────────────────────────────────────────────
@@ -106,10 +166,11 @@ def run() -> list[dict]:
                 "expense_ratio_mentioned": check_mentions(text, "expense ratio"),
                 "lock_in_mentioned":       check_mentions(text, "lock") if test["has_lockin"] else True,
                 "min_3_bullets":           len(r.bullets) >= 3,
-                "source_indmoney":         src["indmoney"],
+                "has_any_source":          src["any"],
             }
             if not test.get("skip_source_sbimf"):
-                checks["source_sbimf"] = src["sbimf"]
+                checks["source_sbimf"]    = src["sbimf"]
+                checks["source_indmoney"] = src["indmoney"]
             if test["expected_exit"]:
                 checks["exit_value_correct"] = test["expected_exit"] in text
             if test["expected_er"]:

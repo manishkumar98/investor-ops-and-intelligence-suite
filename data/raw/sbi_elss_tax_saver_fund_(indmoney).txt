@@ -1,0 +1,74 @@
+Source URL: https://www.indmoney.com/mutual-funds/sbi-long-term-equity-fund-direct-growth-2754
+Scraped Date: 2026-05-05
+--------------------------------------------------
+SBI ELSS Tax Saver Fund (formerly SBI Long Term Equity Fund)
+Equity | SBI Mutual Fund | ELSS (Tax Saving)
+
+₹392.14
+NAV as on 22 Apr 2026
+
+17.8% per year Since Inception
+
+Fund Performance vs BSE 500 TRI
+
+Period     | This Fund | BSE 500 TRI | ELSS Avg
+1M         | 7.80%     | 7.20%       | 6.90%
+3M         | 4.40%     | 4.10%       | 3.80%
+6M         | -1.80%    | -2.10%      | -2.30%
+1Y         | 9.20%     | 8.40%       | 8.00%
+3Y         | 15.40%    | 14.20%      | 13.60%
+5Y         | 18.20%    | 16.80%      | 16.10%
+
+Key Metrics:
+Expense Ratio: 0.99%
+Benchmark: BSE 500 TRI
+AUM: ₹25,612 Cr
+Inception Date: 31 March 1993
+Min Lumpsum/SIP: ₹500 / ₹500
+Exit Load: Nil (mandatory 3-year lock-in applies)
+Lock In: 3 years (mandatory for ELSS under Section 80C)
+Risk: Very High Risk
+
+Asset Allocation (as on 13 Apr 2026):
+Equity: 98.4%
+Cash & Equivalents: 1.6%
+
+Sector Allocation:
+Financial Services: 24.8%
+Technology: 16.4%
+Consumer Cyclical: 12.2%
+Health Care: 10.6%
+Industrials: 9.8%
+Others: 26.2%
+
+Top Holdings: HDFC Bank, Infosys, ICICI Bank, Reliance Industries, Tata Consultancy Services, Bharti Airtel, Maruti Suzuki
+
+About SBI ELSS Tax Saver Fund:
+SBI ELSS Tax Saver Fund (formerly SBI Long Term Equity Fund) is one of India's oldest and largest Equity Linked Savings Schemes. It invests predominantly in equity and equity-related securities across market caps and qualifies for tax deduction under Section 80C of the Income Tax Act, up to ₹1,50,000 per year. The mandatory 3-year lock-in period aligns with long-term wealth creation goals.
+
+Fund Manager: Dinesh Balachandran (since October 2018)
+
+Frequently Asked Questions:
+What is the lock-in period for SBI ELSS Tax Saver Fund?
+There is a mandatory 3-year lock-in from the date of each investment/SIP instalment. Units cannot be redeemed before completion of 3 years.
+
+What is the tax benefit of SBI ELSS Tax Saver Fund?
+Investments up to ₹1,50,000 per financial year qualify for deduction under Section 80C of the Income Tax Act, potentially saving up to ₹46,800 in tax (for 30% tax bracket).
+
+What is the exit load?
+There is no exit load for SBI ELSS Tax Saver Fund. The 3-year lock-in serves as the holding requirement.
+
+What is the expense ratio?
+The expense ratio is 0.99% (Direct Plan).
+
+What is the AUM?
+The AUM is ₹25,612 Cr.
+
+What is the minimum SIP?
+The minimum SIP is ₹500 per month. Each SIP instalment has its own 3-year lock-in.
+
+What are the tax implications on redemption?
+Gains are treated as Long-Term Capital Gains (LTCG). Gains up to ₹1 lakh per year are tax-free; gains above ₹1 lakh are taxed at 10% without indexation benefit.
+
+Mutual Fund investments are subject to market risks, read all scheme related documents carefully.
+© Copyright 2026 INDmoney
