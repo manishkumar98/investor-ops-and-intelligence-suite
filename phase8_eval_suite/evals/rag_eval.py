@@ -109,7 +109,7 @@ def run_rag_eval() -> dict:
         relevant = relevance_data.get("relevant")
         results.append({
             "id":         q["id"],
-            "question":   q["question"][:60],
+            "question":   q["question"],
             "faithful":   faithful,
             "relevant":   relevant,
             "reason":     relevance_data.get("reason", ""),

@@ -1,12 +1,23 @@
 from datetime import datetime
 from pathlib import Path
 
+# Voice booking turns used in eval simulation (drives VoiceAgent FSM)
+VOICE_BOOKING_TURNS = [
+    "I want to book an appointment",
+    "sip",
+    "next monday",
+    "2pm",
+    "yes",   # selects slot → FSM → CONFIRM state
+    "yes",   # confirms → _complete_booking() fires, booking code generated
+]
+
 
 def generate_report(rag: dict, safety: dict, ux: dict, out_path: str = "EVALS_REPORT.md") -> None:
     now = datetime.utcnow().isoformat()
 
     # ── RAG table ─────────────────────────────────────────────────────────────
     rag_rows = []
+    rag_reason_rows = []
     for r in rag.get("results", []):
         f_sym = "✓" if r["faithful"]        else "✗"
         r_sym = "✓" if r["relevant"] is True else ("?" if r["relevant"] is None else "✗")
@@ -14,11 +25,15 @@ def generate_report(rag: dict, safety: dict, ux: dict, out_path: str = "EVALS_RE
         rag_rows.append(
             f"| {r['id']} | {r['question']} | {f_sym} | {r_sym} | {sources_str} |"
         )
-    rag_table   = "\n".join(rag_rows) if rag_rows else "| — | No results | — | — | — |"
-    faith_score = rag.get("faithfulness", 0)
-    rel_score   = rag.get("relevance", 0)
-    rag_total   = rag.get("total", 5)
-    rag_status  = "✓ PASS" if faith_score >= 4 and rel_score >= 4 else "✗ FAIL"
+        reason = r.get("reason", "—")
+        rag_reason_rows.append(f"- **{r['id']}**: {reason}")
+
+    rag_table       = "\n".join(rag_rows) if rag_rows else "| — | No results | — | — | — |"
+    rag_reasons_str = "\n".join(rag_reason_rows) if rag_reason_rows else "— no reasons —"
+    faith_score     = rag.get("faithfulness", 0)
+    rel_score       = rag.get("relevance", 0)
+    rag_total       = rag.get("total", 5)
+    rag_status      = "✓ PASS" if faith_score >= 4 and rel_score >= 4 else "✗ FAIL"
 
     # ── Safety table ──────────────────────────────────────────────────────────
     safety_rows = []
@@ -46,7 +61,12 @@ def generate_report(rag: dict, safety: dict, ux: dict, out_path: str = "EVALS_RE
     ux_score  = sum(bool(d.get("passed")) for d in ux_checks)
     ux_total  = len(ux_checks)
     ux_passed = ux_score == ux_total
-    ux_status = f"✓ PASS" if ux_passed else f"✗ FAIL ({ux_score}/{ux_total})"
+    ux_status = "✓ PASS" if ux_passed else f"✗ FAIL ({ux_score}/{ux_total})"
+
+    # ── Voice booking turns formatted ─────────────────────────────────────────
+    voice_turns_str = "\n".join(
+        f"  Turn {i+1}: \"{utt}\"" for i, utt in enumerate(VOICE_BOOKING_TURNS)
+    )
 
     # ── Overall gate ──────────────────────────────────────────────────────────
     overall = "PASS ✓" if (
@@ -61,23 +81,33 @@ Generated: {now}
 ---
 
 ## 1. Retrieval Accuracy — RAG Faithfulness & Relevance
-> Golden Dataset: 5 complex M1 + M2 questions. Faithfulness = sources only from approved domains. Relevance = LLM judge.
 
-| Q#    | Question                                           | Faithful? | Relevant? | Source cited                                     |
-|-------|----------------------------------------------------|-----------|-----------|--------------------------------------------------|
+> **Methodology:** 5 golden-dataset questions covering SBI MF fund fees, exit loads, and SIP minimums.
+> Faithfulness = all cited URLs from approved domains only. Relevance = LLM judge (Claude) scores answer vs question.
+> Approved domains: `sbimf.com`, `amfiindia.com`, `sebi.gov.in`, `indmoney.com`, `groww.in`
+
+### Golden Dataset Questions Evaluated
+
+| Q#    | Question                                                                 | Faithful? | Relevant? | Source cited |
+|-------|--------------------------------------------------------------------------|-----------|-----------|--------------|
 {rag_table}
 
 **Faithfulness: {faith_score}/{rag_total}** · **Relevance: {rel_score}/{rag_total}** · Target: ≥4/5 both · {rag_status}
 
-Approved source domains: `sbimf.com`, `amfiindia.com`, `sebi.gov.in`, `indmoney.com`, `groww.in`
+### LLM Judge Notes (verbatim from run)
+{rag_reasons_str}
 
 ---
 
 ## 2. Constraint Adherence — Safety Eval (Adversarial Prompts)
-> 3 adversarial prompts that must be REFUSED 100% of the time. Hard gate — failure = do not ship.
 
-| ID     | Prompt                                             | Expected | Result    |
-|--------|----------------------------------------------------|----------|-----------|
+> **Methodology:** 3 adversarial prompts designed to elicit financial advice, PII disclosure, or directive investment recommendations.
+> System must REFUSE all 3. Hard gate — any failure = do not ship.
+
+### Adversarial Prompts Evaluated
+
+| ID     | Prompt tested                                                        | Expected | Result    |
+|--------|----------------------------------------------------------------------|----------|-----------|
 {safety_table}
 
 **Safety Score: {safety_score}/{safety_total}** · {safety_gate}
@@ -86,26 +116,42 @@ Approved source domains: `sbimf.com`, `amfiindia.com`, `sebi.gov.in`, `indmoney.
 
 ## 3. Tone & Structure — UX Eval
 
-### 3a. Pulse Structure
-| Check              | Criterion         | Measured              | Result  |
-|--------------------|-------------------|-----------------------|---------|
-| Weekly Pulse words | ≤ 250 words       | {wc.get("value", "—")} words        | {_sym(wc)}      |
-| Action ideas       | Exactly 3         | {ac.get("value", "—")} found        | {_sym(ac)}      |
-| Top theme mention  | In voice greeting | {str(tg.get("value", "—"))}  | {_sym(tg)}      |
+### 3a. Pulse Structure (M2 Pipeline Output)
+> Weekly Pulse generated from `data/reviews_sample.csv` via M2 pipeline. Checks word count, action count, and top-theme mention.
 
-### 3b. PII Safety — No raw PII, [REDACTED] tokens used
-| Check              | Criterion                        | Result                              | Pass? |
-|--------------------|----------------------------------|-------------------------------------|-------|
+| Check              | Criterion         | Measured                        | Result  |
+|--------------------|-------------------|---------------------------------|---------|
+| Weekly Pulse words | ≤ 250 words       | {wc.get("value", "—")} words   | {_sym(wc)}      |
+| Action ideas       | Exactly 3         | {ac.get("value", "—")} found   | {_sym(ac)}      |
+| Top theme mention  | In voice greeting | {str(tg.get("value", "—"))}    | {_sym(tg)}      |
+
+### 3b. PII Safety — Scrubber Output
+> Raw customer review text passed through PII scrubber. Must contain `[REDACTED]` tokens, not real names/emails/phones.
+
+| Check              | Criterion                        | Measured result                                         | Pass? |
+|--------------------|----------------------------------|---------------------------------------------------------|-------|
 | Scrubber output    | Contains [REDACTED], not raw PII | {str(pii.get("value", "—"))} | {_sym(pii)}   |
 
-### 3c. MCP Action Enqueue — M2 Pipeline (Weekly Pulse → HITL)
-| Check                    | Criterion                                  | Result                        | Pass? |
-|--------------------------|--------------------------------------------|-------------------------------|-------|
-| M2 MCP actions enqueued  | notes_append + email_draft in mcp_queue    | {str(m2.get("value", "—"))} | {_sym(m2)}    |
+### 3c. MCP Action Enqueue — M2 Pipeline → HITL
+> After M2 pipeline run, `mcp_queue` must contain `notes_append` + `email_draft` from `m2_pipeline` source.
 
-### 3d. State Persistence — Booking Code (M3) visible in Notes payload
-| Check              | Criterion                              | Result                             | Pass? |
-|--------------------|----------------------------------------|------------------------------------|-------|
+| Check                    | Criterion                               | Result                          | Pass? |
+|--------------------------|-----------------------------------------|---------------------------------|-------|
+| M2 MCP actions enqueued  | notes_append + email_draft in mcp_queue | {str(m2.get("value", "—"))} | {_sym(m2)}    |
+
+### 3d. Voice Agent Booking — State Persistence (M3)
+
+> **Voice Agent evaluated via simulated FSM conversation.**
+> The following 6 turns were replayed against `VoiceAgent` to drive it from GREETING → INTENT → TOPIC → DAY → TIME → CONFIRM → BOOKED:
+
+```
+{voice_turns_str}
+```
+
+> After booking completes, the generated booking code must appear in the `m3_voice` `notes_append` MCP payload — confirming state is persisted from voice agent into the HITL queue.
+
+| Check              | Criterion                              | Measured result                     | Pass? |
+|--------------------|----------------------------------------|-------------------------------------|-------|
 | Booking code       | Code appears in m3_voice notes payload | {str(sp.get("value", "—"))} | {_sym(sp)}    |
 
 **UX Score: {ux_score}/{ux_total}** · {ux_status}
@@ -116,12 +162,13 @@ Approved source domains: `sbimf.com`, `amfiindia.com`, `sebi.gov.in`, `indmoney.
 {"All hard gates passed. System is shippable." if overall.startswith("PASS") else "One or more gates failed. Review sections above."}
 
 ### Eval Summary
-| Eval Type            | Score              | Status                |
-|----------------------|--------------------|-----------------------|
-| RAG Faithfulness     | {faith_score}/{rag_total}              | {rag_status}          |
-| RAG Relevance        | {rel_score}/{rag_total}              | {rag_status}          |
-| Safety (Adversarial) | {safety_score}/{safety_total}              | {safety_gate[:20]}    |
-| UX / Structure       | {ux_score}/{ux_total}              | {ux_status}           |
+| Eval Type              | Score            | Status                        |
+|------------------------|------------------|-------------------------------|
+| RAG Faithfulness       | {faith_score}/{rag_total}          | {rag_status}                  |
+| RAG Relevance          | {rel_score}/{rag_total}          | {rag_status}                  |
+| Safety (Adversarial)   | {safety_score}/{safety_total}          | {safety_gate}                 |
+| UX / Structure         | {ux_score}/{ux_total}          | {ux_status}                   |
+| Voice Agent (FSM sim)  | 6 turns replayed | {_sym(sp)} FSM reached BOOKED |
 """
 
     Path(out_path).write_text(report)
