@@ -1378,35 +1378,36 @@ with h_col2:
     .header-right-col div[data-testid="stVerticalBlock"] {
         gap: 0 !important;
     }
-    /* DARK / LIGHT pill labels injected via CSS — avoids nested st.columns */
-    .header-right-col [data-testid="stToggle"] {
+    /* DARK · toggle · LIGHT — inline layout */
+    [data-testid="stToggle"] {
         display: flex !important;
+        flex-direction: row !important;
         align-items: center !important;
         justify-content: flex-end !important;
-        gap: 8px !important;
+        gap: 6px !important;
+        margin: 0 !important;
+        padding: 2px 0 !important;
+    }
+    /* DARK label injected before the toggle thumb via ::before on the wrapper */
+    [data-testid="stToggle"]::before {
+        content: "DARK";
+        font-size: 0.68rem !important;
+        font-weight: 800 !important;
+        letter-spacing: 0.08em !important;
+        color: var(--text-2, #aaa) !important;
+        white-space: nowrap;
+    }
+    /* LIGHT is the st.toggle label — style it to match */
+    [data-testid="stToggle"] label,
+    [data-testid="stToggle"] p {
+        font-size: 0.68rem !important;
+        font-weight: 800 !important;
+        letter-spacing: 0.08em !important;
+        color: var(--text-2, #aaa) !important;
+        white-space: nowrap !important;
         margin: 0 !important;
         padding: 0 !important;
-    }
-    .header-right-col [data-testid="stToggle"]::before {
-        content: "DARK";
-        font-size: 0.68rem;
-        font-weight: 800;
-        letter-spacing: 0.08em;
-        color: var(--text-2);
-        white-space: nowrap;
-        order: 0;
-    }
-    .header-right-col [data-testid="stToggle"]::after {
-        content: "LIGHT";
-        font-size: 0.68rem;
-        font-weight: 800;
-        letter-spacing: 0.08em;
-        color: var(--text-2);
-        white-space: nowrap;
-        order: 2;
-    }
-    .header-right-col [data-testid="stToggle"] > label {
-        order: 1 !important;
+        text-transform: uppercase !important;
     }
     </style>
     """, unsafe_allow_html=True)
@@ -1436,14 +1437,12 @@ with h_col2:
         st.markdown("</div>", unsafe_allow_html=True)
 
     with c_theme:
-        st.markdown("<div class='header-right-col'>", unsafe_allow_html=True)
         _tog_new = st.toggle(
-            "Theme",
+            "LIGHT",
             value=_is_light,
             key="header_theme_toggle_absolute_fix",
-            label_visibility="collapsed",
+            label_visibility="visible",
         )
-        st.markdown("</div>", unsafe_allow_html=True)
 
         if _tog_new != _is_light:
             st.session_state["theme"] = "light" if _tog_new else "dark"
@@ -1451,47 +1450,33 @@ with h_col2:
 
 st.markdown('<div style="margin-bottom:24px; border-bottom:1px solid var(--border);"></div>', unsafe_allow_html=True)
 
-# ── JS: kill sidebar arrow + inject DARK/LIGHT toggle labels ─────────────────
+# ── JS: kill sidebar arrow via MutationObserver (survives Streamlit re-renders) ─
 st.markdown("""
 <script>
-(function patchUI() {
-    // 1. Remove the sidebar collapsed-control arrow
+(function() {
     function killSidebar() {
-        var btn = document.querySelector('[data-testid="collapsedControl"]');
-        if (btn) btn.style.cssText = 'display:none!important;visibility:hidden!important;width:0!important;';
-        var sb = document.querySelector('section[data-testid="stSidebar"]');
-        if (sb) sb.style.cssText = 'display:none!important;width:0!important;';
-    }
-
-    // 2. Inject DARK / LIGHT labels around the toggle widget
-    function labelToggle() {
-        var tog = document.querySelector('[data-testid="stToggle"]');
-        if (!tog) return;
-        if (tog.querySelector('.tog-label-dark')) return; // already done
-
-        var darkLbl = document.createElement('span');
-        darkLbl.className = 'tog-label-dark';
-        darkLbl.textContent = 'DARK';
-        darkLbl.style.cssText = 'font-size:0.68rem;font-weight:800;letter-spacing:0.08em;color:var(--text-2,#aaa);white-space:nowrap;margin-right:6px;';
-
-        var lightLbl = document.createElement('span');
-        lightLbl.className = 'tog-label-light';
-        lightLbl.textContent = 'LIGHT';
-        lightLbl.style.cssText = 'font-size:0.68rem;font-weight:800;letter-spacing:0.08em;color:var(--text-2,#aaa);white-space:nowrap;margin-left:6px;';
-
-        tog.style.cssText = 'display:flex!important;align-items:center!important;justify-content:flex-end!important;';
-        tog.insertBefore(darkLbl, tog.firstChild);
-        tog.appendChild(lightLbl);
+        var els = [
+            document.querySelector('[data-testid="collapsedControl"]'),
+            document.querySelector('button[data-testid="collapsedControl"]'),
+            document.querySelector('section[data-testid="stSidebar"]'),
+        ];
+        els.forEach(function(el) {
+            if (el) {
+                el.style.setProperty('display',     'none',   'important');
+                el.style.setProperty('visibility',  'hidden', 'important');
+                el.style.setProperty('width',       '0',      'important');
+                el.style.setProperty('min-width',   '0',      'important');
+                el.style.setProperty('max-width',   '0',      'important');
+                el.style.setProperty('overflow',    'hidden', 'important');
+                el.style.setProperty('position',    'absolute','important');
+                el.style.setProperty('left',        '-9999px','important');
+            }
+        });
     }
 
     killSidebar();
-    labelToggle();
-    var i = 0;
-    var t = setInterval(function() {
-        killSidebar();
-        labelToggle();
-        if (++i > 20) clearInterval(t);
-    }, 300);
+    var obs = new MutationObserver(killSidebar);
+    obs.observe(document.body, {childList: true, subtree: true});
 })();
 </script>
 """, unsafe_allow_html=True)
