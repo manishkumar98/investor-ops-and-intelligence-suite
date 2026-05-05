@@ -362,6 +362,16 @@ def _build_css(is_light: bool) -> str:
 div[data-testid="stHorizontalBlock"]:has(.dsa-header-logo-container) {
   padding: 16px 48px 8px 48px;
 }
+@media (max-width: 768px) {
+  div[data-testid="stHorizontalBlock"]:has(.dsa-header-logo-container) {
+    padding: 10px 16px 6px 16px;
+  }
+}
+@media (max-width: 480px) {
+  div[data-testid="stHorizontalBlock"]:has(.dsa-header-logo-container) {
+    padding: 8px 10px 4px 10px;
+  }
+}
 
 /* ── Base ── */
 html, body, .stApp,
@@ -398,7 +408,7 @@ button[data-testid="stBaseButton-headerNoPadding"],
 /* ── Tabs ── */
 .stTabs [data-baseweb="tab-list"] {
   background-color: var(--bg-card); border-bottom: 1px solid var(--border);
-  gap: 0; padding: 0 48px;
+  gap: 0; padding: 0 clamp(12px, 4vw, 48px);
 }
 .stTabs [data-baseweb="tab"] {
   color: var(--text-2) !important; background-color: transparent !important;
@@ -438,7 +448,7 @@ button[data-testid="stBaseButton-headerNoPadding"],
 }
 .stTabs [data-baseweb="tab"]:hover::after { opacity: 1; }
 .stTabs [role="tabpanel"] {
-  padding: 32px 48px !important;
+  padding: 32px clamp(12px, 4vw, 48px) !important;
 }
 
 /* ── Metrics ── */
@@ -579,7 +589,7 @@ hr { border-color: var(--border) !important; margin: 24px 0 !important; }
 
 /* ── Tab content padding ── */
 .stTabs [data-testid="stTabsContent"] {
-  padding: 32px 48px 40px !important; max-width: 1200px !important; margin: 0 auto !important;
+  padding: 32px clamp(12px, 4vw, 48px) 40px !important; max-width: 1200px !important; margin: 0 auto !important;
 }
 @media(max-width:768px) {
   .stTabs [data-testid="stTabsContent"] { padding: 24px 20px 32px !important; }
@@ -682,7 +692,7 @@ hr { border-color: var(--border) !important; margin: 24px 0 !important; }
   background:VAR_BG_HEADER; backdrop-filter:blur(20px);
   border-bottom:1px solid var(--border);
   display:flex; align-items:center; justify-content:space-between;
-  padding:0 48px; height:64px; width:100%; box-sizing:border-box;
+  padding:0 clamp(16px, 4vw, 48px); height:64px; width:100%; box-sizing:border-box;
 }
 .dsa-logo-wrap { display:flex; align-items:center; gap:12px; }
 .dsa-logo-icon {
@@ -711,7 +721,7 @@ hr { border-color: var(--border) !important; margin: 24px 0 !important; }
 
 /* ── Site Footer ── */
 .dsa-footer {
-  background:VAR_BG_FOOTER; border-top:1px solid var(--border); padding:48px 48px 32px; margin-top:0;
+  background:VAR_BG_FOOTER; border-top:1px solid var(--border); padding:48px clamp(16px, 4vw, 48px) 32px; margin-top:0;
 }
 .dsa-footer-grid {
   display:grid; grid-template-columns:2fr 1fr 1fr 1fr; gap:40px; max-width:1200px; margin:0 auto 40px;
@@ -1023,6 +1033,151 @@ div[role="tooltip"] p,
     else:
         css = css.replace("LIGHT_MODE_OVERRIDES", "")
 
+    css += """
+/* ═══════════════════════════════════════════════════════════════
+   RESPONSIVE / MOBILE — all breakpoints
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ── Streamlit root container — full width on mobile ── */
+@media (max-width: 768px) {
+  /* Remove Streamlit's default side padding */
+  .main .block-container {
+    padding-left: 16px !important;
+    padding-right: 16px !important;
+    max-width: 100% !important;
+  }
+
+  /* Header: tighter on mobile */
+  .dsa-header { padding: 0 16px !important; height: 56px !important; }
+  .dsa-logo-text { font-size: 0.88rem !important; }
+  .dsa-logo-sub  { display: none !important; }
+  .dsa-header-badge { display: none !important; }
+
+  /* Ticker: smaller font */
+  .ticker-item { font-size: 0.7rem !important; padding: 0 12px !important; }
+
+  /* Tab labels: smaller */
+  .stTabs [data-testid="stTabsTabList"] button p {
+    font-size: 0.72rem !important;
+  }
+
+  /* Tab content: tight padding */
+  .stTabs [data-testid="stTabsContent"] {
+    padding: 16px 12px 24px !important;
+  }
+
+  /* Metric cards: 1 column */
+  [data-testid="stHorizontalBlock"] {
+    flex-wrap: wrap !important;
+    gap: 10px !important;
+  }
+  [data-testid="column"] {
+    min-width: calc(50% - 10px) !important;
+    flex: 1 1 calc(50% - 10px) !important;
+  }
+
+  /* Chat input: full width */
+  [data-testid="stChatInput"] {
+    font-size: 0.9rem !important;
+  }
+
+  /* Chat messages: smaller padding */
+  [data-testid="stChatMessage"] {
+    padding: 12px 14px !important;
+    font-size: 0.88rem !important;
+  }
+
+  /* Buttons: full width */
+  .stButton > button {
+    width: 100% !important;
+    font-size: 0.82rem !important;
+    padding: 10px 16px !important;
+  }
+
+  /* Expanders: full width */
+  [data-testid="stExpander"] { width: 100% !important; }
+
+  /* Fund cards: single column */
+  .fund-card { padding: 16px !important; }
+
+  /* Footer: single column */
+  .dsa-footer { padding: 32px 16px 20px !important; }
+  .dsa-footer-grid { grid-template-columns: 1fr 1fr !important; gap: 24px !important; }
+  .dsa-footer-bottom { flex-direction: column !important; }
+
+  /* Voice agent layout: stack vertically */
+  .va2-caption { font-size: 0.82rem !important; padding: 10px 14px !important; }
+
+  /* Pillar tooltip: narrower */
+  .info-tooltip-box { width: 260px !important; font-size: 0.78rem !important; }
+
+  /* Header toggle: move closer on mobile */
+  div[data-testid="element-container"]:has(#dsa-hdr-toggle-anchor)
+    + div[data-testid="stHorizontalBlock"]
+    > div[data-testid="column"]:last-child {
+    right: 12px !important;
+  }
+
+  /* MCP action cards: full width */
+  .mcp-card { width: 100% !important; padding: 14px !important; }
+
+  /* Market context tooltip: full width */
+  .mctx-box { width: calc(100vw - 32px) !important; left: 0 !important; }
+}
+
+/* ── Very small phones (< 480px) ── */
+@media (max-width: 480px) {
+  .main .block-container {
+    padding-left: 10px !important;
+    padding-right: 10px !important;
+  }
+
+  .dsa-header { height: 52px !important; }
+  .dsa-logo-icon { width: 30px !important; height: 30px !important; font-size: 16px !important; }
+  .dsa-logo-text { font-size: 0.82rem !important; }
+
+  /* Columns: fully stacked */
+  [data-testid="column"] {
+    min-width: 100% !important;
+    flex: 1 1 100% !important;
+  }
+
+  /* Footer: single column */
+  .dsa-footer-grid { grid-template-columns: 1fr !important; }
+
+  /* Tabs: scrollable label row */
+  .stTabs [data-testid="stTabsTabList"] {
+    overflow-x: auto !important;
+    flex-wrap: nowrap !important;
+  }
+  .stTabs [data-testid="stTabsTabList"] button {
+    white-space: nowrap !important;
+    flex-shrink: 0 !important;
+  }
+
+  .stTabs [data-testid="stTabsContent"] {
+    padding: 12px 8px 20px !important;
+  }
+}
+
+/* ── Tablets (769px–1024px) ── */
+@media (min-width: 769px) and (max-width: 1024px) {
+  .main .block-container {
+    padding-left: 24px !important;
+    padding-right: 24px !important;
+  }
+
+  .dsa-header { padding: 0 24px !important; }
+  .dsa-header-badge { margin-right: 60px !important; }
+
+  .stTabs [data-testid="stTabsContent"] {
+    padding: 24px 24px 32px !important;
+  }
+
+  .dsa-footer { padding: 40px 24px 24px !important; }
+  .dsa-footer-grid { grid-template-columns: 1fr 1fr !important; gap: 32px !important; }
+}
+"""
     css += "\n</style>"
     return css
 
