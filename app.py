@@ -1378,36 +1378,30 @@ with h_col2:
     .header-right-col div[data-testid="stVerticalBlock"] {
         gap: 0 !important;
     }
-    /* DARK · toggle · LIGHT — inline layout */
+    /* toggle container — flex row so injected labels sit left/right */
     [data-testid="stToggle"] {
         display: flex !important;
         flex-direction: row !important;
         align-items: center !important;
         justify-content: flex-end !important;
-        gap: 6px !important;
+        gap: 5px !important;
         margin: 0 !important;
         padding: 2px 0 !important;
     }
-    /* DARK label injected before the toggle thumb via ::before on the wrapper */
-    [data-testid="stToggle"]::before {
-        content: "DARK";
-        font-size: 0.68rem !important;
-        font-weight: 800 !important;
-        letter-spacing: 0.08em !important;
-        color: var(--text-2, #aaa) !important;
-        white-space: nowrap;
-    }
-    /* LIGHT is the st.toggle label — style it to match */
-    [data-testid="stToggle"] label,
-    [data-testid="stToggle"] p {
-        font-size: 0.68rem !important;
+    /* style for JS-injected DARK / LIGHT spans */
+    .tog-lbl {
+        font-size: 0.65rem !important;
         font-weight: 800 !important;
         letter-spacing: 0.08em !important;
         color: var(--text-2, #aaa) !important;
         white-space: nowrap !important;
-        margin: 0 !important;
-        padding: 0 !important;
-        text-transform: uppercase !important;
+        line-height: 1 !important;
+        font-family: inherit !important;
+    }
+    /* hide the native Streamlit label text (we replace it with .tog-lbl) */
+    [data-testid="stToggle"] label,
+    [data-testid="stToggle"] p {
+        display: none !important;
     }
     </style>
     """, unsafe_allow_html=True)
@@ -1450,32 +1444,56 @@ with h_col2:
 
 st.markdown('<div style="margin-bottom:24px; border-bottom:1px solid var(--border);"></div>', unsafe_allow_html=True)
 
-# ── JS: kill sidebar arrow via MutationObserver (survives Streamlit re-renders) ─
+# ── JS: MutationObserver — kills sidebar + injects DARK/LIGHT labels ──────────
 st.markdown("""
 <script>
 (function() {
     function killSidebar() {
-        var els = [
-            document.querySelector('[data-testid="collapsedControl"]'),
-            document.querySelector('button[data-testid="collapsedControl"]'),
-            document.querySelector('section[data-testid="stSidebar"]'),
+        var sels = [
+            '[data-testid="collapsedControl"]',
+            'button[data-testid="collapsedControl"]',
+            'section[data-testid="stSidebar"]',
         ];
-        els.forEach(function(el) {
+        sels.forEach(function(sel) {
+            var el = document.querySelector(sel);
             if (el) {
-                el.style.setProperty('display',     'none',   'important');
-                el.style.setProperty('visibility',  'hidden', 'important');
-                el.style.setProperty('width',       '0',      'important');
-                el.style.setProperty('min-width',   '0',      'important');
-                el.style.setProperty('max-width',   '0',      'important');
-                el.style.setProperty('overflow',    'hidden', 'important');
-                el.style.setProperty('position',    'absolute','important');
-                el.style.setProperty('left',        '-9999px','important');
+                el.style.setProperty('display',    'none',    'important');
+                el.style.setProperty('visibility', 'hidden',  'important');
+                el.style.setProperty('width',      '0',       'important');
+                el.style.setProperty('min-width',  '0',       'important');
+                el.style.setProperty('max-width',  '0',       'important');
+                el.style.setProperty('overflow',   'hidden',  'important');
+                el.style.setProperty('position',   'absolute','important');
+                el.style.setProperty('left',       '-9999px', 'important');
             }
         });
     }
 
-    killSidebar();
-    var obs = new MutationObserver(killSidebar);
+    function injectToggleLabels() {
+        var tog = document.querySelector('[data-testid="stToggle"]');
+        if (!tog) return;
+        if (tog.querySelector('.tog-lbl')) return; // already injected
+
+        var dark = document.createElement('span');
+        dark.className = 'tog-lbl';
+        dark.textContent = 'DARK';
+
+        var light = document.createElement('span');
+        light.className = 'tog-lbl';
+        light.textContent = 'LIGHT';
+
+        // Insert DARK before everything, LIGHT after everything
+        tog.insertBefore(dark, tog.firstChild);
+        tog.appendChild(light);
+    }
+
+    function patchUI() {
+        killSidebar();
+        injectToggleLabels();
+    }
+
+    patchUI();
+    var obs = new MutationObserver(patchUI);
     obs.observe(document.body, {childList: true, subtree: true});
 })();
 </script>
