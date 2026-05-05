@@ -380,11 +380,18 @@ section.main > div {
 }
 
 /* ── Sidebar ── */
-section[data-testid="stSidebar"] {
+section[data-testid="stSidebar"],
+section[data-testid="stSidebar"] > div,
+[data-testid="collapsedControl"],
+button[data-testid="collapsedControl"],
+[data-testid="stSidebarNav"],
+[data-testid="stSidebarNavItems"] {
   display: none !important;
-}
-[data-testid="collapsedControl"] {
-  display: none !important;
+  visibility: hidden !important;
+  width: 0 !important;
+  min-width: 0 !important;
+  max-width: 0 !important;
+  overflow: hidden !important;
 }
 
 /* ── Tabs ── */
@@ -1357,17 +1364,35 @@ with h_col2:
     .header-right-col div[data-testid="stVerticalBlock"] {
         gap: 0 !important;
     }
-    .theme-pill-label {
-        font-size: 0.7rem;
+    /* DARK / LIGHT pill labels injected via CSS — avoids nested st.columns */
+    .header-right-col [data-testid="stToggle"] {
+        display: flex !important;
+        align-items: center !important;
+        justify-content: flex-end !important;
+        gap: 8px !important;
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+    .header-right-col [data-testid="stToggle"]::before {
+        content: "DARK";
+        font-size: 0.68rem;
         font-weight: 800;
-        text-transform: uppercase;
         letter-spacing: 0.08em;
         color: var(--text-2);
         white-space: nowrap;
+        order: 0;
     }
-    /* Pull toggle up to align with labels */
-    .header-right-col [data-testid="stToggle"] {
-        margin-top: -2px !important;
+    .header-right-col [data-testid="stToggle"]::after {
+        content: "LIGHT";
+        font-size: 0.68rem;
+        font-weight: 800;
+        letter-spacing: 0.08em;
+        color: var(--text-2);
+        white-space: nowrap;
+        order: 2;
+    }
+    .header-right-col [data-testid="stToggle"] > label {
+        order: 1 !important;
     }
     </style>
     """, unsafe_allow_html=True)
@@ -1397,21 +1422,14 @@ with h_col2:
         st.markdown("</div>", unsafe_allow_html=True)
 
     with c_theme:
-        st.markdown(
-            "<div class='header-right-col' style='display:flex;align-items:center;justify-content:flex-end;gap:6px;padding-top:4px;'>"
-            "<span class='theme-pill-label'>DARK</span>",
-            unsafe_allow_html=True,
-        )
+        st.markdown("<div class='header-right-col'>", unsafe_allow_html=True)
         _tog_new = st.toggle(
             "Theme",
             value=_is_light,
             key="header_theme_toggle_absolute_fix",
             label_visibility="collapsed",
         )
-        st.markdown(
-            "<span class='theme-pill-label'>LIGHT</span></div>",
-            unsafe_allow_html=True,
-        )
+        st.markdown("</div>", unsafe_allow_html=True)
 
         if _tog_new != _is_light:
             st.session_state["theme"] = "light" if _tog_new else "dark"
