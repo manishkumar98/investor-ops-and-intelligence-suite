@@ -12,7 +12,7 @@ def generate_report(rag: dict, safety: dict, ux: dict, out_path: str = "EVALS_RE
         r_sym = "✓" if r["relevant"] is True else ("?" if r["relevant"] is None else "✗")
         sources_str = ", ".join(r.get("sources", [])) or "—"
         rag_rows.append(
-            f"| {r['id']} | {r['question'][:50]}… | {f_sym} | {r_sym} | {sources_str[:60]} |"
+            f"| {r['id']} | {r['question']} | {f_sym} | {r_sym} | {sources_str} |"
         )
     rag_table   = "\n".join(rag_rows) if rag_rows else "| — | No results | — | — | — |"
     faith_score = rag.get("faithfulness", 0)
@@ -25,7 +25,7 @@ def generate_report(rag: dict, safety: dict, ux: dict, out_path: str = "EVALS_RE
     for r in safety.get("results", []):
         s_sym = "PASS ✓" if r["passed"] else "FAIL ✗"
         safety_rows.append(
-            f"| {r['id']} | {r['prompt'][:50]}… | REFUSE | {s_sym} |"
+            f"| {r['id']} | {r['prompt']} | REFUSE | {s_sym} |"
         )
     safety_table = "\n".join(safety_rows) if safety_rows else "| — | No results | — | — |"
     safety_score = safety.get("score", 0)
@@ -91,22 +91,22 @@ Approved source domains: `sbimf.com`, `amfiindia.com`, `sebi.gov.in`, `indmoney.
 |--------------------|-------------------|-----------------------|---------|
 | Weekly Pulse words | ≤ 250 words       | {wc.get("value", "—")} words        | {_sym(wc)}      |
 | Action ideas       | Exactly 3         | {ac.get("value", "—")} found        | {_sym(ac)}      |
-| Top theme mention  | In voice greeting | {str(tg.get("value", "—"))[:30]}  | {_sym(tg)}      |
+| Top theme mention  | In voice greeting | {str(tg.get("value", "—"))}  | {_sym(tg)}      |
 
 ### 3b. PII Safety — No raw PII, [REDACTED] tokens used
 | Check              | Criterion                        | Result                              | Pass? |
 |--------------------|----------------------------------|-------------------------------------|-------|
-| Scrubber output    | Contains [REDACTED], not raw PII | {str(pii.get("value", "—"))[:55]} | {_sym(pii)}   |
+| Scrubber output    | Contains [REDACTED], not raw PII | {str(pii.get("value", "—"))} | {_sym(pii)}   |
 
 ### 3c. MCP Action Enqueue — M2 Pipeline (Weekly Pulse → HITL)
 | Check                    | Criterion                                  | Result                        | Pass? |
 |--------------------------|--------------------------------------------|-------------------------------|-------|
-| M2 MCP actions enqueued  | notes_append + email_draft in mcp_queue    | {str(m2.get("value", "—"))[:55]} | {_sym(m2)}    |
+| M2 MCP actions enqueued  | notes_append + email_draft in mcp_queue    | {str(m2.get("value", "—"))} | {_sym(m2)}    |
 
 ### 3d. State Persistence — Booking Code (M3) visible in Notes payload
 | Check              | Criterion                              | Result                             | Pass? |
 |--------------------|----------------------------------------|------------------------------------|-------|
-| Booking code       | Code appears in m3_voice notes payload | {str(sp.get("value", "—"))[:55]} | {_sym(sp)}    |
+| Booking code       | Code appears in m3_voice notes payload | {str(sp.get("value", "—"))} | {_sym(sp)}    |
 
 **UX Score: {ux_score}/{ux_total}** · {ux_status}
 
