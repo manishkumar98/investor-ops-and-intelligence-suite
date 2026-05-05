@@ -3,12 +3,21 @@
 
 A unified three-pillar dashboard that merges a RAG FAQ chatbot (M1), a review intelligence pipeline (M2), and a voice appointment scheduler (M3) into a single Streamlit application.
 
+**Live Deployment:** [investor-ops-and-intelligence-suite-production.up.railway.app](https://investor-ops-and-intelligence-suite-production.up.railway.app/)
+
+---
+
+## Demo
+
+![Demo](assets/demo.gif)
+
 ---
 
 ## Capstone Submission
 
 | Deliverable | Link |
 |---|---|
+| Live Deployment | [investor-ops-and-intelligence-suite-production.up.railway.app](https://investor-ops-and-intelligence-suite-production.up.railway.app/) |
 | GitHub Repository | https://github.com/manishkumar98/investor-ops-and-intelligence-suit |
 | Demo Video (5 min) | *(to be added)* |
 | Evals Report | [EVALS_REPORT.md](EVALS_REPORT.md) |
