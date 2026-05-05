@@ -1,0 +1,84 @@
+Source URL: https://www.sbimf.com/sbimf-scheme-details/SBI-Liquid-Fund-42
+Scraped Date: 2026-05-05
+--------------------------------------------------
+SBI Liquid Fund
+Scheme Type: An open-ended liquid scheme. A relatively low interest rate risk and moderate credit risk.
+DEBT
+Open Ended
+LOW TO MODERATE Risk
+
+Returns for Regular-Growth: 6.82% Since Inception
+Returns for Direct-Growth: 7.10% Since Inception
+
+AUM as on 31 Mar 2026: ₹71,204.32 Cr
+Date of Allotment: 01 Dec, 2003
+
+Exit Load:
+Day 1: 0.0070%
+Day 2: 0.0065%
+Day 3: 0.0060%
+Day 4: 0.0055%
+Day 5: 0.0050%
+Day 6: 0.0045%
+Day 7 onwards: Nil
+
+Benchmark: CRISIL Liquid Fund AI Index
+Additional Benchmark: CRISIL 1 Year T-Bill Index
+Suitable for: Liquidity and Short-Term Parking of Funds
+
+Investment Criteria:
+Min SIP Amount: ₹1,000
+Min Lumpsum: ₹5,000
+
+Fund Overview:
+SBI Liquid Fund is an open-ended liquid scheme that aims to provide investors with regular income and high liquidity by investing in money market instruments and short-term debt securities with a residual maturity of up to 91 days.
+
+The fund invests in a portfolio of money market instruments, treasury bills, commercial papers, certificates of deposit, and other short-term debt instruments.
+
+The fund is suitable for parking surplus funds for short periods (1 day to 3 months) and for emergency fund management.
+
+Key Fund Facts:
+- Category: Liquid Fund
+- Expense Ratio (Direct): 0.20%
+- Expense Ratio (Regular): 0.33%
+- Exit Load: Graded exit load for first 6 days; Nil from Day 7 onwards
+- Lock-in Period: None
+- Riskometer: Low to Moderate
+- Minimum SIP: ₹1,000
+- Minimum Lumpsum: ₹5,000
+- Fund Manager: R. Arun (since Jan 2020)
+- Average Maturity: ~30 days
+- Modified Duration: ~30 days
+
+Product Label:
+This product is suitable for investors who are seeking:
+- Income over a short-term horizon
+- Investment in a portfolio of money market instruments and debt securities with maturity up to 91 days
+
+Riskometer: LOW TO MODERATE
+
+FAQ Section:
+What is SBI Liquid Fund?
+SBI Liquid Fund is an open-ended debt mutual fund that invests in money market instruments and short-term debt securities with residual maturity up to 91 days. It is ideal for parking surplus cash for very short periods with high liquidity and low risk.
+
+What is the exit load of SBI Liquid Fund?
+SBI Liquid Fund has a graded exit load for redemptions within the first 6 days:
+Day 1: 0.0070%, Day 2: 0.0065%, Day 3: 0.0060%, Day 4: 0.0055%, Day 5: 0.0050%, Day 6: 0.0045%. From Day 7 onwards there is no exit load.
+
+What is the expense ratio of SBI Liquid Fund?
+The expense ratio for the Direct Plan is 0.20% and for the Regular Plan is 0.33%.
+
+What is the minimum investment in SBI Liquid Fund?
+The minimum lumpsum investment is ₹5,000 and the minimum SIP is ₹1,000.
+
+Is SBI Liquid Fund safe?
+SBI Liquid Fund invests in high-quality money market instruments. The riskometer is Low to Moderate. However, it is not risk-free and returns may vary.
+
+Is there a lock-in period for SBI Liquid Fund?
+No, there is no mandatory lock-in period. However, a graded exit load applies for redemptions within the first 6 days.
+
+What is the benchmark for SBI Liquid Fund?
+The scheme benchmark is CRISIL Liquid Fund AI Index.
+
+Mutual Fund Investments are subject to market risks, read all scheme related documents carefully.
+© Copyright 2024 SBI MUTUAL FUND

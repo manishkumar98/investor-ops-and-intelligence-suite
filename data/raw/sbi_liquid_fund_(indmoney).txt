@@ -1,0 +1,66 @@
+Source URL: https://www.indmoney.com/mutual-funds/sbi-liquid-fund-direct-growth-2831
+Scraped Date: 2026-05-05
+--------------------------------------------------
+SBI Liquid Fund
+Debt | SBI Mutual Fund | Liquid
+
+₹3,892.14
+NAV as on 22 Apr 2026
+
+7.1% per year Since Inception
+
+Fund Performance vs CRISIL Liquid Fund AI Index
+
+Period     | This Fund | CRISIL Liquid | Liquid Avg
+1M         | 0.60%     | 0.60%         | 0.59%
+3M         | 1.82%     | 1.83%         | 1.80%
+6M         | 3.64%     | 3.65%         | 3.60%
+1Y         | 7.28%     | 7.30%         | 7.20%
+3Y         | 6.80%     | 6.82%         | 6.75%
+5Y         | 5.90%     | 5.92%         | 5.85%
+
+Key Metrics:
+Expense Ratio: 0.20%
+Benchmark: CRISIL Liquid Fund AI Index
+AUM: ₹71,204 Cr
+Inception Date: 1 December 2003
+Min Lumpsum/SIP: ₹5,000 / ₹1,000
+Exit Load: Graded (Day 1–6); Nil from Day 7
+Lock In: No Lock-in
+Risk: Low to Moderate Risk
+
+Asset Allocation (as on 13 Apr 2026):
+Treasury Bills: 42.3%
+Commercial Paper: 28.6%
+Certificate of Deposit: 18.4%
+Debt & Cash: 10.7%
+
+About SBI Liquid Fund:
+SBI Liquid Fund is a liquid mutual fund from SBI Mutual Fund that invests in money market instruments and debt securities with a residual maturity of up to 91 days. It is designed for investors who want to park surplus cash with easy liquidity and low risk. The fund is one of the largest liquid funds in India by AUM.
+
+Fund Manager: R. Arun (since January 2020)
+
+Frequently Asked Questions:
+How do I invest in SBI Liquid Fund?
+Download the INDmoney app, search for 'SBI Liquid Fund', select SIP or lump sum, enter amount, and set up payments via bank mandate or UPI.
+
+What is the current NAV of SBI Liquid Fund?
+The NAV of the fund is ₹3,892.14.
+
+What is the exit load of the fund?
+SBI Liquid Fund has a graded exit load for the first 6 days: Day 1 (0.0070%), Day 2 (0.0065%), Day 3 (0.0060%), Day 4 (0.0055%), Day 5 (0.0050%), Day 6 (0.0045%). No exit load from Day 7 onwards.
+
+What is the expense ratio of the fund?
+The expense ratio is 0.20% (Direct Plan).
+
+What is the AUM of the fund?
+The AUM of the fund is ₹71,204 Cr, making it one of the largest liquid funds in India.
+
+Is SBI Liquid Fund suitable for emergency funds?
+Yes, SBI Liquid Fund is commonly used for parking emergency funds due to its high liquidity and low risk profile. Redemptions are typically processed within 1 business day.
+
+What is the minimum SIP for SBI Liquid Fund?
+The minimum SIP amount is ₹1,000 per month.
+
+Mutual Fund investments are subject to market risks, read all scheme related documents carefully.
+© Copyright 2026 INDmoney
