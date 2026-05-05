@@ -381,10 +381,11 @@ section.main > div {
 
 /* ── Sidebar ── */
 section[data-testid="stSidebar"] {
-  background-color: VAR_SIDEBAR_BG !important;
-  border-right: 1px solid var(--border);
+  display: none !important;
 }
-section[data-testid="stSidebar"] * { color: var(--text-1) !important; }
+[data-testid="collapsedControl"] {
+  display: none !important;
+}
 
 /* ── Tabs ── */
 .stTabs [data-baseweb="tab-list"] {
@@ -1079,6 +1080,7 @@ st.set_page_config(
     page_title="INDMoney Investor Ops & Intelligence Suite",
     page_icon="assets/logo.jpg",
     layout="wide",
+    initial_sidebar_state="collapsed",
 )
 init_session_state(st.session_state)
 
@@ -1395,20 +1397,21 @@ with h_col2:
         st.markdown("</div>", unsafe_allow_html=True)
 
     with c_theme:
-        st.markdown("<div class='header-right-col'>", unsafe_allow_html=True)
-        lbl_col, tog_col, lbl2_col = st.columns([0.38, 0.24, 0.38])
-        with lbl_col:
-            st.markdown("<div style='text-align:right; padding-top:8px;'><span class='theme-pill-label'>DARK</span></div>", unsafe_allow_html=True)
-        with tog_col:
-            _tog_new = st.toggle(
-                "Theme",
-                value=_is_light,
-                key="header_theme_toggle_absolute_fix",
-                label_visibility="collapsed",
-            )
-        with lbl2_col:
-            st.markdown("<div style='text-align:left; padding-top:8px;'><span class='theme-pill-label'>LIGHT</span></div>", unsafe_allow_html=True)
-        st.markdown("</div>", unsafe_allow_html=True)
+        st.markdown(
+            "<div class='header-right-col' style='display:flex;align-items:center;justify-content:flex-end;gap:6px;padding-top:4px;'>"
+            "<span class='theme-pill-label'>DARK</span>",
+            unsafe_allow_html=True,
+        )
+        _tog_new = st.toggle(
+            "Theme",
+            value=_is_light,
+            key="header_theme_toggle_absolute_fix",
+            label_visibility="collapsed",
+        )
+        st.markdown(
+            "<span class='theme-pill-label'>LIGHT</span></div>",
+            unsafe_allow_html=True,
+        )
 
         if _tog_new != _is_light:
             st.session_state["theme"] = "light" if _tog_new else "dark"
