@@ -995,9 +995,23 @@ section[data-testid="stSidebar"] [data-testid="stCaptionContainer"] p { color: #
 .fund-tag       { color: #6B5E52 !important; }
 .fund-coverage  { color: #6B5E52 !important; }
 
-/* Tooltip */
+/* Custom tooltips */
 .pillar-tooltip-body { color: #1A1612 !important; background: #FFFFFF !important; }
 .info-chip           { color: #6B5E52 !important; }
+/* Streamlit native help tooltip */
+div[data-testid="stTooltipHoverTarget"] + div,
+div[role="tooltip"],
+[data-testid="stTooltipContent"],
+div.stTooltipContent {
+  background: #FFFFFF !important;
+  color: #1A1612 !important;
+  border: 1px solid #E0D5C5 !important;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.12) !important;
+}
+div[role="tooltip"] p,
+[data-testid="stTooltipContent"] p {
+  color: #1A1612 !important;
+}
 
 /* Footer */
 .dsa-footer-brand p  { color: #6B5E52 !important; }
@@ -1436,6 +1450,51 @@ with h_col2:
             st.rerun()
 
 st.markdown('<div style="margin-bottom:24px; border-bottom:1px solid var(--border);"></div>', unsafe_allow_html=True)
+
+# ── JS: kill sidebar arrow + inject DARK/LIGHT toggle labels ─────────────────
+st.markdown("""
+<script>
+(function patchUI() {
+    // 1. Remove the sidebar collapsed-control arrow
+    function killSidebar() {
+        var btn = document.querySelector('[data-testid="collapsedControl"]');
+        if (btn) btn.style.cssText = 'display:none!important;visibility:hidden!important;width:0!important;';
+        var sb = document.querySelector('section[data-testid="stSidebar"]');
+        if (sb) sb.style.cssText = 'display:none!important;width:0!important;';
+    }
+
+    // 2. Inject DARK / LIGHT labels around the toggle widget
+    function labelToggle() {
+        var tog = document.querySelector('[data-testid="stToggle"]');
+        if (!tog) return;
+        if (tog.querySelector('.tog-label-dark')) return; // already done
+
+        var darkLbl = document.createElement('span');
+        darkLbl.className = 'tog-label-dark';
+        darkLbl.textContent = 'DARK';
+        darkLbl.style.cssText = 'font-size:0.68rem;font-weight:800;letter-spacing:0.08em;color:var(--text-2,#aaa);white-space:nowrap;margin-right:6px;';
+
+        var lightLbl = document.createElement('span');
+        lightLbl.className = 'tog-label-light';
+        lightLbl.textContent = 'LIGHT';
+        lightLbl.style.cssText = 'font-size:0.68rem;font-weight:800;letter-spacing:0.08em;color:var(--text-2,#aaa);white-space:nowrap;margin-left:6px;';
+
+        tog.style.cssText = 'display:flex!important;align-items:center!important;justify-content:flex-end!important;';
+        tog.insertBefore(darkLbl, tog.firstChild);
+        tog.appendChild(lightLbl);
+    }
+
+    killSidebar();
+    labelToggle();
+    var i = 0;
+    var t = setInterval(function() {
+        killSidebar();
+        labelToggle();
+        if (++i > 20) clearInterval(t);
+    }, 300);
+})();
+</script>
+""", unsafe_allow_html=True)
 
 # Reload MCP queue from disk if session is fresh (handles page reloads)
 if not st.session_state["mcp_queue"]:
