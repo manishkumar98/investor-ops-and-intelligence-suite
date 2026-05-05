@@ -384,6 +384,7 @@ section[data-testid="stSidebar"],
 section[data-testid="stSidebar"] > div,
 [data-testid="collapsedControl"],
 button[data-testid="collapsedControl"],
+button[data-testid="stBaseButton-headerNoPadding"],
 [data-testid="stSidebarNav"],
 [data-testid="stSidebarNavItems"] {
   display: none !important;
@@ -1449,14 +1450,16 @@ st.markdown("""
 <script>
 (function() {
     function killSidebar() {
+        // Target every known variant of the sidebar collapsed-control button
         var sels = [
             '[data-testid="collapsedControl"]',
             'button[data-testid="collapsedControl"]',
             'section[data-testid="stSidebar"]',
+            // Streamlit 1.40+ renames it to stBaseButton-headerNoPadding
+            'button[data-testid="stBaseButton-headerNoPadding"]',
         ];
         sels.forEach(function(sel) {
-            var el = document.querySelector(sel);
-            if (el) {
+            document.querySelectorAll(sel).forEach(function(el) {
                 el.style.setProperty('display',    'none',    'important');
                 el.style.setProperty('visibility', 'hidden',  'important');
                 el.style.setProperty('width',      '0',       'important');
@@ -1465,7 +1468,11 @@ st.markdown("""
                 el.style.setProperty('overflow',   'hidden',  'important');
                 el.style.setProperty('position',   'absolute','important');
                 el.style.setProperty('left',       '-9999px', 'important');
-            }
+                // Also hide the parent wrapper div
+                if (el.parentElement) {
+                    el.parentElement.style.setProperty('display', 'none', 'important');
+                }
+            });
         });
     }
 
