@@ -584,7 +584,6 @@ h1,h2,h3,h4 { color: var(--text-1) !important; font-weight: 700 !important; }
 hr { border-color: var(--border) !important; margin: 24px 0 !important; }
 [data-testid="stMarkdownContainer"] p { color: var(--text-2) !important; }
 .stSpinner > div { color: var(--gold-dim) !important; }
-[data-testid="stToggle"] label,
 [data-testid="stWidgetLabel"] { color: var(--text-2) !important; }
 
 /* ── Tab content padding ── */
@@ -981,9 +980,6 @@ section[data-testid="stSidebar"] [data-testid="stCaptionContainer"] p { color: #
 /* Chat input text */
 [data-testid="stChatInput"] textarea { color: #1A1612 !important; -webkit-text-fill-color: #1A1612 !important; }
 [data-testid="stChatInput"] textarea::placeholder { color: #3D2208 !important; -webkit-text-fill-color: #3D2208 !important; }
-
-/* Toggle label */
-[data-testid="stToggle"] p { color: #3D3028 !important; }
 
 /* Code */
 .stCode pre, pre code { color: #1A1612 !important; }
@@ -1481,99 +1477,32 @@ with h_col1:
     """, unsafe_allow_html=True)
 
 with h_col2:
-    # Right side: Reset Button + Theme Switcher
     st.markdown("""
     <style>
-    /* Global Button No-Wrap */
+    /* Header right — align controls to the right */
     div[data-testid="stButton"] button {
         white-space: nowrap !important;
-        min-width: 160px !important;
-        height: 42px !important;
+        min-width: 140px !important;
+        height: 38px !important;
         padding-top: 0 !important;
         padding-bottom: 0 !important;
-    }
-    .header-controls {
-        display: flex;
-        align-items: center;
-        justify-content: flex-end;
-        gap: 20px;
-    }
-    .theme-label {
-        font-size: 0.75rem;
-        font-weight: 800;
-        text-transform: uppercase;
-        letter-spacing: 0.1em;
-        color: var(--text-2);
-        margin: 0;
-        padding: 0;
-        line-height: 42px; /* Match button height for perfect alignment */
-        white-space: nowrap;
-    }
-    </style>
-    """, unsafe_allow_html=True)
-    
-    st.markdown("""
-    <style>
-    /* Header controls row — flex so button and toggle sit on same baseline */
-    .header-controls-row {
-        display: flex;
-        align-items: center;
-        justify-content: flex-end;
-        gap: 20px;
-        padding: 4px 0;
-    }
-    /* Shrink Streamlit's default button padding so it matches toggle height */
-    div[data-testid="stButton"] > button[kind="secondary"] {
-        padding: 6px 18px !important;
         font-size: 0.78rem !important;
-        border-radius: 8px !important;
-        height: 36px !important;
-        line-height: 1 !important;
     }
-    /* Remove Streamlit's forced bottom margin on columns inside the header */
-    .header-right-col div[data-testid="stVerticalBlock"] {
-        gap: 0 !important;
-    }
-    /* toggle container — flex row so injected labels sit left/right */
-    [data-testid="stToggle"],
-    [data-testid="stCheckbox"]:has(input[aria-label="LIGHT"]) {
-        display: flex !important;
-        flex-direction: row !important;
-        align-items: center !important;
-        justify-content: flex-end !important;
-        gap: 5px !important;
+    /* Theme selectbox — compact inline style */
+    div[data-testid="stSelectbox"]:has(div[aria-label="🌗 Theme"]),
+    div[data-testid="stSelectbox"]:has(label:has(p)) {
         margin: 0 !important;
-        padding: 2px 0 !important;
-        background: transparent !important;
-    }
-    /* style for JS-injected DARK / LIGHT spans */
-    .tog-lbl {
-        font-size: 0.65rem !important;
-        font-weight: 800 !important;
-        letter-spacing: 0.08em !important;
-        color: var(--text-2, #aaa) !important;
-        white-space: nowrap !important;
-        line-height: 1 !important;
-        font-family: inherit !important;
-    }
-    /* hide the native Streamlit label text (we replace it with .tog-lbl) */
-    [data-testid="stToggle"] label,
-    [data-testid="stToggle"] p,
-    [data-testid="stCheckbox"]:has(input[aria-label="LIGHT"]) label,
-    [data-testid="stCheckbox"]:has(input[aria-label="LIGHT"]) p {
-        display: none !important;
     }
     </style>
     """, unsafe_allow_html=True)
 
-    c_reset, c_theme = st.columns([0.45, 0.55])
+    c_reset, c_theme = st.columns([0.6, 0.4])
 
     with c_reset:
-        st.markdown("<div style='display:flex; justify-content:flex-end;'>", unsafe_allow_html=True)
         if st.button(
             "🔄 RESET SESSION",
             key="header_reset_btn_ultimate",
-            use_container_width=False,
+            use_container_width=True,
             help=(
                 "ℹ️ What this does:\n"
                 "• Clears your entire session — chat history, voice call state, booking code, weekly pulse, and MCP approval queue\n"
@@ -1588,18 +1517,18 @@ with h_col2:
             Path("data/mcp_state.json").unlink(missing_ok=True)
             st.session_state["_show_reset_dialog"] = {"had_mcp": had_mcp}
             st.rerun()
-        st.markdown("</div>", unsafe_allow_html=True)
 
     with c_theme:
-        _tog_new = st.toggle(
-            "LIGHT",
-            value=_is_light,
-            key="header_theme_toggle_absolute_fix",
-            label_visibility="visible",
+        _theme_choice = st.selectbox(
+            "🌗 Theme",
+            options=["🌙 Dark", "☀️ Light"],
+            index=1 if _is_light else 0,
+            key="header_theme_select",
+            label_visibility="collapsed",
         )
-
-        if _tog_new != _is_light:
-            st.session_state["theme"] = "light" if _tog_new else "dark"
+        _theme_new = "light" if _theme_choice == "☀️ Light" else "dark"
+        if _theme_new != st.session_state.get("theme", "dark"):
+            st.session_state["theme"] = _theme_new
             st.rerun()
 
 st.markdown('<div style="margin-bottom:24px; border-bottom:1px solid var(--border);"></div>', unsafe_allow_html=True)
@@ -1635,52 +1564,8 @@ st.markdown("""
         });
     }
 
-    function getToggleEl() {
-        // st.toggle renders as stCheckbox in Streamlit 1.40+
-        return (
-            document.querySelector('[data-testid="stToggle"]') ||
-            document.querySelector('[data-testid="stCheckbox"]:has(input[aria-label="LIGHT"])') ||
-            document.querySelector('[data-testid="stCheckbox"]')
-        );
-    }
-
-    function injectToggleLabels() {
-        var tog = getToggleEl();
-        if (!tog) return;
-        if (tog.querySelector('.tog-lbl')) return;
-
-        var dark = document.createElement('span');
-        dark.className = 'tog-lbl';
-        dark.textContent = 'DARK';
-
-        var light = document.createElement('span');
-        light.className = 'tog-lbl';
-        light.textContent = 'LIGHT';
-
-        tog.insertBefore(dark, tog.firstChild);
-        tog.appendChild(light);
-    }
-
-    function pinToggle() {
-        var tog = getToggleEl();
-        if (!tog) return;
-        // Fixed position: top-right of the header, vertically centred in the ~80px header band
-        tog.style.setProperty('position',    'fixed',     'important');
-        tog.style.setProperty('top',         '28px',      'important');
-        tog.style.setProperty('right',       '24px',      'important');
-        tog.style.setProperty('z-index',     '9999',      'important');
-        tog.style.setProperty('display',     'flex',      'important');
-        tog.style.setProperty('align-items', 'center',    'important');
-        tog.style.setProperty('gap',         '6px',       'important');
-        tog.style.setProperty('margin',      '0',         'important');
-        tog.style.setProperty('padding',     '0',         'important');
-        tog.style.setProperty('background',  'transparent','important');
-    }
-
     function patchUI() {
         killSidebar();
-        injectToggleLabels();
-        pinToggle();
     }
 
     patchUI();
