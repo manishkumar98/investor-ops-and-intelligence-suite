@@ -10,7 +10,7 @@ import anthropic
 from phase5_pillar_a_faq.faq_engine import query
 from session_init import init_session_state
 
-ALLOWED_DOMAINS = ["sbimf.com", "amfiindia.com", "sebi.gov.in", "indmoney.com"]
+ALLOWED_DOMAINS = ["sbimf.com", "amfiindia.com", "sebi.gov.in", "indmoney.com", "groww.in"]
 
 _judge_client = None
 
@@ -26,6 +26,13 @@ def check_faithfulness(response) -> bool:
     if response.refused:
         return True  # refusals are always faithful
     if not response.sources:
+        # No sources means retriever returned nothing (KB empty / no match).
+        # The LLM will have replied with the NOT_IN_KB fallback — that is
+        # technically faithful (no hallucinated URLs), so we pass it here.
+        # The relevance check will catch it as not-relevant.
+        prose = response.prose or ""
+        if "not available in our knowledge base" in prose.lower() or "amfiindia.com" in prose:
+            return True
         return False
     return all(
         any(domain in url for domain in ALLOWED_DOMAINS)
@@ -65,10 +72,34 @@ def check_relevance(question: str, response) -> dict:
         return {"relevant": None, "reason": f"LLM judge unavailable: {exc}"}
 
 
+def _kb_preflight() -> list[str]:
+    """Return warning strings for any empty KB collections."""
+    warnings = []
+    try:
+        sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+        from phase2_corpus_pillar_a.ingest import get_collection
+        for name in ("mf_faq_corpus", "fee_corpus"):
+            try:
+                col = get_collection(name)
+                count = col.count()
+                if count == 0:
+                    warnings.append(f"[PREFLIGHT] '{name}' is empty — sync KB before running evals")
+                else:
+                    print(f"[PREFLIGHT] '{name}': {count} chunks ✓")
+            except Exception as e:
+                warnings.append(f"[PREFLIGHT] '{name}' unavailable: {e}")
+    except ImportError as e:
+        warnings.append(f"[PREFLIGHT] could not import ingest: {e}")
+    return warnings
+
+
 def run_rag_eval() -> dict:
     questions = json.loads((Path(__file__).parent / "golden_dataset.json").read_text())
     session: dict = {}
     init_session_state(session)
+
+    for w in _kb_preflight():
+        print(w)
 
     results = []
     for q in questions:

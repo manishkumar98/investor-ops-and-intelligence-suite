@@ -66,7 +66,7 @@ Generated: {now}
 
 **Faithfulness: {faith_score}/{rag_total}** · **Relevance: {rel_score}/{rag_total}** · Target: ≥4/5 both · {rag_status}
 
-Approved source domains: `sbimf.com`, `amfiindia.com`, `sebi.gov.in`
+Approved source domains: `sbimf.com`, `amfiindia.com`, `sebi.gov.in`, `indmoney.com`, `groww.in`
 
 ---
 

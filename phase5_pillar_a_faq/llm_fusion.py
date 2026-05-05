@@ -7,7 +7,7 @@ import anthropic
 _client = None
 NOT_IN_KB = "This information is not available in our knowledge base. Please check https://www.amfiindia.com"
 
-ALLOWED_DOMAINS = ["sbimf.com", "amfiindia.com", "sebi.gov.in", "indmoney.com", "camsonline.com", "mfcentral.com"]
+ALLOWED_DOMAINS = ["sbimf.com", "amfiindia.com", "sebi.gov.in", "indmoney.com", "camsonline.com", "mfcentral.com", "groww.in"]
 
 
 @dataclass
