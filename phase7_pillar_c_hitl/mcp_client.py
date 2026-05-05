@@ -75,9 +75,11 @@ class MCPClient:
         """Execute an approved action.
 
         mock mode  — records in memory, no external calls.
-        live mode  — email_draft: SMTP-sends the rich advisor email (with Market Context).
-                     calendar_hold / notes_append: acknowledged only; the background dispatch
-                     thread already created the Calendar event and Sheets row at booking time.
+        live mode  — all 4 action types execute on approval:
+                     calendar_hold: creates Google Calendar event.
+                     notes_append:  appends to Google Doc.
+                     sheet_entry:   appends row to Google Sheet.
+                     email_draft:   SMTP-sends advisor email with Market Context.
         """
         ref_id = str(uuid.uuid4())
 
@@ -97,6 +99,29 @@ class MCPClient:
             try:
                 from .mcp.docs_tool import append_notes_sync
                 append_notes_sync(action["payload"])
+            except Exception as exc:
+                action["error_msg"] = str(exc)
+                return MCPResult(success=False, ref_id="", mode="live")
+
+        elif action["type"] == "calendar_hold":
+            try:
+                import asyncio
+                from .mcp.models import MCPPayload
+                from .mcp.calendar_tool import create_calendar_hold
+                p = action["payload"]
+                mcp_payload = MCPPayload(
+                    booking_code=p.get("booking_code", ""),
+                    call_id=p.get("call_id", ""),
+                    topic_key=p.get("topic", ""),
+                    topic_label=p.get("title", ""),
+                    slot_start_iso=p.get("time", ""),
+                    slot_start_ist=p.get("time", ""),
+                    slot_end_iso="",
+                    advisor_id="",
+                    created_at_ist=p.get("date", ""),
+                    status="booked",
+                )
+                asyncio.run(create_calendar_hold(mcp_payload))
             except Exception as exc:
                 action["error_msg"] = str(exc)
                 return MCPResult(success=False, ref_id="", mode="live")
@@ -123,7 +148,6 @@ class MCPClient:
                 action["error_msg"] = str(exc)
                 return MCPResult(success=False, ref_id="", mode="live")
 
-        # calendar_hold: acknowledged — background dispatch thread handled it at booking time
         return MCPResult(success=True, ref_id=ref_id, mode="live")
 
     def save_state(self, session: dict) -> None:

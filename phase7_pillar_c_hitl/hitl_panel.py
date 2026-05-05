@@ -222,7 +222,8 @@ def render(session: dict, mcp_client: MCPClient) -> None:
     if not queue:
         st.info(
             "No pending actions. "
-            "Complete a Voice Booking call to generate actions for approval."
+            "Run the pipeline in **Product Pulse** tab to generate M2 actions, "
+            "or complete a **Voice Booking** call to generate M3 booking actions."
         )
         return
 
@@ -259,17 +260,18 @@ def render(session: dict, mcp_client: MCPClient) -> None:
         )
 
     _SOURCE_GROUPS = [
-        ("m3_voice", "📋 Booking Actions", "4 actions generated per booking: Email · Notes · Calendar · Google Sheet"),
+        ("m2_pipeline", "📊 Weekly Pulse Actions", "From Run Pipeline — Notes/Doc append + Email Draft (approval-gated)"),
+        ("m3_voice",    "📋 Booking Actions",       "From Voice Booking — Calendar Hold · Sheet Entry · Notes Entry · Email Draft (approval-gated)"),
     ]
     # Normalise legacy source values to canonical group keys
     _SOURCE_ALIASES = {
-        "m2_pipeline":             "other",
-        "review_pulse_dashboard":  "other",
-        "m2":                      "other",
+        "m2_pipeline":             "m2_pipeline",
+        "review_pulse_dashboard":  "m2_pipeline",
+        "m2":                      "m2_pipeline",
         "m3_voice":                "m3_voice",
         "m3":                      "m3_voice",
     }
-    _grouped: dict[str, list] = {"m3_voice": [], "other": []}
+    _grouped: dict[str, list] = {"m2_pipeline": [], "m3_voice": [], "other": []}
     for _a in queue:
         _canon = _SOURCE_ALIASES.get(_a.get("source", ""), "other")
         _grouped[_canon].append(_a)

@@ -139,42 +139,104 @@ streamlit run app.py              # launch the app
 
 ---
 
-### Step 5 — Tab 3 · Super-Agent MCP Workflow — Review & Approve
-> Nothing reaches the advisor's inbox until you approve it here.
+### Step 5 — Tab 3 · Action Center — Review & Approve
+> Nothing executes until you approve it here. All 5 MCP actions are approval-gated in one unified center.
 
-1. **Market Context card** at the top shows the Weekly Pulse snippet (M2 data) that will be injected into the advisor email
-2. Three pending actions appear in the HITL panel:
+The Action Center consolidates actions from both M2 and M3 into two groups:
 
-| Action | What it is | Approval effect |
+#### 📊 Weekly Pulse Actions (generated after Run Pipeline)
+
+| Action | What it is | Fires on Approval |
 |---|---|---|
-| 📅 Calendar Hold | Slot details for the advisor | Acknowledged — event already in Google Calendar |
-| 📝 Notes Entry | Booking record (topic, slot, code) | Acknowledged — row already in Google Sheets |
-| ✉️ Email Draft | Full advisor email with Market Context + Fee Context | Fires email to advisor (`manish98ad@gmail.com`) |
+| 📝 Notes / Doc Append | Weekly pulse + fee scenario | Appends to [Weekly Product Pulse Doc](https://docs.google.com/document/d/1erfYuwVB6nNieTNwjxO6cTX9Be2FIXg6rQiEfSov0so/edit?tab=t.0) |
+| ✉️ Email Draft | Weekly pulse + fee explainer | SMTP-sends to advisor (`manish98ad@gmail.com`) |
 
-3. For the **Email Draft**: fill in Client Name + Client Email → click **✓ Approve & Send Email**
-   - Advisor email fires to `manish98ad@gmail.com` with subject *"Advisor Pre-Booking: [Topic] — [Date]"*
-   - Email body includes the Market Context snippet (from Weekly Pulse) so the advisor sees current customer sentiment before the meeting
-   - Client confirmation email fires to the client address you entered
-4. All three actions flip to **Approved** — queue clears
+#### 📋 Booking Actions (generated after Voice Booking)
+
+| Action | What it is | Fires on Approval |
+|---|---|---|
+| 📅 Calendar Hold | Tentative advisor slot | Creates Google Calendar event |
+| 📝 Notes Entry | Booking record (topic, slot, code + M2 pulse context) | Appends to [Weekly Product Pulse Doc](https://docs.google.com/document/d/1erfYuwVB6nNieTNwjxO6cTX9Be2FIXg6rQiEfSov0so/edit?tab=t.0) |
+| 📊 Google Sheet Entry | Booking log row (code, topic, slot, date, status) | Appends row to [Advisor Booking Sheet](https://docs.google.com/spreadsheets/d/1rIGbbWXwfEJW7Y77iFGqpjbN5UK_Ef1gJMM6O6asJiI/edit?gid=0#gid=0) |
+| ✉️ Email Draft | Advisor email with booking details + Weekly Pulse Market Context | SMTP-sends to advisor (`manish98ad@gmail.com`) |
+
+For the **M3 Email Draft**: fill in Client Name + Client Email → click **✓ Approve & Send Email**
+- Advisor email includes the full Weekly Review Pulse so they know current customer sentiment before the meeting *(The Twist from Pillar C)*
+- Client confirmation email fires to the address you entered
 
 ---
 
-### Flow summary
+## MCP Actions Reference
+
+The system uses **Model Context Protocol (MCP)** for all external integrations. Every action is approval-gated — no external call fires until a human clicks **Approve** in the Action Center.
+
+### All 5 Required MCP Actions
+
+| # | Action | Source | Tool | Destination |
+|---|---|---|---|---|
+| 1 | 📝 Notes / Doc Append | M2 pipeline | `docs_tool.append_notes_sync()` | [Weekly Product Pulse Doc](https://docs.google.com/document/d/1erfYuwVB6nNieTNwjxO6cTX9Be2FIXg6rQiEfSov0so/edit?tab=t.0) |
+| 2 | ✉️ Email Draft | M2 pipeline | `mcp_client._send_advisor_email_live()` | Advisor inbox |
+| 3 | 📅 Calendar Hold | M3 voice | `calendar_tool.create_calendar_hold()` | Google Calendar |
+| 4 | 📝 Notes Entry | M3 voice | `docs_tool.append_notes_sync()` | [Weekly Product Pulse Doc](https://docs.google.com/document/d/1erfYuwVB6nNieTNwjxO6cTX9Be2FIXg6rQiEfSov0so/edit?tab=t.0) |
+| 5 | ✉️ Email Draft | M3 voice | `mcp_client._send_advisor_email_live()` | Advisor inbox |
+
+**Bonus (not required by PS):**
+| + | 📊 Sheet Entry | M3 voice | `sheets_tool._append_row_sync()` | [Advisor Booking Sheet](https://docs.google.com/spreadsheets/d/1rIGbbWXwfEJW7Y77iFGqpjbN5UK_Ef1gJMM6O6asJiI/edit?gid=0#gid=0) |
+
+### MCP Execution Flow
 
 ```
-Tab 1 (anytime)              Tab 2 (start here)              Tab 3 (final gate)
-────────────────             ──────────────────              ──────────────────
-Ask FAQ question      ←→     Run Pipeline                →   Market Context card
-  ↓                            (M2 Weekly Pulse)               (M2 snippet preview)
-6-bullet answer              Start Voice Call
-with source links              (M3 briefed by M2)          →   3 pending actions:
-from M1 + M2                   Theme-aware greeting             📅 Calendar Hold
-                               Booking confirmed                📝 Notes Entry
-                               ↓                                ✉️ Email Draft
-                             3 actions enqueued          →      ↓
-                                                             Approve all 3
-                                                             Email → manish98ad@gmail.com
-                                                             (with Market Context inside)
+── M2: Run Pipeline ──────────────────────────────────────────────
+Pipeline completes
+      ↓
+2 actions enqueued (status: pending)
+  notes_append  → Weekly pulse + fee payload
+  email_draft   → Weekly pulse + fee email body
+
+── M3: Voice Booking ─────────────────────────────────────────────
+Voice call ends
+      ↓
+Super-Agent (Claude via tool_use) generates 4 action payloads
+      ↓
+4 actions enqueued (status: pending)
+  calendar_hold → Slot details
+  notes_append  → Booking record + M2 pulse context
+  sheet_entry   → Booking log row
+  email_draft   → Booking details + Market Context (from M2 pulse)
+
+── Action Center (Tab 3) ─────────────────────────────────────────
+Advisor reviews both groups → clicks Approve on each
+      ↓
+MCPClient.execute() fires per action:
+  notes_append   → Google Docs API
+  email_draft    → Gmail SMTP
+  calendar_hold  → Google Calendar API
+  sheet_entry    → Google Sheets API
+```
+
+### Mock vs Live Mode
+
+Set `MCP_MODE=mock` (default) for local development — all actions are recorded in memory, no external APIs called. Set `MCP_MODE=live` with the required credentials to fire real Google API and SMTP calls.
+
+---
+
+### Flow Summary
+
+```
+Knowledge Base (Tab 1)       Product Pulse (Tab 2)           Action Center (Tab 3)
+──────────────────           ─────────────────────           ─────────────────────
+Ask FAQ question      ←→     Run Pipeline              →  📊 Weekly Pulse Actions:
+  ↓                            (M2 Weekly Pulse)              📝 Notes/Doc append
+6-bullet answer                2 actions queued               ✉️ Email Draft
+with source links
+from M1 + M2                 Start Voice Call           →  📋 Booking Actions:
+                               (M3 briefed by M2)            📅 Calendar Hold
+                               Theme-aware greeting           📝 Notes Entry
+                               Booking confirmed              📊 Sheet Entry
+                               4 actions queued               ✉️ Email Draft
+                                                              (with M2 pulse inside)
+                                                              ↓
+                                                           Approve all → APIs fire
 ```
 
 ---

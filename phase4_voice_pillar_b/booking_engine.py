@@ -1,14 +1,15 @@
 """Adapted from M3 phase1/src/booking/booking_code_generator.py + slot_resolver.py"""
 import json
+import re
 import random
-from datetime import date
+from datetime import date, datetime, timedelta
 from pathlib import Path
 
 import pytz
 
 IST = pytz.timezone("Asia/Kolkata")
 
-# Excludes visually ambiguous chars: 0, O, 1, I  (from M3 booking_code_generator.py)
+# Excludes visually ambiguous chars: 0, O, 1, I
 _SAFE_CHARS = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"
 
 _DAY_MAP = {
@@ -23,6 +24,230 @@ _TIME_BAND_MAP = {
     "noon": (12, 14), "midday": (11, 14),
     "am": (9, 12), "pm": (12, 17),
 }
+
+_MONTH_MAP = {
+    "january": 1, "jan": 1, "february": 2, "feb": 2, "march": 3, "mar": 3,
+    "april": 4, "apr": 4, "may": 5, "june": 6, "jun": 6,
+    "july": 7, "jul": 7, "august": 8, "aug": 8, "september": 9, "sep": 9, "sept": 9,
+    "october": 10, "oct": 10, "november": 11, "nov": 11, "december": 12, "dec": 12,
+}
+
+# Band → implied am/pm and a sensible display hour
+_BAND_AMPM = {
+    "morning": "am", "noon": "pm", "midday": "pm",
+    "afternoon": "pm", "evening": "pm", "night": "pm",
+}
+_BAND_DEFAULT_HOUR = {
+    "morning": 10, "noon": 12, "midday": 12,
+    "afternoon": 14, "evening": 18, "night": 20,
+}
+
+
+def _today_ist() -> date:
+    return datetime.now(IST).date()
+
+
+# ── Day preference parser ────────────────────────────────────────────────────
+
+def parse_day_preference(
+    day_pref: str,
+    reference_date: datetime | None = None,
+) -> tuple[list[datetime], bool]:
+    """
+    Convert a day preference string to (candidate_dates, confident).
+
+    confident=False → couldn't pin an exact date, fell back to a range.
+
+    Handles:
+        "today" / "tomorrow" / "day after tomorrow"
+        "Monday" / "next Monday"
+        "6th" / "6" → 6th of current or next month
+        "6th April" / "April 6" / "6 April 2026"
+        "this week" / "next week" → range fallback (confident=False)
+    """
+    if reference_date is None:
+        reference_date = datetime.now(IST)
+
+    pref = day_pref.lower().strip()
+    today = reference_date.replace(hour=0, minute=0, second=0, microsecond=0)
+
+    if "today" in pref:
+        return [today], True
+    if "day after tomorrow" in pref or "overmorrow" in pref:
+        return [today + timedelta(days=2)], True
+    if "tomorrow" in pref:
+        return [today + timedelta(days=1)], True
+
+    force_next_week = pref.startswith("next") and not any(m in pref for m in _MONTH_MAP)
+
+    # Ordinal / numeric day-of-month: "6th", "6th April", "April 6", "6 April 2026"
+    ordinal_match = re.search(r"\b(\d{1,2})(?:st|nd|rd|th)?\b", pref)
+    if ordinal_match:
+        day_num = int(ordinal_match.group(1))
+        if 1 <= day_num <= 31:
+            target_month = reference_date.month
+            target_year  = reference_date.year
+            for month_name, month_num in _MONTH_MAP.items():
+                if month_name in pref:
+                    target_month = month_num
+                    if month_num < reference_date.month:
+                        target_year += 1
+                    break
+            year_match = re.search(r"\b(202\d)\b", pref)
+            if year_match:
+                target_year = int(year_match.group(1))
+            try:
+                candidate = today.replace(year=target_year, month=target_month, day=day_num)
+                if candidate < today and target_month == reference_date.month and not year_match:
+                    if target_month == 12:
+                        candidate = candidate.replace(year=target_year + 1, month=1)
+                    else:
+                        candidate = candidate.replace(month=target_month + 1)
+                return [candidate], True
+            except ValueError:
+                pass
+
+    # Weekday name
+    for day_name, target_weekday in _DAY_MAP.items():
+        if day_name in pref:
+            current_weekday = reference_date.weekday()
+            days_ahead = (target_weekday - current_weekday) % 7
+            if days_ahead == 0 and not force_next_week:
+                candidate = today
+            else:
+                if force_next_week:
+                    days_ahead = days_ahead if days_ahead > 0 else 7
+                    days_ahead += 7 if days_ahead <= 7 and "next" in pref else 0
+                candidate = today + timedelta(days=days_ahead or 7)
+            return [candidate], True
+
+    # Fallback: range (not confident)
+    days_offset = 8 if "next week" in pref else 1
+    return [today + timedelta(days=i) for i in range(days_offset, days_offset + 7)], False
+
+
+# ── Time preference parser ───────────────────────────────────────────────────
+
+def parse_time_preference(time_pref: str) -> tuple[tuple[int, int] | None, bool]:
+    """
+    Convert a time preference string to ((start_hour, end_hour), confident).
+
+    Handles:
+        "10am" / "10 am" / "10:30am"     → exact 2-hour window, confident
+        "2pm" / "2 pm" / "14:00"         → exact 2-hour window, confident
+        "2 afternoon" / "morning 10"      → band-resolved hour, confident
+        "morning" / "afternoon" / "evening" → named band, confident
+        "any" / ""                         → None (no filter)
+    """
+    pref = time_pref.lower().strip() if time_pref else ""
+
+    if not pref or pref in ("any", "anytime", "any time", "flexible"):
+        return None, True
+
+    # Detect time-of-day band (longest match first)
+    detected_band: str | None = None
+    for band_name in sorted(_BAND_AMPM, key=len, reverse=True):
+        if band_name in pref:
+            detected_band = band_name
+            break
+
+    # Try explicit numeric hour: "10am", "2pm", "10:30", "14:00"
+    time_match = re.search(r"\b(\d{1,2})(?::(\d{2}))?\s*(am|pm)?\b", pref)
+    if time_match:
+        hour  = int(time_match.group(1))
+        am_pm = time_match.group(3)
+
+        if am_pm == "pm" and hour < 12:
+            hour += 12
+        elif am_pm == "am" and hour == 12:
+            hour = 0
+        elif am_pm is None and detected_band:
+            implied = _BAND_AMPM[detected_band]
+            if implied == "pm" and hour < 12:
+                hour += 12
+            elif implied == "am" and hour == 12:
+                hour = 0
+        elif am_pm is None and hour <= 6:
+            hour += 12  # bare "2" → assume 2 PM
+
+        return (hour, min(23, hour + 2)), True
+
+    # Band-only match
+    if detected_band:
+        return _TIME_BAND_MAP[detected_band], True
+
+    return None, False
+
+
+# ── Echo-back summary ────────────────────────────────────────────────────────
+
+def parse_datetime_summary(
+    day_pref: str,
+    time_pref: str,
+    reference_date: datetime | None = None,
+) -> tuple[str, bool]:
+    """
+    Return (human_readable_summary, needs_confirmation).
+
+    Used by the FSM to echo back what was understood before offering slots.
+    needs_confirmation=True when the date or time couldn't be parsed confidently.
+    """
+    if reference_date is None:
+        reference_date = datetime.now(IST)
+
+    dates, day_confident = parse_day_preference(day_pref, reference_date) if day_pref else ([], False)
+    band,  time_confident = parse_time_preference(time_pref) if time_pref else (None, True)
+
+    # Date summary
+    if dates and day_confident:
+        date_str = dates[0].strftime("%A, %d %b %Y")
+    elif dates:
+        date_str = f"sometime from {dates[0].strftime('%d %b %Y')}"
+    else:
+        date_str = day_pref or "a date to be confirmed"
+
+    # Time summary
+    if band and time_confident:
+        start_h, end_h = band
+        mid = (start_h + end_h) // 2
+        ampm = "AM" if mid < 12 else "PM"
+        disp = mid if mid <= 12 else mid - 12
+        time_str = f"{disp}:00 {ampm} IST"
+    elif band:
+        for name, rng in _TIME_BAND_MAP.items():
+            if rng == band:
+                time_str = f"{name} IST"
+                break
+        else:
+            time_str = time_pref or "flexible time"
+    else:
+        time_str = time_pref or "flexible time"
+
+    needs_confirmation = not day_confident or (not time_confident and band is None)
+    return f"{date_str} at {time_str}", needs_confirmation
+
+
+# ── resolve_day_pref (used by match_slots + _load_all_available) ─────────────
+
+def resolve_day_pref(day_pref: str) -> str:
+    """
+    Convert relative/named day phrases to YYYY-MM-DD ISO string.
+    Weekday names (monday, tuesday…) are returned unchanged for weekday matching.
+    """
+    if not day_pref:
+        return day_pref
+    dates, confident = parse_day_preference(day_pref)
+    if confident and dates:
+        # Only return ISO if it's a pinned date (not a weekday-name result already)
+        low = day_pref.lower().strip()
+        # If input was a bare weekday name, keep it as weekday name for match_slots
+        if low in _DAY_MAP or any(low.startswith(p) for p in ("next ", "this ")):
+            # For "next monday" etc, return the resolved ISO date
+            if any(low.startswith(p) for p in ("next ", "this ")):
+                return dates[0].strftime("%Y-%m-%d")
+            return day_pref  # bare "monday" → keep for weekday matching
+        return dates[0].strftime("%Y-%m-%d")
+    return day_pref
 
 
 def _to_12h(time_str: str) -> str:
@@ -112,55 +337,64 @@ def _slot_available(slot: dict) -> bool:
 
 
 def match_slots(calendar: list[dict], day_pref: str | None, period: str | None) -> list[dict]:
-    """Return up to 2 available slots matching day and time-of-day preference."""
-    available = [s for s in calendar if _slot_available(s)]
+    """Return up to 2 available future slots matching day and time-of-day preference."""
+    today = _today_ist()
+
+    # Only future slots (today or later)
+    available = [
+        s for s in calendar
+        if _slot_available(s) and (
+            _slot_start_dt(s) is None or _slot_start_dt(s).date() >= today
+        )
+    ]
     if not available:
         return []
 
-    # Day filter
+    # Day filter — supports ISO date string (YYYY-MM-DD) or weekday name
     if day_pref:
-        day_lower = day_pref.lower()
-        target_weekday = next((v for k, v in _DAY_MAP.items() if k in day_lower), None)
-        if target_weekday is not None:
-            matched = []
-            for s in available:
-                sday = _slot_day_name(s)
-                if sday:
-                    slot_wd = _DAY_MAP.get(sday[:3])
-                    if slot_wd == target_weekday:
-                        matched.append(s)
-            # If user asked for a specific day and none match, return empty — triggers waitlist
-            available = matched
-        else:
-            filtered = [s for s in available if day_lower in _slot_day_name(s)]
-            if filtered:
-                available = filtered
+        resolved = resolve_day_pref(day_pref)
+        resolved_lower = resolved.lower().strip()
 
-    # Period / time band filter
-    if period and available:
-        period_lower = period.lower()
-        period_band = _TIME_BAND_MAP.get(period_lower)
-        time_matched = []
-        for s in available:
-            slot_period = s.get("period", "").lower()
-            if period_lower in slot_period:
-                time_matched.append(s)
-                continue
-            # Support both legacy 'time' key and ISO 'start' datetime
-            slot_hour = None
-            if "time" in s:
-                try:
-                    slot_hour = int(s["time"].split(":")[0])
-                except (ValueError, IndexError):
-                    pass
-            if slot_hour is None:
-                dt = _slot_start_dt(s)
-                if dt:
-                    slot_hour = dt.hour
-            if period_band and slot_hour is not None:
-                if period_band[0] <= slot_hour < period_band[1]:
+        # ISO date match (today/tomorrow resolve to this)
+        if len(resolved_lower) == 10 and resolved_lower[4] == "-":
+            try:
+                target_date = date.fromisoformat(resolved_lower)
+                matched = [s for s in available if _slot_start_dt(s) and _slot_start_dt(s).date() == target_date]
+                available = matched  # empty = triggers waitlist
+            except ValueError:
+                pass
+        else:
+            # Weekday name match
+            target_weekday = next((v for k, v in _DAY_MAP.items() if k == resolved_lower or k in resolved_lower), None)
+            if target_weekday is not None:
+                matched = [
+                    s for s in available
+                    if _DAY_MAP.get(_slot_day_name(s)[:3]) == target_weekday
+                ]
+                available = matched  # empty = triggers waitlist
+
+    if not available:
+        return []
+
+    # Period / time band filter — uses parse_time_preference for exact times + bands
+    if period and period.lower() not in ("any", "anytime", "flexible", ""):
+        time_band, _ = parse_time_preference(period)
+        if time_band:
+            time_matched = []
+            for s in available:
+                slot_hour = None
+                if "time" in s:
+                    try:
+                        slot_hour = int(s["time"].split(":")[0])
+                    except (ValueError, IndexError):
+                        pass
+                if slot_hour is None:
+                    dt = _slot_start_dt(s)
+                    if dt:
+                        slot_hour = dt.hour
+                if slot_hour is not None and time_band[0] <= slot_hour < time_band[1]:
                     time_matched.append(s)
-        if time_matched:
+            # Empty = period specified but no slots match → triggers waitlist
             available = time_matched
 
     return available[:2]

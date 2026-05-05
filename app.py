@@ -2120,6 +2120,53 @@ with tab2:
             st.session_state["fee_sources"]     = p_data.get("fee", {}).get("sources", [])
             st.session_state["pulse_generated"] = True
             st.session_state["analytics_data"]  = p_data.get("analytics", {})
+
+            # ── Enqueue M2 MCP actions for HITL approval in Action Center ──
+            from phase7_pillar_c_hitl.mcp_client import enqueue_action as _enqueue
+            from datetime import date as _date
+            _today       = str(_date.today())
+            _weekly_note = pulse.get("weekly_note", "")
+            _fee         = p_data.get("fee", {})
+            _fee_bullets = _fee.get("bullets", [])
+            _fee_sources = _fee.get("sources", [])
+            _fee_scenario = _fee.get("scenario", "Fee Explainer")
+
+            _enqueue(
+                st.session_state,
+                type="notes_append",
+                source="m2_pipeline",
+                payload={
+                    "doc_title": "Weekly Product Pulse",
+                    "entry": {
+                        "date":                _today,
+                        "weekly_pulse":        _weekly_note,
+                        "top_3_themes":        top3,
+                        "fee_scenario":        _fee_scenario,
+                        "explanation_bullets": _fee_bullets,
+                        "source_links":        _fee_sources,
+                    },
+                },
+            )
+            _enqueue(
+                st.session_state,
+                type="email_draft",
+                source="m2_pipeline",
+                payload={
+                    "subject": f"Weekly Pulse + Fee Explainer — {_today}",
+                    "body": (
+                        f"WEEKLY INDMONEY PRODUCT PULSE\n{'='*60}\n"
+                        f"Date: {_today}\n{'='*60}\n\n"
+                        f"TOP 3 THEMES\n{'─'*26}\n"
+                        + "\n".join(f"{i+1}. {t}" for i, t in enumerate(top3)) +
+                        f"\n\nWEEKLY NOTE\n{'─'*26}\n{_weekly_note}\n\n"
+                        f"FEE EXPLAINER — {_fee_scenario}\n{'─'*26}\n"
+                        + "\n".join(f"• {b}" for b in _fee_bullets) +
+                        (f"\n\nSources: {', '.join(_fee_sources)}" if _fee_sources else "") +
+                        f"\n\n{'='*60}\n[DRAFT — Pending human review before sending]"
+                    ),
+                },
+            )
+
             for k in ["_pipeline_active","_pipeline_step","_pipeline_stop","_pipeline_data","_pipeline_error"]:
                 st.session_state.pop(k, None)
             st.session_state["_show_pipeline_dialog"] = {"pulse": pulse, "analytics": p_data.get("analytics",{}), "fee": p_data.get("fee",{})}

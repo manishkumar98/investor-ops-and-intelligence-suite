@@ -16,7 +16,7 @@ from pathlib import Path
 from config import SECURE_BASE_URL
 from .intent_classifier import classify
 from .slot_filler import extract_topic, extract_time_pref
-from .booking_engine import load_calendar, match_slots, book, _to_12h
+from .booking_engine import load_calendar, book, _to_12h
 from .pii_scrubber import scrub_pii
 from .compliance_guard import ComplianceGuard
 from .dialogue_states import DialogueContext, DialogueState, TOPIC_LABELS, IST  # IST used in __init__
@@ -176,30 +176,38 @@ class VoiceAgent:
         return -1
 
     def _load_all_available(self, day: str | None = None, period: str | None = None) -> None:
-        """Populate self._all_available and reset pagination. Optionally filter by day/period."""
-        from .booking_engine import _slot_available
-        if day or period:
-            self._all_available = match_slots(self.calendar, day, period) * 100  # already limited to 2; expand
-            # re-fetch without the :2 cap by inlining the filter
-            from .booking_engine import _slot_day_name, _slot_start_dt, _DAY_MAP, _TIME_BAND_MAP
-            available = [s for s in self.calendar if _slot_available(s)]
-            if day:
-                day_lower = day.lower()
-                target_wd = next((v for k, v in _DAY_MAP.items() if k in day_lower), None)
+        """Populate self._all_available (no :2 cap) and reset pagination."""
+        from .booking_engine import _slot_available, _slot_start_dt, _slot_day_name, _DAY_MAP, resolve_day_pref, parse_time_preference, _today_ist
+        from datetime import date as _date
+        today = _today_ist()
+
+        # Start from all future available slots
+        available = [
+            s for s in self.calendar
+            if _slot_available(s) and (
+                _slot_start_dt(s) is None or _slot_start_dt(s).date() >= today
+            )
+        ]
+
+        if day:
+            resolved = resolve_day_pref(day)
+            resolved_lower = resolved.lower().strip()
+            if len(resolved_lower) == 10 and resolved_lower[4] == "-":
+                try:
+                    target_date = _date.fromisoformat(resolved_lower)
+                    available = [s for s in available if _slot_start_dt(s) and _slot_start_dt(s).date() == target_date]
+                except ValueError:
+                    pass
+            else:
+                target_wd = next((v for k, v in _DAY_MAP.items() if k == resolved_lower or k in resolved_lower), None)
                 if target_wd is not None:
                     available = [s for s in available if _DAY_MAP.get(_slot_day_name(s)[:3]) == target_wd]
-                else:
-                    filtered = [s for s in available if day_lower in _slot_day_name(s)]
-                    if filtered:
-                        available = filtered
-            if period and available:
-                period_lower = period.lower()
-                band = _TIME_BAND_MAP.get(period_lower)
+
+        if period and period.lower() not in ("any", "anytime", "flexible", "") and available:
+            time_band, _ = parse_time_preference(period)
+            if time_band:
                 matched = []
                 for s in available:
-                    if period_lower in s.get("period", "").lower():
-                        matched.append(s)
-                        continue
                     h = None
                     if "time" in s:
                         try:
@@ -210,13 +218,11 @@ class VoiceAgent:
                         dt = _slot_start_dt(s)
                         if dt:
                             h = dt.hour
-                    if band and h is not None and band[0] <= h < band[1]:
+                    if h is not None and time_band[0] <= h < time_band[1]:
                         matched.append(s)
-                if matched:
-                    available = matched
-            self._all_available = available
-        else:
-            self._all_available = [s for s in self.calendar if _slot_available(s)]
+                available = matched  # empty triggers waitlist in _offer_next_page
+
+        self._all_available = available
         self._slot_page = 0
 
     def _offer_next_page(self) -> str:
@@ -448,12 +454,21 @@ class VoiceAgent:
         if period:
             self._ctx.time_preference = period
 
-        self._offered_slots = match_slots(self.calendar, day, period)
+        self._load_all_available(day, period)
+        self._offered_slots = self._all_available[:2]
+
+        # Echo-back what was understood before offering/declining slots
+        from .booking_engine import parse_datetime_summary
+        summary, needs_confirm = parse_datetime_summary(day or "", period or "")
+        echo = f"I understood: {summary}. "
 
         if not self._offered_slots:
             self._ctx.current_state = DialogueState.WAITLIST_OFFERED
             self.state = "WAITLIST"
-            return self._handle_waitlist(utterance)
+            return (
+                f"{echo}I'm sorry, I don't have any available slots for that preference. "
+                + self._handle_waitlist(utterance)
+            )
 
         self._ctx.offered_slots = self._offered_slots
         self._ctx.current_state = DialogueState.SLOTS_OFFERED
@@ -463,10 +478,13 @@ class VoiceAgent:
             f"Option {i}: {_slot_display(s)}"
             for i, s in enumerate(self._offered_slots, 1)
         ]
+        has_more = len(self._all_available) > 2
+        more_hint = " Say 'other' to see more options." if has_more else ""
+        confirm_hint = " Could you confirm that's right?" if needs_confirm else ""
         return (
-            "Here are the available slots:\n"
+            f"{echo}{confirm_hint}\nHere are the available slots:\n"
             + "\n".join(slot_lines)
-            + "\nWhich option would you prefer? (say '1' or '2')"
+            + f"\nWhich option would you prefer? (say '1' or '2'){more_hint}"
         )
 
     def _handle_offerslots(self, utterance: str) -> str:
@@ -501,9 +519,16 @@ class VoiceAgent:
                 if new_period:
                     self._ctx.time_preference = new_period
 
-                # Build a precisely filtered candidate pool from the full calendar
-                from .booking_engine import _slot_available, _slot_start_dt, _slot_day_name, _DAY_MAP
-                pool = [s for s in self.calendar if _slot_available(s)]
+                # Build a precisely filtered candidate pool from the full calendar (future only)
+                from .booking_engine import _slot_available, _slot_start_dt, _slot_day_name, _DAY_MAP, resolve_day_pref, _today_ist
+                from datetime import date as _date
+                _today = _today_ist()
+                pool = [
+                    s for s in self.calendar
+                    if _slot_available(s) and (
+                        _slot_start_dt(s) is None or _slot_start_dt(s).date() >= _today
+                    )
+                ]
 
                 if ordinal_day is not None:
                     day_filtered = [s for s in pool
@@ -511,13 +536,23 @@ class VoiceAgent:
                     if day_filtered:
                         pool = day_filtered
                 elif new_day:
-                    day_lower = new_day.lower()
-                    target_wd = next((v for k, v in _DAY_MAP.items() if k in day_lower), None)
-                    if target_wd is not None:
-                        wf = [s for s in pool
-                              if _DAY_MAP.get(_slot_day_name(s)[:3]) == target_wd]
-                        if wf:
-                            pool = wf
+                    resolved_day = resolve_day_pref(new_day)
+                    resolved_lower = resolved_day.lower().strip()
+                    if len(resolved_lower) == 10 and resolved_lower[4] == "-":
+                        try:
+                            target_date = _date.fromisoformat(resolved_lower)
+                            wf = [s for s in pool if _slot_start_dt(s) and _slot_start_dt(s).date() == target_date]
+                            if wf:
+                                pool = wf
+                        except ValueError:
+                            pass
+                    else:
+                        target_wd = next((v for k, v in _DAY_MAP.items() if k == resolved_lower or k in resolved_lower), None)
+                        if target_wd is not None:
+                            wf = [s for s in pool
+                                  if _DAY_MAP.get(_slot_day_name(s)[:3]) == target_wd]
+                            if wf:
+                                pool = wf
 
                 if specific_hour is not None:
                     hour_filtered = [s for s in pool
