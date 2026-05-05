@@ -1416,7 +1416,7 @@ def _va2_stt(audio_bytes: bytes) -> str:
 
 # ── NAV Ticker ───────────────────────────────────────────────────────────────
 def _build_ticker_html() -> str:
-    nav_file = Path("data/nav_snapshot.json")
+    nav_file = Path(__file__).parent / "data" / "nav_snapshot.json"
     try:
         data = json.loads(nav_file.read_text())
         funds = data["funds"]
