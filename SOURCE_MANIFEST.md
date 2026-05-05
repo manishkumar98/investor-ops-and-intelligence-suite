@@ -2,10 +2,10 @@
 # Format: mf_faq: <URL>  — ingested into mf_faq_corpus (FAQ / factsheet questions)
 #         fee:    <URL>  — ingested into fee_corpus (exit load / expense ratio questions)
 # Lines starting with # are ignored.
-# Last verified: 2026-04-29
+# Last verified: 2026-05-05
 #
-# Coverage: 8 SBI Mutual Fund schemes, official AMC + INDMoney pages, AMFI, SEBI, CAMS, MFCentral
-# Total unique URLs: 34
+# Coverage: 12 SBI Mutual Fund schemes, official AMC + INDMoney pages, AMFI, SEBI, CAMS, MFCentral
+# Total unique URLs: 50
 
 # ── SBI Mutual Fund — Official Scheme Pages (sbimf.com) ─────────────────────
 # Source for: expense ratio, exit load, lock-in, riskometer, benchmark, min SIP
@@ -18,6 +18,10 @@ mf_faq: https://www.sbimf.com/sbimf-scheme-details/SBI-Midcap-Fund-34
 mf_faq: https://www.sbimf.com/sbimf-scheme-details/SBI-Focused-Equity-Fund-37
 mf_faq: https://www.sbimf.com/sbimf-scheme-details/SBI-Liquid-Fund-42
 mf_faq: https://www.sbimf.com/sbimf-scheme-details/SBI-Contra-Fund-33
+mf_faq: https://www.sbimf.com/sbimf-scheme-details/SBI-Technology-Opportunities-Fund-48
+mf_faq: https://www.sbimf.com/sbimf-scheme-details/SBI-Healthcare-Opportunities-Fund-36
+mf_faq: https://www.sbimf.com/sbimf-scheme-details/SBI-Equity-Hybrid-Fund-35
+mf_faq: https://www.sbimf.com/sbimf-scheme-details/SBI-Magnum-Global-Fund-44
 
 # ── SBI Mutual Fund — Investor Service Pages ─────────────────────────────────
 
@@ -36,6 +40,10 @@ mf_faq: https://www.indmoney.com/mutual-funds/sbi-midcap-fund-direct-growth-3129
 mf_faq: https://www.indmoney.com/mutual-funds/sbi-focused-equity-fund-direct-growth-3532
 mf_faq: https://www.indmoney.com/mutual-funds/sbi-liquid-fund-direct-growth-2831
 mf_faq: https://www.indmoney.com/mutual-funds/sbi-contra-fund-direct-growth-3081
+mf_faq: https://www.indmoney.com/mutual-funds/sbi-technology-opportunities-fund-direct-growth-4769
+mf_faq: https://www.indmoney.com/mutual-funds/sbi-healthcare-opportunities-fund-direct-growth-2768
+mf_faq: https://www.indmoney.com/mutual-funds/sbi-equity-hybrid-fund-direct-growth-2755
+mf_faq: https://www.indmoney.com/mutual-funds/sbi-magnum-global-fund-direct-growth-2803
 mf_faq: https://www.indmoney.com/mutual-funds/amc/sbi-mutual-fund
 
 # ── AMFI — Investor Education & NAV ──────────────────────────────────────────
@@ -71,6 +79,10 @@ fee: https://www.sbimf.com/sbimf-scheme-details/SBI-Midcap-Fund-34
 fee: https://www.sbimf.com/sbimf-scheme-details/SBI-Focused-Equity-Fund-37
 fee: https://www.sbimf.com/sbimf-scheme-details/SBI-Liquid-Fund-42
 fee: https://www.sbimf.com/sbimf-scheme-details/SBI-Contra-Fund-33
+fee: https://www.sbimf.com/sbimf-scheme-details/SBI-Technology-Opportunities-Fund-48
+fee: https://www.sbimf.com/sbimf-scheme-details/SBI-Healthcare-Opportunities-Fund-36
+fee: https://www.sbimf.com/sbimf-scheme-details/SBI-Equity-Hybrid-Fund-35
+fee: https://www.sbimf.com/sbimf-scheme-details/SBI-Magnum-Global-Fund-44
 fee: https://www.sbimf.com/en-us/investor-service/exit-load
 fee: https://www.sbimf.com/en-us/investor-service/expense-ratio
 fee: https://www.amfiindia.com/investor-corner/knowledge-center/expense-ratio.html
