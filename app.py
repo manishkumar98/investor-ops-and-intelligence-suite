@@ -1535,7 +1535,8 @@ with h_col2:
         gap: 0 !important;
     }
     /* toggle container — flex row so injected labels sit left/right */
-    [data-testid="stToggle"] {
+    [data-testid="stToggle"],
+    [data-testid="stCheckbox"]:has(input[aria-label="LIGHT"]) {
         display: flex !important;
         flex-direction: row !important;
         align-items: center !important;
@@ -1543,6 +1544,7 @@ with h_col2:
         gap: 5px !important;
         margin: 0 !important;
         padding: 2px 0 !important;
+        background: transparent !important;
     }
     /* style for JS-injected DARK / LIGHT spans */
     .tog-lbl {
@@ -1556,7 +1558,9 @@ with h_col2:
     }
     /* hide the native Streamlit label text (we replace it with .tog-lbl) */
     [data-testid="stToggle"] label,
-    [data-testid="stToggle"] p {
+    [data-testid="stToggle"] p,
+    [data-testid="stCheckbox"]:has(input[aria-label="LIGHT"]) label,
+    [data-testid="stCheckbox"]:has(input[aria-label="LIGHT"]) p {
         display: none !important;
     }
     </style>
@@ -1631,10 +1635,19 @@ st.markdown("""
         });
     }
 
+    function getToggleEl() {
+        // st.toggle renders as stCheckbox in Streamlit 1.40+
+        return (
+            document.querySelector('[data-testid="stToggle"]') ||
+            document.querySelector('[data-testid="stCheckbox"]:has(input[aria-label="LIGHT"])') ||
+            document.querySelector('[data-testid="stCheckbox"]')
+        );
+    }
+
     function injectToggleLabels() {
-        var tog = document.querySelector('[data-testid="stToggle"]');
+        var tog = getToggleEl();
         if (!tog) return;
-        if (tog.querySelector('.tog-lbl')) return; // already injected
+        if (tog.querySelector('.tog-lbl')) return;
 
         var dark = document.createElement('span');
         dark.className = 'tog-lbl';
@@ -1644,14 +1657,37 @@ st.markdown("""
         light.className = 'tog-lbl';
         light.textContent = 'LIGHT';
 
-        // Insert DARK before everything, LIGHT after everything
         tog.insertBefore(dark, tog.firstChild);
         tog.appendChild(light);
+    }
+
+    function positionToggleWithH2() {
+        var tog = getToggleEl();
+        var h2  = document.querySelector('h2[id="indmoney-investor-ops-intelligence-suite"]');
+        if (!tog || !h2) return;
+        if (tog.getAttribute('data-pinned')) return; // already pinned
+
+        var rect = h2.getBoundingClientRect();
+        var scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+        var top = rect.top + scrollTop + (rect.height / 2) - 10; // vertically center with h2
+
+        // Pin the toggle container to the right edge, same vertical band as h2
+        var container = tog.closest('[data-testid="column"]') || tog.parentElement;
+        tog.style.setProperty('position', 'fixed', 'important');
+        tog.style.setProperty('top', Math.round(top) + 'px', 'important');
+        tog.style.setProperty('right', '24px', 'important');
+        tog.style.setProperty('z-index', '9999', 'important');
+        tog.style.setProperty('margin', '0', 'important');
+        tog.style.setProperty('display', 'flex', 'important');
+        tog.style.setProperty('align-items', 'center', 'important');
+        tog.style.setProperty('gap', '6px', 'important');
+        tog.setAttribute('data-pinned', '1');
     }
 
     function patchUI() {
         killSidebar();
         injectToggleLabels();
+        positionToggleWithH2();
     }
 
     patchUI();
