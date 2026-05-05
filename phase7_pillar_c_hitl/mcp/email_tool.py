@@ -2,72 +2,335 @@
 Phase 4 — Gmail email tools.
 
 draft_approval_email   — saves advisor approval email to Gmail Drafts (IMAP APPEND)
-send_user_confirmation — actually sends a confirmation email to the user via SMTP
+send_user_confirmation — sends a confirmation email to the user via SMTP
 """
 from __future__ import annotations
 
 import asyncio
 import imaplib
+import re
 import smtplib
 import time
+from datetime import datetime, timedelta, timezone
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
+from urllib.parse import urlencode
 
 from .config import config
 from .models import MCPPayload, ToolResult
 
 _IMAP_HOST = "imap.gmail.com"
+_IST = timezone(timedelta(hours=5, minutes=30))
 
+
+# ── Google Calendar URL helper ────────────────────────────────────────────────
+
+def _gcal_url(title: str, date_iso: str, time_str: str, description: str = "", duration_min: int = 60) -> str:
+    """Build a Google Calendar 'add event' URL from date (YYYY-MM-DD) and time string."""
+    # Parse time — accept "2:00 PM", "14:00", "10:00 AM IST", etc.
+    hour, minute = 9, 0   # sensible default
+    t = time_str.strip().upper().replace(" IST", "")
+    m = re.search(r"(\d{1,2}):?(\d{2})?\s*(AM|PM)?", t)
+    if m:
+        hour = int(m.group(1))
+        minute = int(m.group(2)) if m.group(2) else 0
+        if m.group(3) == "PM" and hour != 12:
+            hour += 12
+        elif m.group(3) == "AM" and hour == 12:
+            hour = 0
+
+    try:
+        start_ist = datetime(
+            *[int(p) for p in date_iso.split("-")], hour, minute,
+            tzinfo=_IST
+        )
+    except Exception:
+        # Fallback: no time encoding — just use date
+        return (
+            "https://calendar.google.com/calendar/render?"
+            + urlencode({"action": "TEMPLATE", "text": title, "dates": date_iso.replace("-", "") + "/" + date_iso.replace("-", "")})
+        )
+
+    end_ist   = start_ist + timedelta(minutes=duration_min)
+    fmt       = "%Y%m%dT%H%M%S"
+    # Google Calendar interprets bare datetime as local time; append timezone offset
+    dates_str = start_ist.strftime(fmt) + "/" + end_ist.strftime(fmt)
+
+    params = {
+        "action":  "TEMPLATE",
+        "text":    title,
+        "dates":   dates_str,
+        "ctz":     "Asia/Kolkata",
+        "details": description,
+    }
+    return "https://calendar.google.com/calendar/render?" + urlencode(params)
+
+
+# ── Advisor HTML email (rich, formatted) ─────────────────────────────────────
+
+def _advisor_html(payload: dict, event_id: str | None = None) -> str:
+    code        = payload.get("booking_code", "—")
+    topic       = payload.get("topic_label", payload.get("topic", "—"))
+    date        = payload.get("date", "—")
+    slot        = payload.get("slot_start_ist", payload.get("time", payload.get("slot", "—")))
+    market_ctx  = payload.get("body", "")
+    call_id     = payload.get("call_id", "—")
+
+    # Build Google Calendar link
+    gcal_href = _gcal_url(
+        title=f"Advisor Q&A — {topic} [{code}]",
+        date_iso=date,
+        time_str=slot,
+        description=f"INDMoney Advisor pre-booking.\nBooking code: {code}\nTopic: {topic}",
+    )
+
+    cal_row = (
+        f"<tr><td style='padding:10px 14px;border:1px solid #ddd;font-weight:600'>Calendar Event</td>"
+        f"<td style='padding:10px 14px;border:1px solid #ddd'>{event_id}</td></tr>"
+        if event_id else ""
+    )
+
+    # Extract market context section from body text if present
+    mc_section = ""
+    if market_ctx:
+        mc_lines = []
+        in_mc = False
+        for line in market_ctx.splitlines():
+            if "MARKET CONTEXT" in line.upper() or "TOP THEMES" in line.upper():
+                in_mc = True
+            if in_mc:
+                if line.strip().startswith("─") and mc_lines:
+                    break
+                if line.strip():
+                    mc_lines.append(line.strip())
+        if mc_lines:
+            mc_text = "<br>".join(mc_lines[1:]) if len(mc_lines) > 1 else ""
+            mc_section = f"""
+            <div style="background:#f8f9fa;border-left:4px solid #4285f4;padding:14px 18px;border-radius:0 8px 8px 0;margin:20px 0">
+              <p style="margin:0 0 8px;font-weight:700;color:#4285f4;font-size:0.95em">MARKET CONTEXT — This Week's Customer Pulse</p>
+              <p style="margin:0;color:#444;font-size:0.9em;line-height:1.6">{mc_text}</p>
+            </div>"""
+
+    return f"""<!DOCTYPE html>
+<html>
+<body style="font-family:Arial,sans-serif;color:#333;max-width:680px;margin:auto;padding:16px">
+
+<div style="background:linear-gradient(135deg,#1a73e8,#0d47a1);padding:28px 32px;border-radius:12px 12px 0 0">
+  <h2 style="color:white;margin:0;font-size:1.4em">&#128197; New Advisor Pre-Booking</h2>
+  <p style="color:#bbdefb;margin:6px 0 0;font-size:0.92em">INDMoney Voice Scheduling Agent</p>
+</div>
+
+<div style="background:#ffffff;border:1px solid #e8eaed;border-top:none;border-radius:0 0 12px 12px;padding:28px 32px">
+
+  <p style="margin:0 0 16px">Dear <strong>{config.advisor_name}</strong>,</p>
+  <p style="margin:0 0 20px;color:#555">A new appointment has been pre-booked via the voice agent. Please review and approve the actions in the <strong>Action Centre</strong>.</p>
+
+  <table style="border-collapse:collapse;width:100%;margin:0 0 20px">
+    <tr style="background:#e8f0fe">
+      <td style="padding:11px 14px;border:1px solid #c5cae9;font-weight:700;width:38%">Booking Code</td>
+      <td style="padding:11px 14px;border:1px solid #c5cae9">
+        <span style="background:#e8f0fe;color:#1a73e8;padding:3px 12px;border-radius:6px;font-weight:700;font-size:1.05em;letter-spacing:1px">{code}</span>
+      </td>
+    </tr>
+    <tr>
+      <td style="padding:11px 14px;border:1px solid #e0e0e0;font-weight:700">Topic</td>
+      <td style="padding:11px 14px;border:1px solid #e0e0e0">{topic}</td>
+    </tr>
+    <tr style="background:#e8f0fe">
+      <td style="padding:11px 14px;border:1px solid #c5cae9;font-weight:700">Date</td>
+      <td style="padding:11px 14px;border:1px solid #c5cae9"><strong>{date}</strong></td>
+    </tr>
+    <tr>
+      <td style="padding:11px 14px;border:1px solid #e0e0e0;font-weight:700">Time (IST)</td>
+      <td style="padding:11px 14px;border:1px solid #e0e0e0">{slot}</td>
+    </tr>
+    <tr style="background:#e8f0fe">
+      <td style="padding:11px 14px;border:1px solid #c5cae9;font-weight:700">Status</td>
+      <td style="padding:11px 14px;border:1px solid #c5cae9">
+        <span style="background:#e6f4ea;color:#137333;padding:3px 12px;border-radius:6px;font-weight:700">&#10003; CONFIRMED</span>
+      </td>
+    </tr>
+    {cal_row}
+    <tr>
+      <td style="padding:11px 14px;border:1px solid #e0e0e0;font-weight:700">Call ID</td>
+      <td style="padding:11px 14px;border:1px solid #e0e0e0;color:#888;font-size:0.9em">{call_id}</td>
+    </tr>
+  </table>
+
+  <a href="{gcal_href}" target="_blank"
+     style="display:inline-block;background:#1a73e8;color:white;padding:11px 22px;
+            border-radius:8px;text-decoration:none;font-weight:600;font-size:0.95em;margin-bottom:20px">
+    &#128197; Add to Google Calendar
+  </a>
+
+  {mc_section}
+
+  <p style="color:#888;font-size:0.82em;border-top:1px solid #eee;padding-top:14px;margin-top:8px">
+    Automated pre-booking notification from INDMoney Advisor Suite. No PII was shared on the voice call.
+    No investment advice implied.
+  </p>
+</div>
+</body>
+</html>"""
+
+
+# ── User confirmation HTML email ──────────────────────────────────────────────
+
+def _user_confirmation_html(name: str, booking_code: str, topic_label: str, slot_ist: str, date_str: str = "") -> str:
+    # Parse date and time for Google Calendar button
+    # slot_ist may be like "Tuesday, 2026-05-06 at 2:00 PM IST" or "2026-05-06 at 2:00 PM IST"
+    gcal_date = date_str
+    gcal_time = slot_ist
+    if not gcal_date:
+        dm = re.search(r"(\d{4}-\d{2}-\d{2})", slot_ist)
+        if dm:
+            gcal_date = dm.group(1)
+    tm = re.search(r"at\s+([\d:]+\s*(?:AM|PM|am|pm)?)", slot_ist, re.IGNORECASE)
+    if tm:
+        gcal_time = tm.group(1).strip()
+
+    gcal_href = _gcal_url(
+        title=f"Advisor Appointment — {topic_label} [{booking_code}]",
+        date_iso=gcal_date or "2026-01-01",
+        time_str=gcal_time,
+        description=f"INDMoney Advisor Q&A Session.\nTopic: {topic_label}\nBooking code: {booking_code}",
+    ) if gcal_date else "#"
+
+    # Display date row only if we have a date
+    date_row = ""
+    if gcal_date:
+        date_row = f"""
+    <tr style="background:#f5f3ff">
+      <td style="padding:10px 14px;border:1px solid #ede9fe;font-weight:600">Date</td>
+      <td style="padding:10px 14px;border:1px solid #ede9fe"><strong>{gcal_date}</strong></td>
+    </tr>"""
+
+    return f"""<!DOCTYPE html>
+<html>
+<body style="font-family:Arial,sans-serif;color:#333;max-width:600px;margin:auto;padding:16px">
+
+<div style="background:linear-gradient(135deg,#8b5cf6,#6d28d9);padding:28px 32px;border-radius:12px 12px 0 0">
+  <h2 style="color:white;margin:0">&#128197; Appointment Confirmed</h2>
+  <p style="color:#ede9fe;margin:6px 0 0;font-size:0.92em">INDMoney Advisor Scheduling</p>
+</div>
+
+<div style="background:#ffffff;border:1px solid #ede9fe;border-top:none;border-radius:0 0 12px 12px;padding:28px 32px">
+
+  <p style="margin:0 0 16px">Dear <strong>{name}</strong>,</p>
+  <p style="margin:0 0 20px;color:#555">Your advisor appointment has been confirmed. Here are your booking details:</p>
+
+  <table style="border-collapse:collapse;width:100%;margin:0 0 20px">
+    <tr style="background:#f5f3ff">
+      <td style="padding:10px 14px;border:1px solid #ede9fe;font-weight:600">Booking Code</td>
+      <td style="padding:10px 14px;border:1px solid #ede9fe">
+        <span style="background:#ede9fe;color:#6d28d9;padding:3px 12px;border-radius:6px;font-weight:700;font-size:1.05em;letter-spacing:1px">{booking_code}</span>
+      </td>
+    </tr>
+    <tr>
+      <td style="padding:10px 14px;border:1px solid #ede9fe;font-weight:600">Topic</td>
+      <td style="padding:10px 14px;border:1px solid #ede9fe">{topic_label}</td>
+    </tr>
+    {date_row}
+    <tr>
+      <td style="padding:10px 14px;border:1px solid #ede9fe;font-weight:600">Time (IST)</td>
+      <td style="padding:10px 14px;border:1px solid #ede9fe">{slot_ist}</td>
+    </tr>
+    <tr style="background:#f5f3ff">
+      <td style="padding:10px 14px;border:1px solid #ede9fe;font-weight:600">Status</td>
+      <td style="padding:10px 14px;border:1px solid #ede9fe">
+        <span style="background:#e6f4ea;color:#137333;padding:3px 12px;border-radius:6px;font-weight:700">&#10003; Confirmed</span>
+      </td>
+    </tr>
+  </table>
+
+  <a href="{gcal_href}" target="_blank"
+     style="display:inline-block;background:#8b5cf6;color:white;padding:12px 24px;
+            border-radius:8px;text-decoration:none;font-weight:600;font-size:0.95em;margin-bottom:20px">
+    &#128197; Add to Google Calendar
+  </a>
+
+  <div style="background:#fef9c3;border:1px solid #fde68a;border-radius:8px;padding:12px 16px;font-size:0.9em;margin-top:4px">
+    &#8505;&#65039; This is an <strong>informational consultation</strong> only — not investment advice.
+    Your advisor will confirm the meeting details closer to the date.
+  </div>
+
+  <p style="color:#6b7280;font-size:0.82em;margin-top:20px;border-top:1px solid #f3e8ff;padding-top:14px">
+    If you did not request this booking, please ignore this email.<br>
+    To reschedule or cancel, call us and quote your booking code: <strong>{booking_code}</strong>
+  </p>
+</div>
+</body>
+</html>"""
+
+
+# ── Legacy advisor HTML (used by draft_approval_email / MCP tool) ─────────────
 
 def _html_body(payload: MCPPayload, event_id: str | None) -> str:
+    """Build advisor HTML email from MCPPayload (used by draft_approval_email)."""
+    gcal_href = _gcal_url(
+        title=f"Advisor Q&A — {payload.topic_label} [{payload.booking_code}]",
+        date_iso=payload.created_at_ist or "2026-01-01",
+        time_str=payload.slot_start_ist,
+        description=f"INDMoney Advisor pre-booking.\nBooking code: {payload.booking_code}",
+    )
     cal_row = (
-        f"<tr><td style='padding:8px;border:1px solid #ddd'><b>Calendar Event</b></td>"
-        f"<td style='padding:8px;border:1px solid #ddd'>{event_id}</td></tr>"
+        f"<tr><td style='padding:10px 14px;border:1px solid #ddd;font-weight:700'>Calendar Event</td>"
+        f"<td style='padding:10px 14px;border:1px solid #ddd'>{event_id}</td></tr>"
         if event_id else ""
     )
     return f"""<!DOCTYPE html>
-<html><body style="font-family:Arial,sans-serif;color:#333;max-width:640px">
-<h2 style="color:#1a73e8">📅 Pre-Booking Request — {payload.topic_label}</h2>
-<p>Dear {config.advisor_name},</p>
-<p>A new advisor pre-booking has been created via the Voice Scheduling Agent.
-Please review and confirm or reschedule as needed.</p>
-<table style="border-collapse:collapse;width:100%">
-  <tr style="background:#f1f3f4">
-    <td style="padding:8px;border:1px solid #ddd"><b>Booking Code</b></td>
-    <td style="padding:8px;border:1px solid #ddd">{payload.booking_code}</td>
-  </tr>
-  <tr>
-    <td style="padding:8px;border:1px solid #ddd"><b>Topic</b></td>
-    <td style="padding:8px;border:1px solid #ddd">{payload.topic_label}</td>
-  </tr>
-  <tr style="background:#f1f3f4">
-    <td style="padding:8px;border:1px solid #ddd"><b>Slot (IST)</b></td>
-    <td style="padding:8px;border:1px solid #ddd">{payload.slot_start_ist}</td>
-  </tr>
-  <tr>
-    <td style="padding:8px;border:1px solid #ddd"><b>Advisor ID</b></td>
-    <td style="padding:8px;border:1px solid #ddd">{payload.advisor_id}</td>
-  </tr>
-  <tr style="background:#f1f3f4">
-    <td style="padding:8px;border:1px solid #ddd"><b>Status</b></td>
-    <td style="padding:8px;border:1px solid #ddd"><span style="color:#f5a623;font-weight:bold">TENTATIVE</span></td>
-  </tr>
-  {cal_row}
-  <tr>
-    <td style="padding:8px;border:1px solid #ddd"><b>Call ID</b></td>
-    <td style="padding:8px;border:1px solid #ddd">{payload.call_id}</td>
-  </tr>
-  <tr style="background:#f1f3f4">
-    <td style="padding:8px;border:1px solid #ddd"><b>Created At</b></td>
-    <td style="padding:8px;border:1px solid #ddd">{payload.created_at_ist}</td>
-  </tr>
-</table>
-<br>
-<p style="color:#888;font-size:12px">
-  Automated pre-booking notification. No PII was shared on the voice call.
-  The client will receive a secure link to complete their details.
-</p>
-</body></html>"""
+<html>
+<body style="font-family:Arial,sans-serif;color:#333;max-width:680px;margin:auto;padding:16px">
+<div style="background:linear-gradient(135deg,#1a73e8,#0d47a1);padding:28px 32px;border-radius:12px 12px 0 0">
+  <h2 style="color:white;margin:0">&#128197; New Advisor Pre-Booking</h2>
+  <p style="color:#bbdefb;margin:6px 0 0;font-size:0.92em">INDMoney Voice Scheduling Agent</p>
+</div>
+<div style="background:#ffffff;border:1px solid #e8eaed;border-top:none;border-radius:0 0 12px 12px;padding:28px 32px">
+  <p>Dear <strong>{config.advisor_name}</strong>,</p>
+  <p style="color:#555">A new appointment has been pre-booked. Please review and approve the actions in the Action Centre.</p>
+  <table style="border-collapse:collapse;width:100%;margin:0 0 20px">
+    <tr style="background:#e8f0fe">
+      <td style="padding:11px 14px;border:1px solid #c5cae9;font-weight:700;width:38%">Booking Code</td>
+      <td style="padding:11px 14px;border:1px solid #c5cae9">
+        <span style="background:#e8f0fe;color:#1a73e8;padding:3px 12px;border-radius:6px;font-weight:700">{payload.booking_code}</span>
+      </td>
+    </tr>
+    <tr>
+      <td style="padding:11px 14px;border:1px solid #e0e0e0;font-weight:700">Topic</td>
+      <td style="padding:11px 14px;border:1px solid #e0e0e0">{payload.topic_label}</td>
+    </tr>
+    <tr style="background:#e8f0fe">
+      <td style="padding:11px 14px;border:1px solid #c5cae9;font-weight:700">Date</td>
+      <td style="padding:11px 14px;border:1px solid #c5cae9"><strong>{payload.created_at_ist}</strong></td>
+    </tr>
+    <tr>
+      <td style="padding:11px 14px;border:1px solid #e0e0e0;font-weight:700">Time (IST)</td>
+      <td style="padding:11px 14px;border:1px solid #e0e0e0">{payload.slot_start_ist}</td>
+    </tr>
+    <tr style="background:#e8f0fe">
+      <td style="padding:11px 14px;border:1px solid #c5cae9;font-weight:700">Status</td>
+      <td style="padding:11px 14px;border:1px solid #c5cae9">
+        <span style="background:#e6f4ea;color:#137333;padding:3px 12px;border-radius:6px;font-weight:700">&#10003; CONFIRMED</span>
+      </td>
+    </tr>
+    {cal_row}
+    <tr>
+      <td style="padding:11px 14px;border:1px solid #e0e0e0;font-weight:700">Call ID</td>
+      <td style="padding:11px 14px;border:1px solid #e0e0e0;color:#888;font-size:0.9em">{payload.call_id}</td>
+    </tr>
+  </table>
+  <a href="{gcal_href}" target="_blank"
+     style="display:inline-block;background:#1a73e8;color:white;padding:11px 22px;
+            border-radius:8px;text-decoration:none;font-weight:600;font-size:0.95em;margin-bottom:20px">
+    &#128197; Add to Google Calendar
+  </a>
+  <p style="color:#888;font-size:0.82em;border-top:1px solid #eee;padding-top:14px;margin-top:8px">
+    Automated pre-booking notification from INDMoney Advisor Suite. No PII was shared on the voice call.
+    No investment advice implied.
+  </p>
+</div>
+</body>
+</html>"""
 
 
 def _create_draft_sync(payload: MCPPayload, event_id: str | None) -> dict:
@@ -84,17 +347,16 @@ def _create_draft_sync(payload: MCPPayload, event_id: str | None) -> dict:
     plain = (
         f"Pre-Booking: {payload.topic_label}\n"
         f"Booking Code: {payload.booking_code}\n"
+        f"Date:         {payload.created_at_ist}\n"
         f"Slot:         {payload.slot_start_ist}\n"
         f"Advisor:      {payload.advisor_id}\n"
         f"Call ID:      {payload.call_id}\n"
-        f"Created:      {payload.created_at_ist}\n"
     )
     msg.attach(MIMEText(plain, "plain"))
     msg.attach(MIMEText(_html_body(payload, event_id), "html"))
 
     with imaplib.IMAP4_SSL(_IMAP_HOST) as imap:
         imap.login(config.gmail_address, config.gmail_app_password)
-        # Gmail drafts folder name
         status, data = imap.append(
             '"[Gmail]/Drafts"',
             "\\Draft",
@@ -103,48 +365,9 @@ def _create_draft_sync(payload: MCPPayload, event_id: str | None) -> dict:
         )
         if status != "OK":
             raise RuntimeError(f"IMAP APPEND failed: {status} — {data}")
-
         draft_uid = data[0].decode("utf-8") if data and data[0] else "unknown"
 
     return {"draft_id": draft_uid, "to": config.advisor_email}
-
-
-def _user_confirmation_html(name: str, booking_code: str, topic_label: str, slot_ist: str) -> str:
-    return f"""<!DOCTYPE html>
-<html><body style="font-family:Arial,sans-serif;color:#333;max-width:600px;margin:auto">
-<div style="background:linear-gradient(135deg,#8b5cf6,#6d28d9);padding:28px 32px;border-radius:12px 12px 0 0">
-  <h2 style="color:white;margin:0">📅 Appointment Confirmed</h2>
-  <p style="color:#ede9fe;margin:6px 0 0">Advisor Scheduling — Booking Details</p>
-</div>
-<div style="background:#ffffff;border:1px solid #ede9fe;border-radius:0 0 12px 12px;padding:28px 32px">
-  <p>Dear <strong>{name}</strong>,</p>
-  <p>Your advisor appointment has been tentatively confirmed. Here are your details:</p>
-  <table style="border-collapse:collapse;width:100%;margin:16px 0">
-    <tr style="background:#f5f3ff">
-      <td style="padding:10px 14px;border:1px solid #ede9fe;font-weight:600">Booking Code</td>
-      <td style="padding:10px 14px;border:1px solid #ede9fe">
-        <span style="background:#ede9fe;color:#6d28d9;padding:3px 10px;border-radius:6px;font-weight:700;font-size:1.05em">{booking_code}</span>
-      </td>
-    </tr>
-    <tr>
-      <td style="padding:10px 14px;border:1px solid #ede9fe;font-weight:600">Topic</td>
-      <td style="padding:10px 14px;border:1px solid #ede9fe">{topic_label}</td>
-    </tr>
-    <tr style="background:#f5f3ff">
-      <td style="padding:10px 14px;border:1px solid #ede9fe;font-weight:600">Date &amp; Time</td>
-      <td style="padding:10px 14px;border:1px solid #ede9fe">{slot_ist} <span style="color:#7c3aed;font-size:0.88em">(IST)</span></td>
-    </tr>
-  </table>
-  <p style="background:#fef9c3;border:1px solid #fde68a;border-radius:8px;padding:12px 16px;font-size:0.92em">
-    ⚠️ This is a <strong>tentative hold</strong>. An advisor will reach out to confirm.
-    No investment advice will be provided — this is an informational consultation only.
-  </p>
-  <p style="color:#6b7280;font-size:0.85em;margin-top:20px">
-    If you did not request this booking, please ignore this email.<br>
-    To reschedule or cancel, call us and quote your booking code.
-  </p>
-</div>
-</body></html>"""
 
 
 def send_user_confirmation(
@@ -153,11 +376,9 @@ def send_user_confirmation(
     booking_code: str,
     topic_label: str,
     slot_ist: str,
+    date_str: str = "",
 ) -> dict:
-    """
-    Send an appointment confirmation email directly to the user via SMTP.
-    Called after the user submits their contact details on the secure URL form.
-    """
+    """Send an appointment confirmation email to the user via SMTP."""
     msg = MIMEMultipart("alternative")
     msg["From"]    = f"AdvisorBot <{config.gmail_address}>"
     msg["To"]      = to_email
@@ -165,15 +386,20 @@ def send_user_confirmation(
 
     plain = (
         f"Dear {to_name},\n\n"
-        f"Your advisor appointment is tentatively confirmed.\n\n"
+        f"Your advisor appointment is confirmed.\n\n"
         f"Booking Code : {booking_code}\n"
         f"Topic        : {topic_label}\n"
-        f"Date & Time  : {slot_ist} (IST)\n\n"
-        f"An advisor will reach out to confirm. This is an informational consultation only.\n\n"
+        + (f"Date         : {date_str}\n" if date_str else "")
+        + f"Time (IST)   : {slot_ist}\n\n"
+        f"An advisor will confirm the meeting details closer to the date.\n"
+        f"This is an informational consultation only — not investment advice.\n\n"
         f"To reschedule or cancel, call us and quote your booking code.\n"
     )
     msg.attach(MIMEText(plain, "plain"))
-    msg.attach(MIMEText(_user_confirmation_html(to_name, booking_code, topic_label, slot_ist), "html"))
+    msg.attach(MIMEText(
+        _user_confirmation_html(to_name, booking_code, topic_label, slot_ist, date_str),
+        "html"
+    ))
 
     with smtplib.SMTP(config.gmail_smtp_host, config.gmail_smtp_port) as smtp:
         smtp.ehlo()
@@ -191,25 +417,22 @@ def send_waitlist_notification(
     topic_label: str,
     slot_ist: str,
 ) -> dict:
-    """
-    Send a slot-opened notification to a waitlisted user.
-    Called when a booking is cancelled and a waitlist entry is promoted.
-    """
+    """Send a slot-opened notification to a waitlisted user."""
     html = f"""<!DOCTYPE html>
-<html><body style="font-family:Arial,sans-serif;color:#333;max-width:600px;margin:auto">
+<html>
+<body style="font-family:Arial,sans-serif;color:#333;max-width:600px;margin:auto;padding:16px">
 <div style="background:linear-gradient(135deg,#16a34a,#15803d);padding:28px 32px;border-radius:12px 12px 0 0">
-  <h2 style="color:white;margin:0">🎉 Good News — Your Slot is Available!</h2>
-  <p style="color:#dcfce7;margin:6px 0 0">Advisor Scheduling — Waitlist Update</p>
+  <h2 style="color:white;margin:0">&#127881; Good News — Your Slot is Available!</h2>
+  <p style="color:#dcfce7;margin:6px 0 0;font-size:0.92em">INDMoney Advisor Scheduling — Waitlist Update</p>
 </div>
-<div style="background:#ffffff;border:1px solid #dcfce7;border-radius:0 0 12px 12px;padding:28px 32px">
+<div style="background:#ffffff;border:1px solid #dcfce7;border-top:none;border-radius:0 0 12px 12px;padding:28px 32px">
   <p>Dear <strong>{to_name}</strong>,</p>
-  <p>Great news! A slot has opened up that matches your waitlist preference.
-  You've been promoted from the waitlist and a tentative hold has been created for you.</p>
-  <table style="border-collapse:collapse;width:100%;margin:16px 0">
+  <p style="color:#555">A slot has opened up matching your preference. Please call us back to confirm your booking.</p>
+  <table style="border-collapse:collapse;width:100%;margin:0 0 20px">
     <tr style="background:#f0fdf4">
       <td style="padding:10px 14px;border:1px solid #dcfce7;font-weight:600">Waitlist Code</td>
       <td style="padding:10px 14px;border:1px solid #dcfce7">
-        <span style="background:#dcfce7;color:#15803d;padding:3px 10px;border-radius:6px;font-weight:700">{waitlist_code}</span>
+        <span style="background:#dcfce7;color:#15803d;padding:3px 12px;border-radius:6px;font-weight:700">{waitlist_code}</span>
       </td>
     </tr>
     <tr>
@@ -221,16 +444,16 @@ def send_waitlist_notification(
       <td style="padding:10px 14px;border:1px solid #dcfce7">{slot_ist} <span style="color:#15803d;font-size:0.88em">(IST)</span></td>
     </tr>
   </table>
-  <p style="background:#fef9c3;border:1px solid #fde68a;border-radius:8px;padding:12px 16px;font-size:0.92em">
-    ⚠️ This slot is being <strong>held tentatively</strong> for you.
-    Please call us back to confirm your booking before the hold expires.
+  <p style="background:#fef9c3;border:1px solid #fde68a;border-radius:8px;padding:12px 16px;font-size:0.9em">
+    &#8505;&#65039; This slot is being held for you. Please call us back to confirm before the hold expires.
+    Quote your waitlist code: <strong>{waitlist_code}</strong>
   </p>
-  <p style="color:#6b7280;font-size:0.85em;margin-top:20px">
-    To confirm or decline this slot, please call us and quote your waitlist code <strong>{waitlist_code}</strong>.<br>
+  <p style="color:#6b7280;font-size:0.82em;margin-top:20px;border-top:1px solid #dcfce7;padding-top:14px">
     If you no longer need this appointment, no action is required.
   </p>
 </div>
-</body></html>"""
+</body>
+</html>"""
 
     plain = (
         f"Dear {to_name},\n\n"

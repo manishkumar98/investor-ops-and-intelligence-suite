@@ -11,8 +11,9 @@ MCP_STATE_PATH = Path("data/mcp_state.json")
 
 
 def _send_advisor_email_live(payload: dict) -> None:
-    """Send the rich advisor pre-booking email (subject + body) via Gmail SMTP."""
+    """Send the rich advisor pre-booking email (HTML + plain fallback) via Gmail SMTP."""
     from .mcp.config import config  # noqa: PLC0415
+    from .mcp.email_tool import _advisor_html  # noqa: PLC0415
 
     subject = payload.get("subject", "Advisor Pre-Booking")
     body    = payload.get("body", "")
@@ -23,6 +24,7 @@ def _send_advisor_email_live(payload: dict) -> None:
     msg["Subject"] = subject
 
     msg.attach(MIMEText(body, "plain"))
+    msg.attach(MIMEText(_advisor_html(payload), "html"))
 
     with smtplib.SMTP(config.gmail_smtp_host, config.gmail_smtp_port) as smtp:
         smtp.ehlo()

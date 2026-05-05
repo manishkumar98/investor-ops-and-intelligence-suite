@@ -621,7 +621,8 @@ class VoiceAgent:
         code = self.session.get("booking_code", "N/A")
         return (
             f"Your appointment is confirmed! Booking code: {code}. "
-            f"Complete your details at {SECURE_BASE_URL}/complete/{code}. "
+            "Please click the '-> Go to Super-Agent MCP Workflow' button below "
+            "to go to the Action Centre and approve your pending actions. "
             "Is there anything else I can help you with?"
         )
 
@@ -800,7 +801,8 @@ class VoiceAgent:
             f"Your appointment is confirmed! "
             f"Booking code: {code}. "
             f"Slot: {detail['slot']}. "
-            f"Please complete your details at {SECURE_BASE_URL}/complete/{code}. "
-            "No personal information is shared on this call. "
+            "Your booking actions are ready for review. "
+            "Please click the Go to Super-Agent MCP Workflow button below "
+            "to head to the Action Centre and approve the calendar hold, notes, and email draft. "
             "Thank you for calling — have a great day!"
         )
