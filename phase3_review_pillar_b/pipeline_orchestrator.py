@@ -85,6 +85,29 @@ def run_pipeline(csv_source: Union[str, io.IOBase], session: dict) -> dict:
     session["pulse_generated"] = True
     session["analytics_data"]  = analytics
 
+    # ── 9. Enqueue M2 MCP actions (pending HITL approval) ──────────────────
+    try:
+        from phase7_pillar_c_hitl.mcp_client import enqueue_action
+        from datetime import date
+        _today = str(date.today())
+        enqueue_action(session, type="notes_append", source="m2_pipeline", payload={
+            "doc_title": "Weekly Product Pulse",
+            "entry": {
+                "date":               _today,
+                "weekly_pulse":       weekly_note,
+                "top_3_themes":       top_3,
+                "fee_bullets":        fee_result["bullets"],
+                "source_links":       fee_result["sources"],
+            },
+        })
+        enqueue_action(session, type="email_draft", source="m2_pipeline", payload={
+            "subject": f"Weekly Pulse — {_today}",
+            "body":    f"Top themes: {', '.join(top_3)}\n\n{weekly_note}",
+            "to":      "advisor-team@nia.one",
+        })
+    except Exception:
+        pass  # MCP enqueue is best-effort; pipeline result is still returned
+
     return {
         "top_3":        top_3,
         "quotes":       quotes,

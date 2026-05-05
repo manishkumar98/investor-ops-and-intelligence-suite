@@ -36,6 +36,22 @@ def main() -> int:
     try:
         run_pipeline("data/reviews_sample.csv", session)
         agent = VoiceAgent(session=session, calendar_path="data/mock_calendar.json")
+
+        # Simulate a voice booking so state_persistence check is exercised.
+        # Drive the FSM: greeting → intent → topic → day → time → confirm
+        _turns = [
+            "I want to book an appointment",
+            "sip",
+            "next monday",
+            "2pm",
+            "yes",   # selects slot → moves to CONFIRM
+            "yes",   # confirms booking → _complete_booking() fires
+        ]
+        for _utt in _turns:
+            try:
+                agent.step(_utt)
+            except Exception:
+                break
     except Exception as exc:
         print(f"  WARNING: Could not populate session for UX eval: {exc}")
         agent = None
