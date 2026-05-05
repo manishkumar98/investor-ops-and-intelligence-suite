@@ -1661,33 +1661,26 @@ st.markdown("""
         tog.appendChild(light);
     }
 
-    function positionToggleWithH2() {
+    function pinToggle() {
         var tog = getToggleEl();
-        var h2  = document.querySelector('h2[id="indmoney-investor-ops-intelligence-suite"]');
-        if (!tog || !h2) return;
-        if (tog.getAttribute('data-pinned')) return; // already pinned
-
-        var rect = h2.getBoundingClientRect();
-        var scrollTop = window.pageYOffset || document.documentElement.scrollTop;
-        var top = rect.top + scrollTop + (rect.height / 2) - 10; // vertically center with h2
-
-        // Pin the toggle container to the right edge, same vertical band as h2
-        var container = tog.closest('[data-testid="column"]') || tog.parentElement;
-        tog.style.setProperty('position', 'fixed', 'important');
-        tog.style.setProperty('top', Math.round(top) + 'px', 'important');
-        tog.style.setProperty('right', '24px', 'important');
-        tog.style.setProperty('z-index', '9999', 'important');
-        tog.style.setProperty('margin', '0', 'important');
-        tog.style.setProperty('display', 'flex', 'important');
-        tog.style.setProperty('align-items', 'center', 'important');
-        tog.style.setProperty('gap', '6px', 'important');
-        tog.setAttribute('data-pinned', '1');
+        if (!tog) return;
+        // Fixed position: top-right of the header, vertically centred in the ~80px header band
+        tog.style.setProperty('position',    'fixed',     'important');
+        tog.style.setProperty('top',         '28px',      'important');
+        tog.style.setProperty('right',       '24px',      'important');
+        tog.style.setProperty('z-index',     '9999',      'important');
+        tog.style.setProperty('display',     'flex',      'important');
+        tog.style.setProperty('align-items', 'center',    'important');
+        tog.style.setProperty('gap',         '6px',       'important');
+        tog.style.setProperty('margin',      '0',         'important');
+        tog.style.setProperty('padding',     '0',         'important');
+        tog.style.setProperty('background',  'transparent','important');
     }
 
     function patchUI() {
         killSidebar();
         injectToggleLabels();
-        positionToggleWithH2();
+        pinToggle();
     }
 
     patchUI();
