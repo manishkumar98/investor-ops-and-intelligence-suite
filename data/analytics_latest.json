@@ -16,12 +16,12 @@
       "color": "#f59e0b"
     },
     {
-      "word": "redacted",
-      "count": 7,
+      "word": "view",
+      "count": 4,
       "color": "#c084fc"
     },
     {
-      "word": "view",
+      "word": "redacted",
       "count": 4,
       "color": "#fb7185"
     },
@@ -86,17 +86,17 @@
       "color": "#818cf8"
     },
     {
-      "word": "दिया",
-      "count": 3,
+      "word": "cannot",
+      "count": 2,
       "color": "#facc15"
     },
     {
-      "word": "getting",
+      "word": "after",
       "count": 2,
       "color": "#f87171"
     },
     {
-      "word": "trade",
+      "word": "issue",
       "count": 2,
       "color": "#2dd4bf"
     }
@@ -104,13 +104,13 @@
   "sentiment": {
     "positive": 12,
     "neutral": 2,
-    "negative": 9
+    "negative": 8
   },
   "rating_dist": {
-    "1": 8,
+    "4": 3,
+    "1": 7,
     "3": 2,
     "5": 9,
-    "4": 3,
     "2": 1
   },
   "negative_reviews": [
@@ -135,7 +135,7 @@
       "rating": 1
     }
   ],
-  "total": 23,
-  "generated_at": "2026-05-04T21:29:32.974378",
-  "review_count": 23
+  "total": 22,
+  "generated_at": "2026-05-06T17:53:32.157099",
+  "review_count": 22
 }

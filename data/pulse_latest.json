@@ -1,27 +1,27 @@
 {
   "themes": [
-    "Chart reliability and unintended order execution bugs",
-    "Missing trading features (kill switch, limit sell, dual/triple chart view, commodity segment)",
-    "Brokerage pricing discrepancies and cost savings",
-    "Critical order execution failures (9:15 AM market-open glitch, TP/SL failures)",
-    "App performance, UI/UX usability and onboarding experience"
+    "Trading bugs and technical glitches",
+    "Missing or incomplete trading features",
+    "Brokerage charges transparency",
+    "App performance and loading issues",
+    "UI and charting features"
   ],
   "top_3_themes": [
-    "Critical order execution failures and chart interaction bugs causing real financial loss",
-    "Brokerage overcharging versus promised rates eroding trust and driving uninstalls",
-    "Missing table-stakes trading features blocking retention of active and F&O traders"
+    "Trading bugs and technical glitches",
+    "Brokerage charges transparency",
+    "Missing or incomplete trading features"
   ],
   "quotes": [
-    "Last day while zooming in/out the chart my position got executed in loss, just ridiculous.",
     "Every day at 9:15 AM when I place an order, it shows 'Execute the order after market open' even though the market is already open and LTP is changing. This major glitch has been happening for over a month.",
-    "I have saved more than 2500₹ in March 2026. Other trading apps are charging 20₹ per order which were eating my profits."
+    "Flash trading se ind mony f&o me 1 year tak 10 rup.. Brokerage btaya tha Phir bhi 20 rupee Brokerage lag raha hai",
+    "there is no LIMIT order sell...not for scalper..."
   ],
-  "weekly_note": "Synthesised reviews across the full period reveal a clear fault line: casual and cost-conscious users are genuinely delighted by INDMoney's low-brokerage model, while active and F&O traders are experiencing serious, money-losing failures that are driving uninstalls and low ratings. Two P0 production issues demand immediate escalation. First, a chart zoom gesture is triggering unintended order execution, directly causing user losses — a critical trading-safety bug. Second, a persistent 9:15 AM market-open detection failure has been blocking order placement for over a month, impacting traders at the most critical moment of the session. Both issues represent real financial harm and must be treated as incidents. Compounding these bugs is a brokerage billing trust crisis: users on Flash Trading plans report being charged ₹20 per F&O order despite being promised ₹10 or lower, with at least one confirmed uninstall citing competitor alternatives. Simultaneously, multiple feature gaps are limiting the platform's appeal to experienced traders: no kill switch, no limit sell order, no dual or triple chart view, no commodity segment, and no automated chart pattern detection. The ₹5-per-order brokerage remains a powerful differentiator and retention lever for cost-sensitive users, but its impact is undermined when billing is opaque or incorrect. New-user onboarding appears adequate, but the product shows significant cracks under active trading conditions.",
+  "weekly_note": "This week's INDMoney reviews across both batches point to three dominant pain points undermining user trust and retention. Trading bugs and technical glitches are the most urgent and wide-ranging concern: users report positions vanishing from charts, TP/SL orders failing on mobile, zoom-gesture-triggered accidental order executions, watchlists disappearing after updates, and a persistent month-long 9:15 AM market-open order rejection bug. Several of these issues directly cause financial losses, making them critical P0 priorities. Brokerage charges transparency is the second most prominent theme: multiple users explicitly report being charged ₹20 per order despite promotional Flash Trading plan promises of ₹10 or lower rates, with at least one user uninstalling the app over the discrepancy. This broken-promise dynamic is particularly damaging to trust. Missing or incomplete trading features round out the top three, with active and advanced traders requesting limit order sell functionality, a kill switch button, dual or triple chart view, commodity trading support, and automated chart pattern detection. On the positive side, users praised the flash scalping UI, fast order execution when working correctly, affordable MTF interest rates, and responsive customer support — signals that the core product proposition resonates strongly when it functions as intended. Overall sentiment skews negative due to reliability and pricing integrity issues, but loyalty potential is high among users who experience the product at its best.",
   "action_ideas": [
-    "Declare P0 incidents for both the chart-zoom unintended order execution bug and the 9:15 AM market-open detection failure — assign dedicated engineering squads to root-cause, hotfix, and ship user-facing status updates within the current sprint, prioritising trading-safety above all else.",
-    "Audit Flash Trading brokerage billing logic end-to-end and surface a real-time, itemised brokerage breakdown on the order confirmation and post-trade screens so users can verify charges match their subscribed plan, immediately rebuilding billing trust and reducing support escalations.",
-    "Accelerate delivery of kill switch, limit sell order, and dual or triple chart view as a bundled active-trader feature sprint, and add automated chart pattern detection push notifications to the near-term roadmap to close the feature gap driving low ratings among F&O and scalping-focused users."
+    "Immediately escalate all confirmed trading bugs — including the 9:15 AM order rejection glitch, chart position disappearance, TP/SL mobile failures, and zoom-triggered executions — as P0 incidents; deploy hotfixes within 48–72 hours and communicate resolution status in-app to affected users.",
+    "Audit the Flash Trading plan brokerage application logic end-to-end to ensure promotional rates are correctly applied at the order level for all eligible users; add a pre-trade brokerage estimate tooltip in the order ticket and send a proactive in-app clarification to users who may have been overcharged.",
+    "Publish a transparent in-app feature roadmap covering limit order sell, kill switch, dual or triple chart view, commodity trading, and automated chart pattern detection — and introduce a demand-voting mechanism so active traders can prioritise features and feel acknowledged."
   ],
-  "generated_at": "2026-05-04T21:29:48.606856",
-  "review_count": 23
+  "generated_at": "2026-05-06T17:53:40.344509",
+  "review_count": 22
 }

@@ -61,8 +61,7 @@ def _show_reset_dialog(had_mcp: bool) -> None:
     )
     st.markdown("---")
     st.caption("All three pillars are ready for a fresh demo.")
-    if st.button("✅ Got it, close", use_container_width=True, type="primary"):
-        st.rerun()
+    st.button("✅ Got it, close", use_container_width=True, type="primary", on_click=lambda: None)
 
 
 @st.dialog("🔄 Knowledge Base Sync — Complete", width="large")
@@ -103,8 +102,7 @@ def _show_sync_dialog(done: list, stopped: bool) -> None:
     else:
         st.caption("ChromaDB updated. Local files from `data/raw/` also re-ingested. FAQ and Fee Explainer are now current.")
 
-    if st.button("✅ Got it, close", use_container_width=True, type="primary"):
-        st.rerun()
+    st.button("✅ Got it, close", use_container_width=True, type="primary", on_click=lambda: None)
 
 
 # ── Shared download helpers ───────────────────────────────────────────────────
@@ -199,8 +197,7 @@ def _show_pipeline_stop_dialog(info: dict) -> None:
         "**Note on saved data:** Partially-completed pipeline data (e.g. scraped reviews) "
         "is preserved on disk. A fresh run will overwrite it from Step 1."
     )
-    if st.button("✅ Got it, close", use_container_width=True, type="primary"):
-        st.rerun()
+    st.button("✅ Got it, close", use_container_width=True, type="primary", on_click=lambda: None)
 
 
 @st.dialog("📊 Weekly Pipeline — Complete", width="large")
@@ -246,8 +243,7 @@ def _show_pipeline_dialog(result: dict) -> None:
         "The advisor email Market Context will be outdated. The fee bullets may not match the current top issue."
     )
 
-    if st.button("✅ Got it, close", use_container_width=True, type="primary"):
-        st.rerun()
+    st.button("✅ Got it, close", use_container_width=True, type="primary", on_click=lambda: None)
 
 
 def _build_css(is_light: bool) -> str:
@@ -1511,10 +1507,10 @@ with h_col2:
                 "Use this to start a fresh demo or if the app gets into a stuck state."
             ),
         ):
-            had_mcp = Path(__file__).parent / "data" / "mcp_state.json".exists()
+            had_mcp = (Path(__file__).parent / "data" / "mcp_state.json").exists()
             for key in list(st.session_state.keys()):
                 del st.session_state[key]
-            Path(__file__).parent / "data" / "mcp_state.json".unlink(missing_ok=True)
+            (Path(__file__).parent / "data" / "mcp_state.json").unlink(missing_ok=True)
             st.session_state["_show_reset_dialog"] = {"had_mcp": had_mcp}
             st.rerun()
 

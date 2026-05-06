@@ -1,3 +1,24 @@
+## Week of May 6, 2026
+
+### Weekly Note
+This week's INDMoney reviews across both batches point to three dominant pain points undermining user trust and retention. Trading bugs and technical glitches are the most urgent and wide-ranging concern: users report positions vanishing from charts, TP/SL orders failing on mobile, zoom-gesture-triggered accidental order executions, watchlists disappearing after updates, and a persistent month-long 9:15 AM market-open order rejection bug. Several of these issues directly cause financial losses, making them critical P0 priorities. Brokerage charges transparency is the second most prominent theme: multiple users explicitly report being charged ₹20 per order despite promotional Flash Trading plan promises of ₹10 or lower rates, with at least one user uninstalling the app over the discrepancy. This broken-promise dynamic is particularly damaging to trust. Missing or incomplete trading features round out the top three, with active and advanced traders requesting limit order sell functionality, a kill switch button, dual or triple chart view, commodity trading support, and automated chart pattern detection. On the positive side, users praised the flash scalping UI, fast order execution when working correctly, affordable MTF interest rates, and responsive customer support — signals that the core product proposition resonates strongly when it functions as intended. Overall sentiment skews negative due to reliability and pricing integrity issues, but loyalty potential is high among users who experience the product at its best.
+
+### Top 3 Themes — Quotes — Actions
+
+**1. Trading bugs and technical glitches**
+> "Every day at 9:15 AM when I place an order, it shows 'Execute the order after market open' even though the market is already open and LTP is changing. This major glitch has been happening for over a month."
+→ Immediately escalate all confirmed trading bugs — including the 9:15 AM order rejection glitch, chart position disappearance, TP/SL mobile failures, and zoom-triggered executions — as P0 incidents; deploy hotfixes within 48–72 hours and communicate resolution status in-app to affected users.
+
+**2. Brokerage charges transparency**
+> "Flash trading se ind mony f&o me 1 year tak 10 rup.. Brokerage btaya tha Phir bhi 20 rupee Brokerage lag raha hai"
+→ Audit the Flash Trading plan brokerage application logic end-to-end to ensure promotional rates are correctly applied at the order level for all eligible users; add a pre-trade brokerage estimate tooltip in the order ticket and send a proactive in-app clarification to users who may have been overcharged.
+
+**3. Missing or incomplete trading features**
+> "there is no LIMIT order sell...not for scalper..."
+→ Publish a transparent in-app feature roadmap covering limit order sell, kill switch, dual or triple chart view, commodity trading, and automated chart pattern detection — and introduce a demand-voting mechanism so active traders can prioritise features and feel acknowledged.
+
+---
+
 ## Week of May 5, 2026
 
 ### Weekly Note

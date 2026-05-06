@@ -1,17 +1,16 @@
 {
   "scenario": "exit_load",
   "bullets": [
-    "• **SBI Small Cap Fund** charges an exit load of **1.0%** if units are redeemed before the stipulated holding period, making it the highest exit load among the three funds listed in the provided context.",
-    "• **SBI ELSS Tax Saver Fund** has an exit load of **0%**, meaning no exit load fee is charged upon redemption; however, it carries a mandatory **3-year lock-in period** during which redemption is not permitted.",
-    "• **SBI Large Cap Fund (Bluechip)** has a tiered exit load structure: **0.25%** if redeemed within **0–30 days** and **0.10%** if redeemed within **30–90 days**, as per the detailed fund data provided.",
-    "• Exit load is a fee charged to investors for redeeming or \"exiting\" a mutual fund before a stipulated period; it is deducted from the redemption amount and is **not** a flat fee paid separately.",
-    "• All three funds carry a **Very High risk level** as per the provided context, with expense ratios (Direct Plan) of **0.79%** (Small Cap), **0.99%** (ELSS Tax Saver), and **0.84%** (Large Cap Bluechip).",
-    "• For full and accurate exit load terms and conditions, refer to the official fund pages:"
+    "• SBI Small Cap Fund carries an exit load of 1.0%, meaning investors are charged 1% of the redemption amount if units are redeemed before the applicable exit load period, as of 2026-05-05.",
+    "• SBI ELSS Tax Saver Fund has an exit load of 0%, so no exit load fee is charged upon redemption; however, it enforces a mandatory 3-year lock-in period during which redemption is not permitted, as of 2026-04-24.",
+    "• SBI Large Cap Fund (Bluechip) has a relatively lower exit load of 0.2%, making it the lowest exit load among the non-ELSS equity funds listed in this context, as of 2026-04-24.",
+    "• SBI Focused Equity Fund charges an exit load of 1% if units are redeemed within 1 year from the date of allotment; redemptions made after 1 year are not subject to this exit load fee, as of 2026-05-05.",
+    "• Among the four funds listed, exit loads range from 0% (SBI ELSS Tax Saver Fund) to 1.0% (SBI Small Cap Fund and SBI Focused Equity Fund), reflecting varying fee structures across fund categories.",
+    "• Exit load fees are deducted from the redemption proceeds at the time of transaction and are separate from the expense ratio, which ranges from 0.79% to 0.99% across these funds."
   ],
   "sources": [
-    "https://www.sbimf.com/en-us/investor-service/expense-ratio",
-    "https://www.amfiindia.com/investor-corner/knowledge-center/expense-ratio.html"
+    "https://www.sbimf.com/sbimf-scheme-details/SBI-Focused-Equity-Fund-37"
   ],
-  "checked": "2026-05-04",
-  "generated_at": "2026-05-04T21:29:48.606856"
+  "checked": "2026-05-06",
+  "generated_at": "2026-05-06T17:53:40.344509"
 }
