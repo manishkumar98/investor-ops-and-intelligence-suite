@@ -34,8 +34,8 @@ def main() -> int:
     init_session_state(session)
 
     try:
-        run_pipeline("data/reviews_sample.csv", session)
-        agent = VoiceAgent(session=session, calendar_path="data/mock_calendar.json")
+        run_pipeline(str(ROOT / "data" / "reviews_sample.csv"), session)
+        agent = VoiceAgent(session=session, calendar_path=str(ROOT / "data" / "mock_calendar.json"))
 
         # Simulate a voice booking so state_persistence check is exercised.
         # Drive the FSM: greeting → intent → topic → day → time → confirm

@@ -7,7 +7,7 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from pathlib import Path
 
-MCP_STATE_PATH = Path("data/mcp_state.json")
+MCP_STATE_PATH = Path(__file__).resolve().parents[1] / "data" / "mcp_state.json"
 
 
 def _send_advisor_email_live(payload: dict) -> None:

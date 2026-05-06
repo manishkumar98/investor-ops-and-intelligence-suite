@@ -5,7 +5,7 @@ import streamlit as st
 
 from .mcp_client import MCPClient
 
-MCP_STATE_PATH = Path("data/mcp_state.json")
+MCP_STATE_PATH = Path(__file__).resolve().parents[1] / "data" / "mcp_state.json"
 
 
 TYPE_LABELS = {

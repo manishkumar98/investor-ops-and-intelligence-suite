@@ -2003,9 +2003,9 @@ with tab1:
             unsafe_allow_html=True,
         )
         _render_download_dropdown([
-            {"label": "Fund Snapshot (CSV)",     "path": "data/fund_snapshot.json",   "filename": "fund_snapshot.csv",    "mime": "text/csv"},
+            {"label": "Fund Snapshot (CSV)",     "path": str(Path(__file__).parent / "data" / "fund_snapshot.json"),   "filename": "fund_snapshot.csv",    "mime": "text/csv"},
             {"label": "Source Manifest (MD)",    "path": "SOURCE_MANIFEST.md",         "filename": "SOURCE_MANIFEST.md",   "mime": "text/markdown"},
-            {"label": "Eval Results (CSV)",      "path": "data/eval_results.json",    "filename": "eval_results.csv",     "mime": "text/csv"},
+            {"label": "Eval Results (CSV)",      "path": str(Path(__file__).parent / "data" / "eval_results.json"),    "filename": "eval_results.csv",     "mime": "text/csv"},
         ], key_prefix="kb_dl")
 
     st.markdown("</div>", unsafe_allow_html=True)
@@ -2204,10 +2204,10 @@ with tab2:
             unsafe_allow_html=True,
         )
         _render_download_dropdown([
-            {"label": "Reviews CSV",         "path": "data/reviews_latest.csv",    "filename": "reviews_latest.csv",    "mime": "text/csv"},
-            {"label": "Weekly Pulse (CSV)",  "path": "data/pulse_latest.json",     "filename": "pulse_latest.csv",      "mime": "text/csv"},
-            {"label": "Analytics (CSV)",     "path": "data/analytics_latest.json", "filename": "analytics_latest.csv",  "mime": "text/csv"},
-            {"label": "Fee Explainer (CSV)", "path": "data/fee_latest.json",       "filename": "fee_latest.csv",        "mime": "text/csv"},
+            {"label": "Reviews CSV",         "path": str(Path(__file__).parent / "data" / "reviews_latest.csv"),    "filename": "reviews_latest.csv",    "mime": "text/csv"},
+            {"label": "Weekly Pulse (CSV)",  "path": str(Path(__file__).parent / "data" / "pulse_latest.json"),     "filename": "pulse_latest.csv",      "mime": "text/csv"},
+            {"label": "Analytics (CSV)",     "path": str(Path(__file__).parent / "data" / "analytics_latest.json"), "filename": "analytics_latest.csv",  "mime": "text/csv"},
+            {"label": "Fee Explainer (CSV)", "path": str(Path(__file__).parent / "data" / "fee_latest.json"),       "filename": "fee_latest.csv",        "mime": "text/csv"},
         ], key_prefix="pipeline_dl")
 
     # ── Iterative pipeline runner ─────────────────────────────────────────────

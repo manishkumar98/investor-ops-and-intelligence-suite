@@ -74,7 +74,9 @@ class VoiceAgent:
 
     STATES = ("GREET", "INTENT", "TOPIC", "TIMEPREF", "OFFERSLOTS", "CONFIRM", "BOOKED", "WAITLIST")
 
-    def __init__(self, session: dict, calendar_path: str = "data/mock_calendar.json"):
+    def __init__(self, session: dict, calendar_path: str = ""):
+        if not calendar_path:
+            calendar_path = str(Path(__file__).resolve().parents[1] / "data" / "mock_calendar.json")
         self.session = session
         self.calendar = load_calendar(calendar_path)
         self.state = "GREET"
@@ -293,7 +295,7 @@ class VoiceAgent:
     def _log_interaction(self, user_text: str, agent_text: str) -> None:
         """Append one JSONL line to data/logs/voice_interactions.jsonl."""
         try:
-            log_path = Path("data/logs/voice_interactions.jsonl")
+            log_path = Path(__file__).resolve().parents[1] / "data" / "logs" / "voice_interactions.jsonl"
             log_path.parent.mkdir(parents=True, exist_ok=True)
             entry = {
                 "ts":        datetime.now(IST).isoformat(),
