@@ -2665,18 +2665,23 @@ with tab2:
                 if st.session_state.get("va2_last_audio_hash") != _ahash:
                     st.session_state["va2_last_audio_hash"] = _ahash
                     if len(_ab) >= 8_000:
-                        st.session_state["va2_backend_status"] = "Transcribing speech…"
-                        transcript = _va2_stt(_ab)
-                        _repeat_words = ["repeat","again","say that again","pardon","sorry","excuse me","come again","huh","what"]
-                        if any(w in transcript.lower() for w in _repeat_words) and len(transcript) < 40:
-                            st.session_state["va2_tts_played"] = ""   # replay last response
-                        else:
-                            st.session_state["va2_backend_status"] = "Processing…"
-                            st.session_state["va2_user_text"] = transcript or ""
-                            resp_text, resp_audio = agent.step(transcript or "")
-                            st.session_state["va2_agent_speech"]  = resp_text
-                            st.session_state["va2_tts_audio"]     = resp_audio
-                            st.session_state["va2_tts_played"]    = ""
+                        try:
+                            st.session_state["va2_backend_status"] = "Transcribing speech…"
+                            transcript = _va2_stt(_ab)
+                            _repeat_words = ["repeat","again","say that again","pardon","sorry","excuse me","come again","huh","what"]
+                            if any(w in transcript.lower() for w in _repeat_words) and len(transcript) < 40:
+                                st.session_state["va2_tts_played"] = ""   # replay last response
+                            else:
+                                st.session_state["va2_backend_status"] = "Processing…"
+                                st.session_state["va2_user_text"] = transcript or ""
+                                resp_text, resp_audio = agent.step(transcript or "")
+                                st.session_state["va2_agent_speech"]  = resp_text
+                                st.session_state["va2_tts_audio"]     = resp_audio
+                                st.session_state["va2_tts_played"]    = ""
+                        except Exception as _va2_exc:
+                            st.session_state["va2_user_text"] = ""
+                            print(f"[voice] step error: {_va2_exc}")
+                        finally:
                             st.session_state["va2_backend_status"] = ""
                     st.rerun()
 

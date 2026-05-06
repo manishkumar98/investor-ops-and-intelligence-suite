@@ -51,7 +51,7 @@ def _slot_display(slot: dict) -> str:
 def _tts(text: str) -> bytes | None:
     """TTS: Sarvam AI bulbul:v2 → gTTS fallback."""
     try:
-        from voice.tts_engine import TTSEngine
+        from phase6_pillar_b_voice.voice.tts_engine import TTSEngine
         r = TTSEngine().synthesise(text, language="en-IN")
         if not r.is_empty:
             return r.audio_bytes
