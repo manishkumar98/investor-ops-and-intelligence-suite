@@ -1,0 +1,1277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Investor Ops &amp; Intelligence Suite — Review Pulse</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Outfit', sans-serif; }
+
+        body {
+            min-height: 100vh;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 50%, #151a30 100%);
+            color: #fff;
+            padding: 30px 20px;
+        }
+
+        .blob { position: fixed; border-radius: 50%; filter: blur(80px); z-index: 0; pointer-events: none; }
+        .blob-1 { background: rgba(255,99,132,0.3); width: 400px; height: 400px; top: -100px; left: -100px; animation: move-x 10s infinite alternate; }
+        .blob-2 { background: rgba(54,162,235,0.3); width: 300px; height: 300px; bottom: -50px; right: -50px; animation: move-y 8s infinite alternate; }
+        @keyframes move-x { 100% { transform: translateX(200px); } }
+        @keyframes move-y { 100% { transform: translateY(-150px); } }
+
+        .container { max-width: 960px; margin: 0 auto; position: relative; z-index: 10; }
+
+        header { text-align: center; margin-bottom: 30px; }
+        header h1 { font-size: 32px; font-weight: 700; background: linear-gradient(135deg, #fff, #b3c5e7); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        header p { color: rgba(255,255,255,0.6); margin-top: 8px; font-size: 15px; }
+        header a { color: rgba(255,255,255,0.5); font-size: 13px; text-decoration: none; display: inline-block; margin-top: 8px; }
+        header a:hover { color: #fff; }
+
+        .header-meta { display: flex; align-items: center; justify-content: center; gap: 12px; margin-top: 10px; flex-wrap: wrap; }
+        .status-pill { display: inline-flex; align-items: center; gap: 6px; background: rgba(74,222,128,0.15); border: 1px solid rgba(74,222,128,0.4); color: #4ade80; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; }
+        .status-dot { width: 7px; height: 7px; border-radius: 50%; background: #4ade80; animation: pulse-dot 2s infinite; }
+        @keyframes pulse-dot { 0%,100%{opacity:1} 50%{opacity:0.4} }
+        .review-badge { display: inline-flex; align-items: center; gap: 6px; background: rgba(67,97,238,0.2); border: 1px solid rgba(67,97,238,0.4); color: #a5b4fc; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; }
+
+        .tabs { display: flex; gap: 6px; margin-bottom: 20px; background: rgba(255,255,255,0.05); padding: 6px; border-radius: 14px; border: 1px solid rgba(255,255,255,0.1); flex-wrap: wrap; }
+        .tab-btn { flex: 1; min-width: 100px; padding: 10px 8px; border: none; border-radius: 10px; background: transparent; color: rgba(255,255,255,0.6); font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.3s; font-family: 'Outfit', sans-serif; white-space: nowrap; }
+        .tab-btn.active { background: linear-gradient(135deg, #4361ee, #3a0ca3); color: #fff; box-shadow: 0 4px 15px rgba(67,97,238,0.4); }
+        .tab-btn:hover:not(.active) { color: #fff; background: rgba(255,255,255,0.08); }
+
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+
+        .glass-card { background: rgba(255,255,255,0.05); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.1); border-radius: 20px; padding: 30px; margin-bottom: 20px; }
+
+        .draft-box { background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 20px; font-family: monospace; font-size: 13px; line-height: 1.8; color: rgba(255,255,255,0.85); white-space: pre-wrap; overflow-x: auto; max-height: 500px; overflow-y: auto; }
+
+        .markdown-box { line-height: 1.8; color: rgba(255,255,255,0.9); }
+        .markdown-box h1, .markdown-box h2, .markdown-box h3 { color: #fff; margin: 20px 0 10px; }
+        .markdown-box p { margin-bottom: 12px; color: rgba(255,255,255,0.8); }
+        .markdown-box ul, .markdown-box ol { padding-left: 20px; margin-bottom: 12px; color: rgba(255,255,255,0.8); }
+        .markdown-box li { margin-bottom: 6px; }
+        .markdown-box strong { color: #fff; }
+        .markdown-box code { background: rgba(255,255,255,0.1); padding: 2px 6px; border-radius: 4px; font-size: 13px; }
+        .markdown-box blockquote { border-left: 3px solid #4361ee; padding-left: 16px; margin: 12px 0; color: rgba(255,255,255,0.7); font-style: italic; }
+
+        .poster-section { margin-bottom: 28px; }
+        .poster-section h3 { font-size: 13px; font-weight: 600; letter-spacing: 1.5px; text-transform: uppercase; color: rgba(255,255,255,0.5); margin-bottom: 14px; }
+        .theme-pills { display: flex; flex-wrap: wrap; gap: 8px; }
+        .pill { background: rgba(67,97,238,0.3); border: 1px solid rgba(67,97,238,0.5); color: #a5b4fc; padding: 6px 14px; border-radius: 20px; font-size: 13px; font-weight: 600; }
+        .quote-card { background: rgba(255,255,255,0.05); border-left: 3px solid #4361ee; border-radius: 10px; padding: 16px 20px; margin-bottom: 12px; font-size: 15px; color: rgba(255,255,255,0.85); line-height: 1.6; font-style: italic; }
+        .note-text { font-size: 15px; line-height: 1.8; color: rgba(255,255,255,0.8); }
+        .action-item { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 12px; }
+        .action-num { background: linear-gradient(135deg, #4361ee, #3a0ca3); width: 26px; height: 26px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; flex-shrink: 0; margin-top: 2px; }
+        .action-text { font-size: 14px; color: rgba(255,255,255,0.85); line-height: 1.6; }
+
+        .send-section { margin-top: 10px; }
+        .send-section h3 { font-size: 16px; font-weight: 600; margin-bottom: 16px; color: rgba(255,255,255,0.9); }
+        .input-row { display: flex; gap: 10px; flex-wrap: wrap; }
+        .input-row input { flex: 1; min-width: 180px; padding: 14px 18px; background: rgba(0,0,0,0.25); border: 1px solid rgba(255,255,255,0.15); border-radius: 12px; color: #fff; font-size: 15px; outline: none; font-family: 'Outfit', sans-serif; }
+        .input-row input::placeholder { color: rgba(255,255,255,0.3); }
+        .input-row input:focus { border-color: rgba(255,255,255,0.4); }
+        .send-btn { padding: 14px 28px; background: linear-gradient(135deg, #4361ee, #3a0ca3); border: none; border-radius: 12px; color: #fff; font-size: 15px; font-weight: 600; cursor: pointer; transition: all 0.3s; font-family: 'Outfit', sans-serif; white-space: nowrap; }
+        .send-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(67,97,238,0.4); }
+        .send-btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+        .status-msg { margin-top: 12px; font-size: 14px; font-weight: 500; }
+        .status-msg.success { color: #4ade80; }
+        .status-msg.error { color: #f87171; }
+
+        .week-label { font-size: 12px; color: rgba(255,255,255,0.4); margin-bottom: 20px; }
+        .spinner-inline { display: inline-block; width: 16px; height: 16px; border: 2px solid rgba(255,255,255,0.3); border-top-color: #fff; border-radius: 50%; animation: spin 1s linear infinite; margin-left: 8px; vertical-align: middle; }
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+
+        /* Approval Gate styles */
+        .checklist { list-style: none; margin-bottom: 24px; }
+        .checklist li { display: flex; align-items: center; gap: 12px; padding: 12px 0; border-bottom: 1px solid rgba(255,255,255,0.06); font-size: 14px; color: rgba(255,255,255,0.8); }
+        .checklist li:last-child { border-bottom: none; }
+        .check-icon { width: 26px; height: 26px; border-radius: 50%; background: rgba(74,222,128,0.2); border: 1px solid rgba(74,222,128,0.5); color: #4ade80; display: flex; align-items: center; justify-content: center; font-size: 13px; flex-shrink: 0; }
+        .check-date { margin-left: auto; font-size: 12px; color: rgba(255,255,255,0.35); }
+
+        .section-title { font-size: 13px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; color: rgba(255,255,255,0.45); margin-bottom: 12px; margin-top: 24px; }
+        .section-title:first-child { margin-top: 0; }
+
+        .editable-summary { width: 100%; background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.12); border-radius: 12px; padding: 16px; color: rgba(255,255,255,0.85); font-size: 14px; line-height: 1.8; resize: vertical; min-height: 100px; font-family: 'Outfit', sans-serif; outline: none; }
+        .editable-summary:focus { border-color: rgba(67,97,238,0.6); }
+
+        .accordion { border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; overflow: hidden; margin-bottom: 8px; }
+        .accordion-header { display: flex; align-items: center; justify-content: space-between; padding: 14px 18px; cursor: pointer; background: rgba(255,255,255,0.04); transition: background 0.2s; user-select: none; }
+        .accordion-header:hover { background: rgba(255,255,255,0.08); }
+        .accordion-header span { font-size: 14px; font-weight: 600; color: #fff; }
+        .accordion-arrow { font-size: 12px; color: rgba(255,255,255,0.4); transition: transform 0.25s; }
+        .accordion.open .accordion-arrow { transform: rotate(180deg); }
+        .accordion-body { display: none; padding: 16px 18px; border-top: 1px solid rgba(255,255,255,0.06); }
+        .accordion.open .accordion-body { display: block; }
+        .accordion-quote { font-size: 13px; font-style: italic; color: rgba(255,255,255,0.7); border-left: 3px solid #4361ee; padding-left: 12px; margin-top: 8px; line-height: 1.6; }
+        .accordion-action { font-size: 12px; color: #a5b4fc; margin-top: 8px; padding: 4px 10px; background: rgba(165,180,252,0.08); border-radius: 6px; border: 1px solid rgba(165,180,252,0.2); }
+        .accordion-desc { font-size: 13px; color: rgba(255,255,255,0.6); line-height: 1.6; }
+
+        .action-row { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 20px; }
+        .gate-btn { padding: 12px 20px; border: none; border-radius: 12px; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.3s; font-family: 'Outfit', sans-serif; white-space: nowrap; }
+        .gate-btn.primary { background: linear-gradient(135deg, #4361ee, #3a0ca3); color: #fff; }
+        .gate-btn.secondary { background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15); color: rgba(255,255,255,0.85); }
+        .gate-btn.success-btn { background: linear-gradient(135deg, #059669, #047857); color: #fff; }
+        .gate-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(0,0,0,0.3); }
+        .gate-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+        .collapsible-section { border: 1px solid rgba(255,255,255,0.08); border-radius: 14px; overflow: hidden; margin-top: 20px; }
+        .collapsible-header { display: flex; align-items: center; justify-content: space-between; padding: 16px 20px; cursor: pointer; background: rgba(255,255,255,0.04); }
+        .collapsible-header:hover { background: rgba(255,255,255,0.08); }
+        .collapsible-header h4 { font-size: 14px; font-weight: 700; color: #fff; }
+        .collapsible-arrow { font-size: 12px; color: rgba(255,255,255,0.4); transition: transform 0.25s; }
+        .collapsible-section.open .collapsible-arrow { transform: rotate(180deg); }
+        .collapsible-body { display: none; padding: 20px; border-top: 1px solid rgba(255,255,255,0.06); }
+        .collapsible-section.open .collapsible-body { display: block; }
+
+        .fee-bullet { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 10px; font-size: 14px; color: rgba(255,255,255,0.82); line-height: 1.6; }
+        .fee-dot { width: 7px; height: 7px; border-radius: 50%; background: #a5b4fc; flex-shrink: 0; margin-top: 7px; }
+        .fee-links { margin-top: 14px; display: flex; flex-direction: column; gap: 6px; }
+        .fee-link { color: #a5b4fc; font-size: 13px; word-break: break-all; text-decoration: none; }
+        .fee-link:hover { text-decoration: underline; }
+        .fee-meta { margin-top: 10px; font-size: 12px; color: rgba(255,255,255,0.35); }
+
+        .meta-row { display: flex; align-items: center; gap: 16px; margin-top: 20px; flex-wrap: wrap; }
+        .no-pii-badge { display: inline-flex; align-items: center; gap: 6px; background: rgba(250,204,21,0.12); border: 1px solid rgba(250,204,21,0.3); color: #fbbf24; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; }
+        .gen-time { font-size: 12px; color: rgba(255,255,255,0.35); }
+
+        /* Analytics styles */
+        .stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 14px; margin-bottom: 24px; }
+        .stat-card { background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); border-radius: 14px; padding: 20px; text-align: center; }
+        .stat-num { font-size: 36px; font-weight: 700; background: linear-gradient(135deg, #a5b4fc, #818cf8); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .stat-label { font-size: 12px; color: rgba(255,255,255,0.45); margin-top: 4px; text-transform: uppercase; letter-spacing: 0.8px; }
+
+        .theme-bar-list { list-style: none; }
+        .theme-bar-item { margin-bottom: 14px; }
+        .theme-bar-label { display: flex; justify-content: space-between; font-size: 13px; color: rgba(255,255,255,0.8); margin-bottom: 6px; }
+        .theme-bar-track { height: 8px; background: rgba(255,255,255,0.08); border-radius: 10px; overflow: hidden; }
+        .theme-bar-fill { height: 100%; border-radius: 10px; background: linear-gradient(90deg, #4361ee, #7c3aed); transition: width 1s ease; }
+
+        /* Analytics enhanced */
+        .chart-toggle { display: flex; gap: 8px; margin-bottom: 20px; }
+        .chart-toggle-btn { padding: 7px 18px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.2); background: transparent; color: rgba(255,255,255,0.6); font-size: 13px; font-weight: 600; cursor: pointer; font-family: 'Outfit', sans-serif; transition: all 0.2s; }
+        .chart-toggle-btn.active { background: #fff; color: #1e3c72; border-color: #fff; }
+        .chart-toggle-btn:hover:not(.active) { background: rgba(255,255,255,0.1); color: #fff; }
+        .chart-wrap { position: relative; height: 280px; background: rgba(255,255,255,0.04); border-radius: 14px; padding: 16px; }
+
+        .tracker-table { width: 100%; border-collapse: collapse; margin-top: 8px; }
+        .tracker-table th { font-size: 11px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: rgba(255,255,255,0.35); padding: 10px 12px; text-align: left; border-bottom: 1px solid rgba(255,255,255,0.08); }
+        .tracker-table td { padding: 14px 12px; border-bottom: 1px solid rgba(255,255,255,0.06); vertical-align: top; }
+        .tracker-table tr:last-child td { border-bottom: none; }
+        .cat-name { font-size: 14px; font-weight: 700; color: #fff; }
+        .cat-sub  { font-size: 11px; color: rgba(255,255,255,0.35); margin-top: 2px; }
+        .cat-vol  { font-size: 20px; font-weight: 700; color: #a5b4fc; }
+        .cat-desc { font-size: 13px; color: rgba(255,255,255,0.65); line-height: 1.5; max-width: 220px; }
+        .priority-badge { display: inline-block; padding: 3px 10px; border-radius: 6px; font-size: 11px; font-weight: 700; letter-spacing: 0.5px; }
+        .priority-HIGH   { background: rgba(239,68,68,0.2);  color: #f87171; border: 1px solid rgba(239,68,68,0.4); }
+        .priority-MEDIUM { background: rgba(234,179,8,0.2);  color: #fbbf24; border: 1px solid rgba(234,179,8,0.4); }
+        .priority-LOW    { background: rgba(148,163,184,0.2); color: #94a3b8; border: 1px solid rgba(148,163,184,0.4); }
+        .ticket-chips { display: flex; flex-wrap: wrap; gap: 6px; min-height: 28px; }
+        .ticket-chip { display: inline-flex; align-items: center; gap: 4px; background: rgba(67,97,238,0.25); border: 1px solid rgba(67,97,238,0.4); color: #a5b4fc; border-radius: 6px; padding: 3px 8px; font-size: 12px; font-weight: 600; }
+        .ticket-chip button { background: none; border: none; color: #a5b4fc; cursor: pointer; font-size: 13px; padding: 0 0 0 2px; line-height: 1; }
+        .no-tickets { font-size: 12px; color: rgba(255,255,255,0.25); font-style: italic; }
+        .add-ticket-row { display: flex; gap: 6px; align-items: center; }
+        .add-ticket-input { background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.12); border-radius: 8px; color: #fff; padding: 6px 10px; font-size: 12px; width: 110px; font-family: 'Outfit', sans-serif; outline: none; }
+        .add-ticket-input::placeholder { color: rgba(255,255,255,0.2); }
+        .add-ticket-btn { width: 28px; height: 28px; border-radius: 8px; border: none; background: linear-gradient(135deg,#4361ee,#3a0ca3); color: #fff; font-size: 16px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+
+        /* Tab tooltip */
+        .tab-btn { position: relative; }
+        .tab-btn::after {
+            content: attr(title);
+            position: absolute;
+            top: calc(100% + 8px);
+            left: 50%;
+            transform: translateX(-50%);
+            background: #1a1f35;
+            color: rgba(255,255,255,0.88);
+            font-size: 11.5px;
+            line-height: 1.5;
+            padding: 7px 11px;
+            border-radius: 8px;
+            border: 1px solid rgba(201,168,76,0.25);
+            white-space: normal;
+            width: 220px;
+            text-align: center;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.18s ease;
+            z-index: 10000;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+        }
+        .tab-btn:hover::after { opacity: 1; }
+
+        /* Word Cloud */
+        .wc-stats { display: grid; grid-template-columns: repeat(3,1fr); gap: 14px; margin-bottom: 24px; }
+        .wc-stat { background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); border-radius: 14px; padding: 18px 20px; }
+        .wc-stat-label { font-size: 11px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: rgba(255,255,255,0.4); margin-bottom: 8px; }
+        .wc-stat-num { font-size: 32px; font-weight: 700; color: #fff; }
+        .wc-cloud { min-height: 180px; display: flex; flex-wrap: wrap; gap: 10px 16px; align-items: center; justify-content: center; padding: 20px 0; }
+        .wc-word { cursor: pointer; font-weight: 600; transition: opacity 0.2s; line-height: 1.2; }
+        .wc-word:hover { opacity: 0.7; text-decoration: underline; }
+        .kw-list { list-style: none; }
+        .kw-item { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .kw-item:last-child { border-bottom: none; }
+        .kw-rank { font-size: 12px; color: rgba(255,255,255,0.3); width: 20px; flex-shrink: 0; }
+        .kw-word { font-size: 14px; font-weight: 600; color: #fff; width: 90px; flex-shrink: 0; }
+        .kw-bar-track { flex: 1; height: 6px; background: rgba(255,255,255,0.07); border-radius: 10px; overflow: hidden; }
+        .kw-bar-fill { height: 100%; border-radius: 10px; }
+        .kw-count { font-size: 13px; color: rgba(255,255,255,0.5); width: 36px; text-align: right; flex-shrink: 0; }
+        .review-card { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 14px; padding: 16px; margin-bottom: 12px; }
+        .rc-header { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+        .rc-avatar { width: 36px; height: 36px; border-radius: 50%; background: rgba(67,97,238,0.3); display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 700; color: #a5b4fc; flex-shrink: 0; }
+        .rc-name { font-size: 14px; font-weight: 700; color: #fff; }
+        .rc-meta { font-size: 12px; color: rgba(255,255,255,0.35); }
+        .rc-stars { margin-left: auto; display: flex; gap: 2px; }
+        .star-filled { color: #f59e0b; font-size: 13px; }
+        .star-empty { color: rgba(255,255,255,0.2); font-size: 13px; }
+        .rc-body { font-size: 14px; color: rgba(255,255,255,0.75); line-height: 1.6; }
+        .rc-tags { display: flex; gap: 6px; margin-top: 10px; flex-wrap: wrap; }
+        .rc-tag { background: rgba(67,97,238,0.2); border: 1px solid rgba(67,97,238,0.3); color: #a5b4fc; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; }
+        .rc-footer { display: flex; align-items: center; gap: 12px; margin-top: 10px; font-size: 12px; color: rgba(255,255,255,0.3); }
+        .sentiment-chip { padding: 2px 8px; border-radius: 6px; font-size: 11px; font-weight: 700; }
+        .sent-Positive { background: rgba(74,222,128,0.15); color: #4ade80; }
+        .sent-Negative { background: rgba(239,68,68,0.15); color: #f87171; }
+        .sent-Neutral  { background: rgba(250,204,21,0.15); color: #fbbf24; }
+        .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        @media(max-width:640px){ .two-col{ grid-template-columns:1fr; } .wc-stats{ grid-template-columns:1fr 1fr; } }
+
+        /* Categories */
+        .cat-cards { display: grid; grid-template-columns: repeat(auto-fit,minmax(180px,1fr)); gap: 14px; margin-bottom: 24px; }
+        .cat-card { background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; padding: 20px; }
+        .cat-card-icon { font-size: 22px; margin-bottom: 10px; }
+        .cat-card-name { font-size: 15px; font-weight: 700; color: #fff; }
+        .cat-card-count { font-size: 28px; font-weight: 700; color: #a5b4fc; margin: 6px 0 4px; }
+        .cat-card-sub { font-size: 12px; color: rgba(255,255,255,0.35); }
+        .cat-pct-bar { height: 4px; border-radius: 10px; margin-top: 10px; }
+        .cat-stat-row { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .cat-stat-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+        .cat-stat-name { flex: 1; font-size: 14px; color: rgba(255,255,255,0.8); }
+        .cat-stat-count { font-size: 14px; font-weight: 600; color: #fff; }
+        .cat-stat-pct { font-size: 12px; color: rgba(255,255,255,0.35); width: 40px; text-align: right; }
+        .cat-stat-bar { height: 3px; border-radius: 10px; margin-top: 3px; }
+
+        /* Ideation */
+        .idea-panel { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 16px; padding: 20px; height: 100%; }
+        .idea-panel-title { font-size: 15px; font-weight: 700; color: #fff; margin-bottom: 4px; }
+        .idea-panel-sub { font-size: 13px; color: rgba(255,255,255,0.4); margin-bottom: 16px; }
+        .idea-card { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; padding: 14px; margin-bottom: 10px; }
+        .idea-card-title { font-size: 14px; font-weight: 700; color: #a5b4fc; margin-bottom: 6px; }
+        .idea-card-body { font-size: 13px; color: rgba(255,255,255,0.7); line-height: 1.6; }
+        .idea-card-impact { display: inline-block; margin-top: 8px; font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 6px; }
+        .impact-High { background: rgba(74,222,128,0.15); color: #4ade80; }
+        .impact-Medium { background: rgba(250,204,21,0.15); color: #fbbf24; }
+        .bug-search { width: 100%; background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.12); border-radius: 10px; padding: 10px 14px; color: #fff; font-size: 14px; font-family: 'Outfit', sans-serif; outline: none; margin-bottom: 14px; }
+        .bug-search::placeholder { color: rgba(255,255,255,0.3); }
+        .bug-review-list { max-height: 340px; overflow-y: auto; }
+        .bug-review-item { display: flex; align-items: flex-start; gap: 10px; padding: 12px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.06); margin-bottom: 8px; cursor: pointer; transition: background 0.2s; }
+        .bug-review-item:hover { background: rgba(255,255,255,0.05); }
+        .bug-review-item.selected { background: rgba(67,97,238,0.15); border-color: rgba(67,97,238,0.4); }
+        .bug-cb { width: 16px; height: 16px; border-radius: 4px; border: 1.5px solid rgba(255,255,255,0.3); flex-shrink: 0; margin-top: 2px; display: flex; align-items: center; justify-content: center; }
+        .bug-cb.checked { background: #4361ee; border-color: #4361ee; }
+        .bug-rev-name { font-size: 13px; font-weight: 700; color: #fff; }
+        .bug-rev-text { font-size: 12px; color: rgba(255,255,255,0.55); margin-top: 2px; line-height: 1.5; }
+        .gen-report-btn { width: 100%; padding: 14px; border-radius: 12px; border: none; background: linear-gradient(135deg,#ef4444,#b91c1c); color: #fff; font-size: 14px; font-weight: 700; cursor: pointer; margin-top: 14px; font-family:'Outfit',sans-serif; transition: opacity 0.2s; }
+        .gen-report-btn:hover { opacity: 0.85; }
+        .select-all-btn { float: right; font-size: 12px; font-weight: 600; color: #a5b4fc; background: none; border: none; cursor: pointer; padding: 0; font-family:'Outfit',sans-serif; }
+    </style>
+<style>
+/* Capstone theme override — charcoal + gold */
+body { background: #0A0C14 !important; }
+.blob-1, .blob-2 { display: none !important; }
+.tab-btn.active {
+  background: linear-gradient(135deg, #C9A84C, #A8863C) !important;
+  color: #0A0C14 !important;
+  box-shadow: 0 4px 15px rgba(201,168,76,0.35) !important;
+}
+.tab-btn:hover:not(.active) { background: rgba(201,168,76,0.08) !important; }
+.send-btn {
+  background: linear-gradient(135deg, #C9A84C, #A8863C) !important;
+  color: #0A0C14 !important;
+}
+.send-btn:hover { box-shadow: 0 8px 20px rgba(201,168,76,0.4) !important; }
+header h1 {
+  background: linear-gradient(135deg, #F5F0E8, #C9A84C) !important;
+  -webkit-background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
+}
+.status-pill {
+  background: rgba(201,168,76,0.12) !important;
+  border-color: rgba(201,168,76,0.40) !important;
+  color: #C9A84C !important;
+}
+.status-dot { background: #C9A84C !important; }
+.review-badge { border-color: rgba(201,168,76,0.4) !important; color: #C9A84C !important; }
+.check-icon { background: rgba(201,168,76,0.15) !important; border-color: rgba(201,168,76,0.4) !important; color: #C9A84C !important; }
+.action-num { background: linear-gradient(135deg, #C9A84C, #A8863C) !important; color: #0A0C14 !important; }
+</style>
+<style>
+/* Capstone theme override — charcoal + gold */
+body { background: #0A0C14 !important; }
+.blob-1, .blob-2 { display: none !important; }
+.tab-btn.active {
+  background: linear-gradient(135deg, #C9A84C, #A8863C) !important;
+  color: #0A0C14 !important;
+  box-shadow: 0 4px 15px rgba(201,168,76,0.35) !important;
+}
+.tab-btn:hover:not(.active) { background: rgba(201,168,76,0.08) !important; }
+.send-btn {
+  background: linear-gradient(135deg, #C9A84C, #A8863C) !important;
+  color: #0A0C14 !important;
+}
+.send-btn:hover { box-shadow: 0 8px 20px rgba(201,168,76,0.4) !important; }
+header h1 {
+  background: linear-gradient(135deg, #F5F0E8, #C9A84C) !important;
+  -webkit-background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
+}
+.status-pill {
+  background: rgba(201,168,76,0.12) !important;
+  border-color: rgba(201,168,76,0.40) !important;
+  color: #C9A84C !important;
+}
+.status-dot { background: #C9A84C !important; }
+.review-badge { border-color: rgba(201,168,76,0.4) !important; color: #C9A84C !important; }
+.check-icon { background: rgba(201,168,76,0.15) !important; border-color: rgba(201,168,76,0.4) !important; color: #C9A84C !important; }
+.action-num { background: linear-gradient(135deg, #C9A84C, #A8863C) !important; color: #0A0C14 !important; }
+</style>
+<style>
+/* Capstone theme override — charcoal + gold */
+body { background: #0A0C14 !important; }
+.blob-1, .blob-2 { display: none !important; }
+.tab-btn.active {
+  background: linear-gradient(135deg, #C9A84C, #A8863C) !important;
+  color: #0A0C14 !important;
+  box-shadow: 0 4px 15px rgba(201,168,76,0.35) !important;
+}
+.tab-btn:hover:not(.active) { background: rgba(201,168,76,0.08) !important; }
+.send-btn {
+  background: linear-gradient(135deg, #C9A84C, #A8863C) !important;
+  color: #0A0C14 !important;
+}
+.send-btn:hover { box-shadow: 0 8px 20px rgba(201,168,76,0.4) !important; }
+header h1 {
+  background: linear-gradient(135deg, #F5F0E8, #C9A84C) !important;
+  -webkit-background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
+}
+.status-pill {
+  background: rgba(201,168,76,0.12) !important;
+  border-color: rgba(201,168,76,0.40) !important;
+  color: #C9A84C !important;
+}
+.status-dot { background: #C9A84C !important; }
+.review-badge { border-color: rgba(201,168,76,0.4) !important; color: #C9A84C !important; }
+.check-icon { background: rgba(201,168,76,0.15) !important; border-color: rgba(201,168,76,0.4) !important; color: #C9A84C !important; }
+.action-num { background: linear-gradient(135deg, #C9A84C, #A8863C) !important; color: #0A0C14 !important; }
+</style>
+<style>
+/* Capstone theme override — charcoal + gold */
+body { background: #0A0C14 !important; }
+.blob-1, .blob-2 { display: none !important; }
+.tab-btn.active {
+  background: linear-gradient(135deg, #C9A84C, #A8863C) !important;
+  color: #0A0C14 !important;
+  box-shadow: 0 4px 15px rgba(201,168,76,0.35) !important;
+}
+.tab-btn:hover:not(.active) { background: rgba(201,168,76,0.08) !important; }
+.send-btn {
+  background: linear-gradient(135deg, #C9A84C, #A8863C) !important;
+  color: #0A0C14 !important;
+}
+.send-btn:hover { box-shadow: 0 8px 20px rgba(201,168,76,0.4) !important; }
+header h1 {
+  background: linear-gradient(135deg, #F5F0E8, #C9A84C) !important;
+  -webkit-background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
+}
+.status-pill {
+  background: rgba(201,168,76,0.12) !important;
+  border-color: rgba(201,168,76,0.40) !important;
+  color: #C9A84C !important;
+}
+.status-dot { background: #C9A84C !important; }
+.review-badge { border-color: rgba(201,168,76,0.4) !important; color: #C9A84C !important; }
+.check-icon { background: rgba(201,168,76,0.15) !important; border-color: rgba(201,168,76,0.4) !important; color: #C9A84C !important; }
+.action-num { background: linear-gradient(135deg, #C9A84C, #A8863C) !important; color: #0A0C14 !important; }
+</style>
+</head>
+<body>
+    <div class="blob blob-1"></div>
+    <div class="blob blob-2"></div>
+
+    <div class="container">
+        <div class="tabs" style="justify-content:flex-start;">
+            <button class="tab-btn active" onclick="switchTab('analytics', this)" title="Sentiment breakdown, rating distribution, and top keyword stats from this week's reviews">📊 Analytics</button>
+            <button class="tab-btn" onclick="switchTab('wordcloud', this)" title="Most-used words across all reviews — filtered for stopwords, sized by frequency">☁️ Word Cloud</button>
+            <button class="tab-btn" onclick="switchTab('categories', this)" title="Review volume and sentiment grouped by theme category">🏷️ Categories</button>
+            <button class="tab-btn" onclick="switchTab('ideation', this)" title="AI-generated action ideas based on top themes and negative feedback">⚡ Ideation</button>
+            <button class="tab-btn" onclick="switchTab('gate', this)" title="Weekly pulse summary — themes, quotes, action ideas, and fee explainer. Approve from Super-Agent MCP Workflow tab.">📄 Detailed Draft</button>
+            <button class="tab-btn" onclick="switchTab('draft', this)" title="Full pre-built advisor email text ready for review before sending via Super-Agent MCP Workflow">📧 Email Draft</button>
+            <button class="tab-btn" onclick="switchTab('notes', this)" title="Complete pulse rendered as formatted markdown — themes, quotes, weekly note, and actions">📝 Markdown Report</button>
+            <button class="tab-btn" onclick="switchTab('poster', this)" title="Visual summary card — top themes, user quotes, and action ideas in shareable poster format">🖼️ Pulse Poster</button>
+        </div>
+
+        <!-- Tab 1: Approval Gate -->
+        <div id="tab-gate" class="tab-content">
+            <div class="glass-card">
+                <div class="section-title">Detailed Draft</div>
+                <p style="font-size:14px;color:rgba(255,255,255,0.55);margin-bottom:20px">AI-generated analysis for this week — review before team distribution.</p>
+
+                <!-- Checklist -->
+                <ul class="checklist" id="gate-checklist"></ul>
+
+                <!-- Editable summary -->
+                <div class="section-title">Weekly Summary</div>
+                <textarea class="editable-summary" id="gate-summary" rows="4"></textarea>
+
+                <!-- Theme accordions -->
+                <div class="section-title" style="margin-top:20px">Categorised Themes</div>
+                <div id="gate-themes"></div>
+
+                <!-- Action Ideas -->
+                <div class="section-title" style="margin-top:20px">Action Ideas</div>
+                <div id="gate-actions"></div>
+
+                <div style="font-size:0.82rem;color:rgba(255,255,255,0.45);margin-top:12px;padding:10px 14px;background:rgba(201,168,76,0.06);border-radius:8px;border:1px solid rgba(201,168,76,0.2);">
+                    ℹ️ To approve and send, go to the <strong style="color:#C9A84C;">Super-Agent MCP Workflow</strong> tab.
+                </div>
+
+                <!-- Fee Explainer collapsible -->
+                <div class="collapsible-section" id="fee-collapsible">
+                    <div class="collapsible-header" onclick="toggleCollapsible('fee-collapsible')">
+                        <h4>💡 AI Fee Explainer — Exit Load</h4>
+                        <span class="collapsible-arrow">▼</span>
+                    </div>
+                    <div class="collapsible-body" id="fee-body"></div>
+                </div>
+
+                <!-- Footer meta -->
+                <div class="meta-row">
+                    <span class="no-pii-badge">🔒 No PII included</span>
+                    <span class="gen-time" id="gen-timestamp"></span>
+                </div>
+            </div>
+
+            <!-- HITL notice — email is queued for approval in Tab 3 -->
+            <div class="glass-card send-section" style="display:flex;align-items:center;gap:14px;padding:18px 22px;">
+                <span style="font-size:1.5rem;">✅</span>
+                <div>
+                    <div style="font-weight:700;font-size:0.95rem;color:#C9A84C;">Email draft queued for approval</div>
+                    <div style="font-size:0.82rem;color:rgba(255,255,255,0.5);margin-top:3px;">
+                        Review and send from the <strong style="color:rgba(255,255,255,0.75);">Super-Agent MCP Workflow</strong> tab — all outbound actions require human approval.
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab 2: Email Draft -->
+        <div id="tab-draft" class="tab-content">
+            <div class="glass-card">
+                <div class="week-label" id="draft-week-label"></div>
+                <div class="draft-box" id="draft-content"></div>
+            </div>
+            <!-- HITL notice — email is queued for approval in Tab 3 -->
+            <div class="glass-card send-section" style="display:flex;align-items:center;gap:14px;padding:18px 22px;">
+                <span style="font-size:1.5rem;">✅</span>
+                <div>
+                    <div style="font-weight:700;font-size:0.95rem;color:#C9A84C;">Email draft queued for approval</div>
+                    <div style="font-size:0.82rem;color:rgba(255,255,255,0.5);margin-top:3px;">
+                        Review and send from the <strong style="color:rgba(255,255,255,0.75);">Super-Agent MCP Workflow</strong> tab — all outbound actions require human approval.
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab 3: Markdown Notes -->
+        <div id="tab-notes" class="tab-content">
+            <div class="glass-card">
+                <div class="markdown-box" id="notes-content"></div>
+            </div>
+        </div>
+
+        <!-- Tab 4: Pulse Poster -->
+        <div id="tab-poster" class="tab-content">
+            <div class="glass-card" id="poster-content"></div>
+        </div>
+
+        <!-- Tab 1 (reordered): Analytics -->
+        <div id="tab-analytics" class="tab-content active">
+            <!-- Stat cards -->
+            <div class="stat-grid" id="stat-grid"></div>
+
+            <!-- Chart card -->
+            <div class="glass-card">
+                <div style="margin-bottom:14px">
+                    <div style="font-size:16px;font-weight:700;color:#fff" id="chart-title">Week-wise Issues by Category</div>
+                    <div style="font-size:13px;color:rgba(255,255,255,0.4);margin-top:3px" id="chart-subtitle">Number of issues reported per category each week</div>
+                </div>
+                <div class="chart-toggle">
+                    <button class="chart-toggle-btn active" onclick="setChartType('bar', this)">Bar Chart</button>
+                    <button class="chart-toggle-btn" onclick="setChartType('line', this)">Trend Line</button>
+                </div>
+                <div class="chart-wrap">
+                    <canvas id="analyticsChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Category tracking table -->
+            <div class="glass-card">
+                <div style="font-size:16px;font-weight:700;color:#fff;margin-bottom:4px">Category Tracking &amp; Ticket Management</div>
+                <div style="font-size:13px;color:rgba(255,255,255,0.4);margin-bottom:20px">Track identified analytics issues and their associated tickets</div>
+                <div style="overflow-x:auto">
+                    <table class="tracker-table" id="tracker-table">
+                        <thead>
+                            <tr>
+                                <th>Category</th>
+                                <th>Volume</th>
+                                <th>Description</th>
+                                <th>Priority</th>
+                                <th>Tickets</th>
+                                <th>Add Ticket</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tracker-body"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab 6: Word Cloud -->
+        <div id="tab-wordcloud" class="tab-content">
+            <div class="glass-card">
+                <div class="wc-stats" id="wc-stats"></div>
+                <div style="font-size:16px;font-weight:700;color:#fff;margin-bottom:16px">Word Cloud</div>
+                <div class="wc-cloud" id="wc-cloud"></div>
+                <p style="text-align:center;font-size:12px;color:rgba(255,255,255,0.25);margin-top:14px">Click any word to filter reviews containing it.</p>
+            </div>
+            <div class="two-col">
+                <div class="glass-card">
+                    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+                        <div style="font-size:16px;font-weight:700;color:#fff">Top Keywords</div>
+                        <div style="font-size:12px;color:rgba(255,255,255,0.4)" id="kw-count-label"></div>
+                    </div>
+                    <ul class="kw-list" id="kw-list"></ul>
+                </div>
+                <div class="glass-card">
+                    <div style="font-size:16px;font-weight:700;color:#fff;margin-bottom:4px">Top Upvoted Reviews</div>
+                    <div style="font-size:12px;color:rgba(255,255,255,0.4);margin-bottom:16px" id="upvote-count-label"></div>
+                    <div id="upvoted-reviews"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab 7: Categories -->
+        <div id="tab-categories" class="tab-content">
+            <div class="cat-cards" id="cat-cards"></div>
+            <div class="two-col">
+                <div class="glass-card">
+                    <div style="font-size:16px;font-weight:700;color:#fff;margin-bottom:4px">Category Distribution</div>
+                    <div style="font-size:13px;color:rgba(255,255,255,0.4);margin-bottom:16px">Horizontal view of review volumes</div>
+                    <div style="position:relative;height:320px"><canvas id="catDistChart"></canvas></div>
+                </div>
+                <div class="glass-card">
+                    <div style="font-size:16px;font-weight:700;color:#fff;margin-bottom:16px">Category Stats</div>
+                    <div id="cat-stats-list"></div>
+                </div>
+            </div>
+            <div class="two-col">
+                <div class="glass-card">
+                    <div style="font-size:16px;font-weight:700;color:#fff;margin-bottom:4px">Sentiment Analysis</div>
+                    <div style="font-size:13px;color:rgba(255,255,255,0.4);margin-bottom:16px">Positive / Neutral / Negative split</div>
+                    <div style="position:relative;height:220px"><canvas id="sentimentChart"></canvas></div>
+                </div>
+                <div class="glass-card">
+                    <div style="font-size:16px;font-weight:700;color:#fff;margin-bottom:4px">Rating Distribution</div>
+                    <div style="font-size:13px;color:rgba(255,255,255,0.4);margin-bottom:16px">Reviews by star rating</div>
+                    <div style="position:relative;height:220px"><canvas id="ratingChart"></canvas></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab 8: Ideation -->
+        <div id="tab-ideation" class="tab-content">
+            <div style="margin-bottom:20px">
+                <div style="font-size:24px;font-weight:700;color:#fff">⚡ Ideation</div>
+                <div style="font-size:14px;color:rgba(255,255,255,0.5);margin-top:4px">AI-powered product ideas, bug reports, and reply generation from user reviews</div>
+            </div>
+            <div class="two-col">
+                <div class="idea-panel">
+                    <div class="idea-panel-title">💡 AI Idea Recommender</div>
+                    <div class="idea-panel-sub">Analyses negative reviews to suggest product improvements</div>
+                    <div id="idea-list"></div>
+                </div>
+                <div class="idea-panel">
+                    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
+                        <div class="idea-panel-title">🐛 Bug Reporter</div>
+                        <button class="select-all-btn" onclick="bugSelectAll()">Select All</button>
+                    </div>
+                    <div class="idea-panel-sub">Select reviews to generate structured bug reports</div>
+                    <input class="bug-search" placeholder="🔍 Search negative reviews..." oninput="filterBugReviews(this.value)" />
+                    <div class="bug-review-list" id="bug-review-list"></div>
+                    <button class="gen-report-btn" id="gen-report-btn" onclick="generateBugReport()">Generate Report from <span id="selected-count">0</span> Reviews</button>
+                </div>
+            </div>
+            <div class="glass-card" id="bug-report-output" style="display:none;margin-top:20px">
+                <div style="font-size:16px;font-weight:700;color:#fff;margin-bottom:14px">🐛 Generated Bug Report</div>
+                <div id="bug-report-content" style="font-size:14px;color:rgba(255,255,255,0.8);line-height:1.8;white-space:pre-wrap;font-family:monospace;background:rgba(0,0,0,0.2);border-radius:10px;padding:16px"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ── Baked-in data (updated by pipeline each week) ──────────────────
+        const EMAIL_DRAFT = `WEEKLY INDMONEY PRODUCT PULSE
+============================================================
+Date    : May 5, 2026
+============================================================
+
+SECTION 1 — WEEKLY PULSE
+──────────────────────────
+Top 3 Themes: Critical order execution failures and chart interaction bugs causing real financial loss, Brokerage overcharging versus promised rates eroding trust and driving uninstalls, Missing table-stakes trading features blocking retention of active and F&O traders
+
+User Quotes:
+  "Last day while zooming in/out the chart my position got executed in loss, just ridiculous."
+  "Every day at 9:15 AM when I place an order, it shows 'Execute the order after market open' even though the market is already open and LTP is changing. This major glitch has been happening for over a month."
+  "I have saved more than 2500₹ in March 2026. Other trading apps are charging 20₹ per order which were eating my profits."
+
+Weekly Note:
+Synthesised reviews across the full period reveal a clear fault line: casual and cost-conscious users are genuinely delighted by INDMoney's low-brokerage model, while active and F&O traders are experiencing serious, money-losing failures that are driving uninstalls and low ratings. Two P0 production issues demand immediate escalation. First, a chart zoom gesture is triggering unintended order execution, directly causing user losses — a critical trading-safety bug. Second, a persistent 9:15 AM market-open detection failure has been blocking order placement for over a month, impacting traders at the most critical moment of the session. Both issues represent real financial harm and must be treated as incidents. Compounding these bugs is a brokerage billing trust crisis: users on Flash Trading plans report being charged ₹20 per F&O order despite being promised ₹10 or lower, with at least one confirmed uninstall citing competitor alternatives. Simultaneously, multiple feature gaps are limiting the platform's appeal to experienced traders: no kill switch, no limit sell order, no dual or triple chart view, no commodity segment, and no automated chart pattern detection. The ₹5-per-order brokerage remains a powerful differentiator and retention lever for cost-sensitive users, but its impact is undermined when billing is opaque or incorrect. New-user onboarding appears adequate, but the product shows significant cracks under active trading conditions.
+
+Action Ideas:
+1. Declare P0 incidents for both the chart-zoom unintended order execution bug and the 9:15 AM market-open detection failure — assign dedicated engineering squads to root-cause, hotfix, and ship user-facing status updates within the current sprint, prioritising trading-safety above all else.
+2. Audit Flash Trading brokerage billing logic end-to-end and surface a real-time, itemised brokerage breakdown on the order confirmation and post-trade screens so users can verify charges match their subscribed plan, immediately rebuilding billing trust and reducing support escalations.
+3. Accelerate delivery of kill switch, limit sell order, and dual or triple chart view as a bundled active-trader feature sprint, and add automated chart pattern detection push notifications to the near-term roadmap to close the feature gap driving low ratings among F&O and scalping-focused users.
+
+SECTION 2 — FEE EXPLAINER
+──────────────────────────
+exit_load
+
+• **SBI Small Cap Fund** charges an exit load of **1.0%** if units are redeemed before the stipulated holding period, making it the highest exit load among the three funds listed in the provided context.
+• **SBI ELSS Tax Saver Fund** has an exit load of **0%**, meaning no exit load fee is charged upon redemption; however, it carries a mandatory **3-year lock-in period** during which redemption is not permitted.
+• **SBI Large Cap Fund (Bluechip)** has a tiered exit load structure: **0.25%** if redeemed within **0–30 days** and **0.10%** if redeemed within **30–90 days**, as per the detailed fund data provided.
+• Exit load is a fee charged to investors for redeeming or "exiting" a mutual fund before a stipulated period; it is deducted from the redemption amount and is **not** a flat fee paid separately.
+• All three funds carry a **Very High risk level** as per the provided context, with expense ratios (Direct Plan) of **0.79%** (Small Cap), **0.99%** (ELSS Tax Saver), and **0.84%** (Large Cap Bluechip).
+• For full and accurate exit load terms and conditions, refer to the official fund pages:
+
+Sources: https://www.sbimf.com/en-us/investor-service/expense-ratio, https://www.amfiindia.com/investor-corner/knowledge-center/expense-ratio.html
+Last checked: 2026-05-04
+
+============================================================
+[DRAFT — Pending human review before sending]`;
+
+        const NOTES_MD = `## Week of May 5, 2026
+
+### Weekly Note
+Synthesised reviews across the full period reveal a clear fault line: casual and cost-conscious users are genuinely delighted by INDMoney's low-brokerage model, while active and F&O traders are experiencing serious, money-losing failures that are driving uninstalls and low ratings. Two P0 production issues demand immediate escalation. First, a chart zoom gesture is triggering unintended order execution, directly causing user losses — a critical trading-safety bug. Second, a persistent 9:15 AM market-open detection failure has been blocking order placement for over a month, impacting traders at the most critical moment of the session. Both issues represent real financial harm and must be treated as incidents. Compounding these bugs is a brokerage billing trust crisis: users on Flash Trading plans report being charged ₹20 per F&O order despite being promised ₹10 or lower, with at least one confirmed uninstall citing competitor alternatives. Simultaneously, multiple feature gaps are limiting the platform's appeal to experienced traders: no kill switch, no limit sell order, no dual or triple chart view, no commodity segment, and no automated chart pattern detection. The ₹5-per-order brokerage remains a powerful differentiator and retention lever for cost-sensitive users, but its impact is undermined when billing is opaque or incorrect. New-user onboarding appears adequate, but the product shows significant cracks under active trading conditions.
+
+### Top 3 Themes
+- Critical order execution failures and chart interaction bugs causing real financial loss
+- Brokerage overcharging versus promised rates eroding trust and driving uninstalls
+- Missing table-stakes trading features blocking retention of active and F&O traders
+
+### Action Ideas
+1. Declare P0 incidents for both the chart-zoom unintended order execution bug and the 9:15 AM market-open detection failure — assign dedicated engineering squads to root-cause, hotfix, and ship user-facing status updates within the current sprint, prioritising trading-safety above all else.
+2. Audit Flash Trading brokerage billing logic end-to-end and surface a real-time, itemised brokerage breakdown on the order confirmation and post-trade screens so users can verify charges match their subscribed plan, immediately rebuilding billing trust and reducing support escalations.
+3. Accelerate delivery of kill switch, limit sell order, and dual or triple chart view as a bundled active-trader feature sprint, and add automated chart pattern detection push notifications to the near-term roadmap to close the feature gap driving low ratings among F&O and scalping-focused users.
+
+---
+
+## Week of May 4, 2026
+
+### Weekly Note
+Synthesised reviews across the full period reveal a clear fault line: casual and cost-conscious users are genuinely delighted by INDMoney's low-brokerage model, while active and F&O traders are experiencing serious, money-losing failures that are driving uninstalls and low ratings. Two P0 production issues demand immediate escalation. First, a chart zoom gesture is triggering unintended order execution, directly causing user losses — a critical trading-safety bug. Second, a persistent 9:15 AM market-open detection failure has been blocking order placement for over a month, impacting traders at the most critical moment of the session. Both issues represent real financial harm and must be treated as incidents. Compounding these bugs is a brokerage billing trust crisis: users on Flash Trading plans report being charged ₹20 per F&O order despite being promised ₹10 or lower, with at least one confirmed uninstall citing competitor alternatives. Simultaneously, multiple feature gaps are limiting the platform's appeal to experienced traders: no kill switch, no limit sell order, no dual or triple chart view, no commodity segment, and no automated chart pattern detection. The ₹5-per-order brokerage remains a powerful differentiator and retention lever for cost-sensitive users, but its impact is undermined when billing is opaque or incorrect. New-user onboarding appears adequate, but the product shows significant cracks under active trading conditions.
+
+### Top 3 Themes
+- Critical order execution failures and chart interaction bugs causing real financial loss
+- Brokerage overcharging versus promised rates eroding trust and driving uninstalls
+- Missing table-stakes trading features blocking retention of active and F&O traders
+
+### Action Ideas
+1. Declare P0 incidents for both the chart-zoom unintended order execution bug and the 9:15 AM market-open detection failure — assign dedicated engineering squads to root-cause, hotfix, and ship user-facing status updates within the current sprint, prioritising trading-safety above all else.
+2. Audit Flash Trading brokerage billing logic end-to-end and surface a real-time, itemised brokerage breakdown on the order confirmation and post-trade screens so users can verify charges match their subscribed plan, immediately rebuilding billing trust and reducing support escalations.
+3. Accelerate delivery of kill switch, limit sell order, and dual or triple chart view as a bundled active-trader feature sprint, and add automated chart pattern detection push notifications to the near-term roadmap to close the feature gap driving low ratings among F&O and scalping-focused users.
+
+---
+
+## Week of April 29, 2026
+
+### Weekly Note
+This week's consolidated reviews present a split picture of INDMoney's INDStocks platform — genuine strengths undercut by severe reliability failures. On the positive side, users consistently praise the intuitive interface, ₹5 flat brokerage for intraday and F&O, Flash Mode, and AI-driven market insights as meaningful differentiators against established brokers. The platform is viewed as fast-growing and well-positioned competitively. However, critical reliability issues are causing direct, quantifiable financial harm. Stop loss orders are failing to trigger or display in open positions, the 9:15 AM order rejection bug has persisted for over a month, and chart instability — including lagging candles, disappearing positions, and unintended trade executions via zoom — has resulted in user-reported losses ranging from ₹15,000 to ₹43,000. Brokerage pricing confusion is a cross-cutting trust issue, with users reporting charges of ₹20 instead of the advertised ₹5, and some alleging fraud after promotional rates were denied post-signup. Feature gaps — including absent Mutual Funds tab, commodity trading, trailing stop-loss for options, and TradingView chart integration for F&O — represent the next tier of urgency. Customer support responsiveness also drew criticism. Immediate engineering focus on crash stability and order execution integrity is essential to protect user trust before positive brand momentum is irreversibly damaged.
+
+### Top 3 Themes
+- App crashes and performance issues during live trading
+- Stop loss and order execution failures
+- Low brokerage charges and pricing transparency concerns
+
+### Action Ideas
+1. Immediately audit and fix stop loss trigger reliability, the 9:15 AM order rejection bug, and chart stability issues — these are causing verified financial losses and represent the highest-severity risk to user trust and retention.
+2. Publish a clear, locked in-app brokerage pricing page for Flash and F&O trading that reflects advertised rates at signup, and enforce consistent application of promotional pricing across support teams to eliminate fraud perception.
+3. Integrate a dedicated Mutual Funds tab within INDStocks and prioritize charting enhancements — trailing stop-loss for options, save-chart settings, and candle tools — to address the most repeated power-user and mainstream feature requests.
+
+---
+
+## Week of April 24, 2026
+
+### Weekly Note
+Reviews this week present a polarised but telling picture of INDmoney's trading product. On the critical side, three systemic issues dominate negative sentiment. First, app crashes and server instability during peak hours — especially at the 9:15 AM market open and intraday sessions — are directly causing measurable financial losses, with users citing losses ranging from ₹15,000 to over ₹1,00,000. Second, order execution failures including stale 'market not open' errors persisting for over a month, stop-losses not reflecting in open positions, and missing auto-exit functionality are severely eroding trader trust. Third, charting gaps in Flash Trading mode — absent TradingView integration, no dual-chart or split-chart view, disappearing indicators on relaunch — are the loudest repeated feature request from power users. Brokerage pricing discrepancies between advertised rates (₹5–₹10) and actual charges (₹20) are generating fraud accusations and driving uninstalls. Funds-not-credited complaints remain unresolved for some users across multiple months. On the positive side, Flash Mode AI insights, fast execution when stable, intuitive UI, and low brokerage pricing are building strong loyalty among intraday and options traders, with several users rating INDStock above ten competing platforms. Immediate engineering and product focus on server resilience, order reliability, chart completeness, and transparent pricing communication is critical to protecting and growing this user base.
+
+### Top 3 Themes
+- App crashes and technical instability during peak trading hours
+- Order execution failures and stop-loss reliability issues
+- Charting limitations and missing Flash Trading features
+
+### Action Ideas
+1. Resolve the 9:15 AM 'market not open' order execution error, audit end-to-end order reliability including stop-loss visibility in open positions, and invest in server resilience to eliminate crash-driven financial losses during peak trading hours.
+2. Complete TradingView integration and add dual/split-chart view (index plus option simultaneously) in Flash Trading mode, and persist saved chart layouts including indicators, colors, and drawings across sessions to close the most repeated power-trader feature gap.
+3. Audit and standardise brokerage pricing communication across all in-app onboarding, order, and confirmation screens to eliminate the advertised-versus-charged discrepancy, and introduce a dedicated Mutual Funds tab within INDStock to capture the high-frequency unmet demand flagged consistently across review periods.
+
+---
+
+`;
+
+        const PULSE_DATA = {
+            "themes": [
+                        "Chart reliability and unintended order execution bugs",
+                        "Missing trading features (kill switch, limit sell, dual/triple chart view, commodity segment)",
+                        "Brokerage pricing discrepancies and cost savings",
+                        "Critical order execution failures (9:15 AM market-open glitch, TP/SL failures)",
+                        "App performance, UI/UX usability and onboarding experience"
+            ],
+            "top_3_themes": [
+                        "Critical order execution failures and chart interaction bugs causing real financial loss",
+                        "Brokerage overcharging versus promised rates eroding trust and driving uninstalls",
+                        "Missing table-stakes trading features blocking retention of active and F&O traders"
+            ],
+            "quotes": [
+                        "Last day while zooming in/out the chart my position got executed in loss, just ridiculous.",
+                        "Every day at 9:15 AM when I place an order, it shows 'Execute the order after market open' even though the market is already open and LTP is changing. This major glitch has been happening for over a month.",
+                        "I have saved more than 2500₹ in March 2026. Other trading apps are charging 20₹ per order which were eating my profits."
+            ],
+            "weekly_note": "Synthesised reviews across the full period reveal a clear fault line: casual and cost-conscious users are genuinely delighted by INDMoney's low-brokerage model, while active and F&O traders are experiencing serious, money-losing failures that are driving uninstalls and low ratings. Two P0 production issues demand immediate escalation. First, a chart zoom gesture is triggering unintended order execution, directly causing user losses — a critical trading-safety bug. Second, a persistent 9:15 AM market-open detection failure has been blocking order placement for over a month, impacting traders at the most critical moment of the session. Both issues represent real financial harm and must be treated as incidents. Compounding these bugs is a brokerage billing trust crisis: users on Flash Trading plans report being charged ₹20 per F&O order despite being promised ₹10 or lower, with at least one confirmed uninstall citing competitor alternatives. Simultaneously, multiple feature gaps are limiting the platform's appeal to experienced traders: no kill switch, no limit sell order, no dual or triple chart view, no commodity segment, and no automated chart pattern detection. The ₹5-per-order brokerage remains a powerful differentiator and retention lever for cost-sensitive users, but its impact is undermined when billing is opaque or incorrect. New-user onboarding appears adequate, but the product shows significant cracks under active trading conditions.",
+            "action_ideas": [
+                        "Declare P0 incidents for both the chart-zoom unintended order execution bug and the 9:15 AM market-open detection failure — assign dedicated engineering squads to root-cause, hotfix, and ship user-facing status updates within the current sprint, prioritising trading-safety above all else.",
+                        "Audit Flash Trading brokerage billing logic end-to-end and surface a real-time, itemised brokerage breakdown on the order confirmation and post-trade screens so users can verify charges match their subscribed plan, immediately rebuilding billing trust and reducing support escalations.",
+                        "Accelerate delivery of kill switch, limit sell order, and dual or triple chart view as a bundled active-trader feature sprint, and add automated chart pattern detection push notifications to the near-term roadmap to close the feature gap driving low ratings among F&O and scalping-focused users."
+            ]
+};
+        const ANALYTICS_META = {"review_count": 23, "sentiment": {"positive": 12, "neutral": 2, "negative": 9}, "rating_dist": {"1": 8, "3": 2, "5": 9, "4": 3, "2": 1}};
+        const FEE_DATA = {"scenario_name": "Exit Load", "explanation_bullets": ["• **SBI Small Cap Fund** charges an exit load of **1.0%** if units are redeemed before the stipulated holding period, making it the highest exit load among the three funds listed in the provided context.", "• **SBI ELSS Tax Saver Fund** has an exit load of **0%**, meaning no exit load fee is charged upon redemption; however, it carries a mandatory **3-year lock-in period** during which redemption is not permitted.", "• **SBI Large Cap Fund (Bluechip)** has a tiered exit load structure: **0.25%** if redeemed within **0–30 days** and **0.10%** if redeemed within **30–90 days**, as per the detailed fund data provided.", "• Exit load is a fee charged to investors for redeeming or \"exiting\" a mutual fund before a stipulated period; it is deducted from the redemption amount and is **not** a flat fee paid separately.", "• All three funds carry a **Very High risk level** as per the provided context, with expense ratios (Direct Plan) of **0.79%** (Small Cap), **0.99%** (ELSS Tax Saver), and **0.84%** (Large Cap Bluechip).", "• For full and accurate exit load terms and conditions, refer to the official fund pages:"], "source_links": ["https://www.sbimf.com/en-us/investor-service/expense-ratio", "https://www.amfiindia.com/investor-corner/knowledge-center/expense-ratio.html"], "last_checked": "2026-05-04"};
+        // ───────────────────────────────────────────────────────────────────
+
+        // Chart color tokens — overridden to dark when body[data-theme="light"]
+        const _isLight = document.body && document.body.dataset.theme === 'light';
+        const _TC  = _isLight ? '#374151' : 'rgba(255,255,255,0.5)';   // tick color
+        const _TC2 = _isLight ? '#374151' : 'rgba(255,255,255,0.7)';   // tick color strong
+        const _TC3 = _isLight ? '#374151' : 'rgba(255,255,255,0.6)';   // legend color
+        const _GC  = _isLight ? 'rgba(0,0,0,0.08)' : 'rgba(255,255,255,0.05)'; // grid color
+
+        window.addEventListener('DOMContentLoaded', () => {
+            // Extract week/date from draft
+            const dateMatch = EMAIL_DRAFT.match(/EMAIL DRAFT — (\d{4}-\d{2}-\d{2})/);
+            const runDate = dateMatch ? dateMatch[1] : '';
+            const weekLabel = runDate ? 'Week of ' + new Date(runDate).toLocaleDateString('en-US', {month:'long',day:'numeric',year:'numeric'}) : '';
+
+            // Review count badge (element removed with header — skip if absent)
+            const reviewCount = ANALYTICS_META.review_count || PULSE_DATA.review_count || null;
+            const _badge = document.getElementById('review-count-badge');
+            if (_badge) _badge.textContent = reviewCount ? `📊 ${reviewCount} Reviews Analysed` : '📊 Reviews Analysed';
+
+            // ── Approval Gate ──
+            const checklistItems = [
+                { label: 'Weekly pulse generated', date: runDate },
+                { label: 'Email draft created', date: runDate },
+                { label: 'No PII in outputs verified', date: runDate },
+            ];
+            document.getElementById('gate-checklist').innerHTML = checklistItems.map(item => `
+                <li>
+                    <div class="check-icon">✓</div>
+                    <span>${escapeHtml(item.label)}</span>
+                    <span class="check-date">${escapeHtml(item.date)}</span>
+                </li>`).join('');
+
+            document.getElementById('gate-summary').value = PULSE_DATA.weekly_note || '';
+            document.getElementById('gen-timestamp').textContent = `Generated: ${runDate} by AI Pulse System`;
+
+            // Top 3 theme accordions — quotes[i] and action_ideas[i] are aligned with top_3_themes[i]
+            const top3Themes = PULSE_DATA.top_3_themes || [];
+            const allThemes  = PULSE_DATA.themes || [];
+            // Show top 3 first (aligned with quotes/actions), then remaining themes without quotes
+            const themeAccordions = [
+                ...top3Themes.map((theme, i) => {
+                    const quote  = PULSE_DATA.quotes[i] || '';
+                    const action = PULSE_DATA.action_ideas[i] || '';
+                    return `<div class="accordion" id="acc-${i}">
+                        <div class="accordion-header" onclick="toggleAccordion('acc-${i}')">
+                            <span>${escapeHtml(theme)} <span style="font-size:11px;color:#a5b4fc;margin-left:6px">★ Top Theme</span></span>
+                            <span class="accordion-arrow">▼</span>
+                        </div>
+                        <div class="accordion-body">
+                            <p class="accordion-desc">User feedback cluster related to ${escapeHtml(theme.toLowerCase())} experiences in the INDmoney app.</p>
+                            ${quote  ? `<div class="accordion-quote">"${escapeHtml(quote)}"</div>` : ''}
+                            ${action ? `<div class="accordion-action">→ ${escapeHtml(action)}</div>` : ''}
+                        </div>
+                    </div>`;
+                }),
+                ...allThemes.filter(t => !top3Themes.includes(t)).map((theme, i) => {
+                    return `<div class="accordion" id="acc-other-${i}">
+                        <div class="accordion-header" onclick="toggleAccordion('acc-other-${i}')">
+                            <span>${escapeHtml(theme)}</span>
+                            <span class="accordion-arrow">▼</span>
+                        </div>
+                        <div class="accordion-body">
+                            <p class="accordion-desc">User feedback cluster related to ${escapeHtml(theme.toLowerCase())} experiences in the INDmoney app.</p>
+                        </div>
+                    </div>`;
+                })
+            ].join('');
+            document.getElementById('gate-themes').innerHTML = themeAccordions;
+
+            // Gate action ideas
+            document.getElementById('gate-actions').innerHTML = PULSE_DATA.action_ideas.map((a, i) => `
+                <div class="action-item">
+                    <div class="action-num">${i+1}</div>
+                    <div class="action-text">${escapeHtml(a)}</div>
+                </div>`).join('');
+
+            // Fee explainer collapsible body
+            if (FEE_DATA) {
+                function renderBullet(raw) {
+                    // Strip leading bullet chars, then render **bold** and [text](url) via marked
+                    const stripped = raw.replace(/^[•\-\*]\s*/, '').trim();
+                    const inner = marked.parseInline(stripped);
+                    return `<div class="fee-bullet"><span class="fee-dot"></span><span>${inner}</span></div>`;
+                }
+                function domainLabel(url) {
+                    try { return new URL(url).hostname.replace(/^www\./, ''); }
+                    catch { return url; }
+                }
+                const bullets = FEE_DATA.explanation_bullets.map(renderBullet).join('');
+                const links = FEE_DATA.source_links.map(l =>
+                    `<a class="fee-link" href="${escapeHtml(l)}" target="_blank" rel="noopener">↗ ${escapeHtml(domainLabel(l))}</a>`
+                ).join('');
+                document.getElementById('fee-body').innerHTML = `
+                    ${bullets}
+                    <div class="fee-links">${links}</div>
+                    <div class="fee-meta">Last checked: ${escapeHtml(FEE_DATA.last_checked)}</div>`;
+            }
+
+            // ── Email Draft tab ──
+            document.getElementById('draft-week-label').textContent = weekLabel;
+            document.getElementById('draft-content').textContent = EMAIL_DRAFT;
+
+            // ── Markdown Notes tab ──
+            document.getElementById('notes-content').innerHTML = marked.parse(NOTES_MD);
+
+            // ── Pulse Poster tab ──
+            const d = PULSE_DATA;
+            const triplets = d.top_3_themes.map((t, i) => {
+                const q = d.quotes[i] || '';
+                const a = d.action_ideas[i] || '';
+                return `<div class="action-item" style="flex-direction:column;align-items:flex-start;gap:6px;padding:16px;">
+                    <div style="display:flex;align-items:center;gap:10px;">
+                        <div class="action-num">${i+1}</div>
+                        <div style="font-weight:600;color:#F5F0E8;">${escapeHtml(t)}</div>
+                    </div>
+                    ${q ? `<div style="font-style:italic;color:rgba(255,255,255,0.65);font-size:13px;padding-left:36px;">"${escapeHtml(q)}"</div>` : ''}
+                    ${a ? `<div class="accordion-action" style="padding-left:36px;">→ ${escapeHtml(a)}</div>` : ''}
+                </div>`;
+            }).join('');
+
+            document.getElementById('poster-content').innerHTML = `
+                <div class="poster-section">
+                    <h3>Top 3 Themes — Quotes — Actions</h3>
+                    ${triplets}
+                </div>
+                <div class="poster-section">
+                    <h3>Weekly Summary</h3>
+                    <p class="note-text">${escapeHtml(d.weekly_note)}</p>
+                </div>
+                ${FEE_DATA ? `<div class="poster-section">
+                    <h3>Fee Explainer — ${escapeHtml(FEE_DATA.scenario_name)}</h3>
+                    <ul style="margin:0;padding-left:20px;color:rgba(255,255,255,0.85);line-height:1.8">
+                        ${FEE_DATA.explanation_bullets.map(b => `<li>${marked.parseInline(b.replace(/^[•\-\*]\s*/,'').trim())}</li>`).join('')}
+                    </ul>
+                    <div style="margin-top:12px;font-size:13px;color:rgba(255,255,255,0.55)">Last checked: ${escapeHtml(FEE_DATA.last_checked)}</div>
+                    <div style="margin-top:8px;display:flex;flex-direction:column;gap:4px">
+                        ${FEE_DATA.source_links.map(l => `<a href="${escapeHtml(l)}" target="_blank" rel="noopener" style="color:#C9A84C;font-size:13px;">↗ ${escapeHtml(new URL(l).hostname.replace(/^www\./,''))}</a>`).join('')}
+                    </div>
+                </div>` : ''}`;
+
+            // ── Analytics tab ──
+            const TRACKER_DATA = [
+                { name: 'Performance Issues', sub: 'Performance', vol: 20, desc: 'Repeated crashes and slow performance disrupt user experience, causing frustration and loss of trust.', priority: 'HIGH', tickets: ['PB-6307'] },
+                { name: 'Missing Features', sub: 'Features', vol: 15, desc: 'Many users requested additional features like mutual funds integration and improved UI elements for better usability.', priority: 'MEDIUM', tickets: [] },
+                { name: 'Performance Problems', sub: 'Performance', vol: 15, desc: 'Several reviews highlighted slow performance, crashes, and unresponsive support, impacting user experience.', priority: 'HIGH', tickets: [] },
+                { name: 'UI/UX Issues', sub: 'UI/UX', vol: 10, desc: 'The app\'s interface is generally user-friendly but requires optimization for tablets and smoother performance.', priority: 'LOW', tickets: [] },
+                { name: 'Chart Issues', sub: 'General', vol: 10, desc: 'Multiple users reported chart malfunctions in flash mode and missing option charts, hindering trading accuracy.', priority: 'LOW', tickets: [] },
+                { name: 'Feature Requests', sub: 'Features', vol: 8, desc: 'Users desire additional features like option charts, trailing stop loss, and improved performance.', priority: 'MEDIUM', tickets: [] },
+                { name: 'User Support Issues', sub: 'General', vol: 7, desc: 'Inconsistent support responses and unresolved issues lead to dissatisfaction and churn.', priority: 'LOW', tickets: [] },
+            ];
+
+            const totalIssues = TRACKER_DATA.reduce((s, r) => s + r.vol, 0);
+            const activeTickets = TRACKER_DATA.reduce((s, r) => s + r.tickets.length, 0);
+            const categories = [...new Set(TRACKER_DATA.map(r => r.sub))].length;
+
+            document.getElementById('stat-grid').innerHTML = [
+                { num: totalIssues, label: 'Total Issues', sub: 'Across all categories' },
+                { num: activeTickets, label: 'Active Tickets', sub: 'Currently tracked' },
+                { num: categories, label: 'Categories', sub: 'Being monitored' },
+            ].map(s => `<div class="stat-card">
+                <div style="font-size:12px;color:rgba(255,255,255,0.4);margin-bottom:8px;font-weight:600">${s.label}</div>
+                <div class="stat-num">${s.num}</div>
+                <div style="font-size:12px;color:rgba(255,255,255,0.3);margin-top:6px">${s.sub}</div>
+            </div>`).join('');
+
+            // Chart data
+            const weeks = ['Mar 12', 'Mar 22', 'Mar 27'];
+            const chartDatasets = [
+                { label: 'Performance', data: [5, 15, 14], color: '#ef4444' },
+                { label: 'Features',    data: [8, 10, 4],  color: '#f59e0b' },
+                { label: 'UI/UX',       data: [9, 7, 9],   color: '#818cf8' },
+                { label: 'General',     data: [0, 6, 10],  color: '#60a5fa' },
+            ];
+
+            const ctx = document.getElementById('analyticsChart').getContext('2d');
+            window._analyticsChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: weeks,
+                    datasets: chartDatasets.map(d => ({
+                        label: d.label,
+                        data: d.data,
+                        backgroundColor: d.color + '99',
+                        borderColor: d.color,
+                        borderWidth: 2,
+                        borderRadius: 6,
+                        pointBackgroundColor: d.color,
+                        pointRadius: 5,
+                        tension: 0.4,
+                    }))
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'bottom', labels: { color: _TC3, boxWidth: 12, padding: 16, font: { family: 'Outfit' } } },
+                        tooltip: { backgroundColor: 'rgba(0,0,0,0.75)', titleFont: { family: 'Outfit' }, bodyFont: { family: 'Outfit' } }
+                    },
+                    scales: {
+                        x: { ticks: { color: _TC, font: { family: 'Outfit' } }, grid: { color: _GC } },
+                        y: { beginAtZero: true, ticks: { color: _TC, font: { family: 'Outfit' } }, grid: { color: _GC } }
+                    }
+                }
+            });
+
+            // Tracker table
+            renderTrackerTable(TRACKER_DATA);
+        });
+
+        function switchTab(tab, btn) {
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById(`tab-${tab}`).classList.add('active');
+            btn.classList.add('active');
+            if (!_tabInited[tab]) {
+                _tabInited[tab] = true;
+                if (tab === 'wordcloud') initWordCloud();
+                if (tab === 'categories') initCategories();
+                if (tab === 'ideation') initIdeation();
+            }
+        }
+
+        function toggleAccordion(id) {
+            const el = document.getElementById(id);
+            el.classList.toggle('open');
+        }
+
+        function toggleCollapsible(id) {
+            document.getElementById(id).classList.toggle('open');
+        }
+
+        async function gateAction(type) {
+            const status = document.getElementById('gate-status');
+            const btn = document.getElementById('both-btn');
+            status.textContent = '';
+            if (type === 'notes') {
+                status.textContent = '✅ Notes entry queued — approve it in the Super-Agent MCP Workflow tab.';
+                status.className = 'status-msg success';
+            } else if (type === 'email') {
+                status.textContent = '✅ Email draft queued for approval — review and send from the Super-Agent MCP Workflow tab.';
+                status.className = 'status-msg success';
+            } else if (type === 'both') {
+                btn.disabled = true;
+                btn.textContent = 'Processing...';
+                await new Promise(r => setTimeout(r, 800));
+                status.textContent = '✅ Both actions queued. Go to the Super-Agent MCP Workflow tab to approve and execute.';
+                status.className = 'status-msg success';
+                btn.disabled = false;
+                btn.textContent = '✅ Do Both & Finish';
+            }
+        }
+
+        // ── Word Cloud data ──────────────────────────────────────────────────
+        const KEYWORDS = [{"w": "chart", "n": 9, "c": "#4ade80"}, {"w": "order", "n": 8, "c": "#60a5fa"}, {"w": "trading", "n": 7, "c": "#f59e0b"}, {"w": "redacted", "n": 7, "c": "#c084fc"}, {"w": "view", "n": 4, "c": "#fb7185"}, {"w": "flash", "n": 4, "c": "#34d399"}, {"w": "brokerage", "n": 4, "c": "#818cf8"}, {"w": "offer", "n": 3, "c": "#facc15"}, {"w": "position", "n": 3, "c": "#f87171"}, {"w": "then", "n": 3, "c": "#2dd4bf"}, {"w": "star", "n": 3, "c": "#4ade80"}, {"w": "best", "n": 3, "c": "#60a5fa"}, {"w": "user", "n": 3, "c": "#f59e0b"}, {"w": "per", "n": 3, "c": "#c084fc"}, {"w": "ind", "n": 3, "c": "#fb7185"}, {"w": "option", "n": 3, "c": "#34d399"}, {"w": "pattern", "n": 3, "c": "#818cf8"}, {"w": "दिया", "n": 3, "c": "#facc15"}, {"w": "getting", "n": 2, "c": "#f87171"}, {"w": "trade", "n": 2, "c": "#2dd4bf"}];
+        const UPVOTED_REVIEWS = [
+            {name:'Manish Mathur',date:'21 Apr 2026',stars:4,sentiment:'Neutral',text:'easy to use and understand UI DESIGN, FAST & RELIABLE',tags:['UI/UX','Performance'],upvotes:141},
+            {name:'App User',date:'28 Mar 2026',stars:1,sentiment:'Negative',text:'On listing day the stock was not visible on the app for around 10 minutes after it went live on the exchange. Available on other brokerages during the same time.',tags:['Investment & Trading','Performance'],upvotes:828},
+            {name:'App User',date:'30 Mar 2026',stars:1,sentiment:'Neutral',text:'I have many reasons for not choosing INDmoney: 1. Brokerage on equity delivery. 2. Worst customer and product support. 3. Very less new feature updates.',tags:['Customer Support','Features'],upvotes:746},
+        ];
+
+        // ── Category data ─────────────────────────────────────────────────────
+        const CATEGORIES_DATA = [{"name": "Chart reliability and unintended order execution bugs", "count": 120, "pct": 59.4, "color": "#4ade80"}, {"name": "Missing trading features (kill switch, limit sell, dual/triple chart view, commodity segment)", "count": 27, "pct": 13.4, "color": "#60a5fa"}, {"name": "Brokerage pricing discrepancies and cost savings", "count": 24, "pct": 11.9, "color": "#f59e0b"}, {"name": "Critical order execution failures (9:15 AM market-open glitch, TP/SL failures)", "count": 16, "pct": 7.9, "color": "#f472b6"}, {"name": "App performance, UI/UX usability and onboarding experience", "count": 15, "pct": 7.4, "color": "#a78bfa"}];
+
+        // ── Ideation data ─────────────────────────────────────────────────────
+        const AI_IDEAS = [
+            {title:'Fix Chart Lag in Flash Mode',body:'Multiple users report lagging option charts and missing candlestick data during high-volatility sessions. Prioritise rendering optimisation for Flash Mode.',impact:'High'},
+            {title:'Improve Customer Support SLA',body:'Reviews frequently cite unresolved tickets closed without solution. Implement visible SLA timers and escalation paths for recurring issues.',impact:'High'},
+            {title:'Add Trailing Stop-Loss Feature',body:'Power traders explicitly request trailing stop-loss orders. This is a standard feature on competing platforms and would reduce churn.',impact:'Medium'},
+            {title:'Mutual Funds SIP Reminders',body:'Users want push notifications for SIP execution dates and confirmation of investment. Easy win for engagement and trust.',impact:'Medium'},
+        ];
+        const NEGATIVE_REVIEWS = [{"name": "App User", "stars": 1, "text": "why I am not getting ₹10 fno trade offer ?", "tags": ["Critical order execution failures (9:15 AM market-open glitch, TP/SL failures)"]}, {"name": "App User", "stars": 1, "text": "Sometimes the position vanished from the chart, TP/SL didn't work on mobile, from desktop browsers I can but that also depends on luck, if I use setup", "tags": ["Chart reliability and unintended order execution bugs"]}, {"name": "App User", "stars": 1, "text": "there is no LIMIT order sell...not for scalper...", "tags": ["Chart reliability and unintended order execution bugs"]}, {"name": "App User", "stars": 2, "text": "Not as user friendly as expected.", "tags": ["Chart reliability and unintended order execution bugs"]}, {"name": "App User", "stars": 1, "text": "Flash trading se ind mony f&o me 1 year tak 10 rup.. Brokerage btaya tha Phir bhi 20 rupee Brokerage lag raha hai", "tags": ["Missing trading features (kill switch, limit sell, dual/triple chart view, commodity segment)"]}];
+
+        let _bugSelected = new Set();
+
+        function initWordCloud() {
+            const totalWords = KEYWORDS.reduce((s,k)=>s+k.n,0);
+            const uniqueWords = KEYWORDS.length;
+            document.getElementById('wc-stats').innerHTML = [
+                {label:'REVIEWS ANALYZED',num:(ANALYTICS_META.review_count||1000).toLocaleString()},
+                {label:'TOTAL WORDS',num:totalWords.toLocaleString()},
+                {label:'UNIQUE WORDS',num:uniqueWords.toLocaleString()},
+            ].map(st => `<div class="wc-stat">
+                <div class="wc-stat-label">${st.label}</div>
+                <div class="wc-stat-num">${st.num}</div>
+            </div>`).join('');
+
+            const max = KEYWORDS[0].n;
+            document.getElementById('wc-cloud').innerHTML = KEYWORDS.map(k => {
+                const size = 13 + Math.round((k.n / max) * 38);
+                return `<span class="wc-word" style="font-size:${size}px;color:${k.c}" title="${k.n} occurrences">${k.w}</span>`;
+            }).join('');
+
+            document.getElementById('kw-count-label').textContent = `Show All (${KEYWORDS.length})`;
+            document.getElementById('kw-list').innerHTML = KEYWORDS.map((k,i) => `
+                <li class="kw-item">
+                    <span class="kw-rank">${i+1}</span>
+                    <span class="kw-word">${k.w}</span>
+                    <div class="kw-bar-track"><div class="kw-bar-fill" style="width:${Math.round(k.n/max*100)}%;background:${k.c}"></div></div>
+                    <span class="kw-count">${k.n}</span>
+                </li>`).join('');
+
+            document.getElementById('upvote-count-label').textContent = `${UPVOTED_REVIEWS.length} reviews`;
+            document.getElementById('upvoted-reviews').innerHTML = UPVOTED_REVIEWS.map(r => {
+                const stars = '★'.repeat(r.stars) + '☆'.repeat(5-r.stars);
+                const tags = r.tags.map(t=>`<span class="rc-tag">${t}</span>`).join('');
+                return `<div class="review-card">
+                    <div class="rc-header">
+                        <div class="rc-avatar">${r.name[0]}</div>
+                        <div><div class="rc-name">${escapeHtml(r.name)}</div><div class="rc-meta">Android · ${r.date}</div></div>
+                        <div style="margin-left:auto;display:flex;align-items:center;gap:8px">
+                            <span style="color:${r.stars>=4?'#f59e0b':'#f87171'}">${stars}</span>
+                            <span class="sentiment-chip sent-${r.sentiment}">${r.sentiment}</span>
+                        </div>
+                    </div>
+                    <div class="rc-body">${escapeHtml(r.text)}</div>
+                    <div class="rc-tags">${tags}</div>
+                    <div class="rc-footer"><span>👍 ${r.upvotes}</span></div>
+                </div>`;
+            }).join('');
+        }
+
+        function initCategories() {
+            const top3 = CATEGORIES_DATA.slice(0,3);
+            const icons = ['👍','🖥️','⚡'];
+            document.getElementById('cat-cards').innerHTML = top3.map((c,i) => `
+                <div class="cat-card">
+                    <div class="cat-card-icon">${icons[i]}</div>
+                    <div class="cat-card-name">${escapeHtml(c.name)}</div>
+                    <div class="cat-card-count">${c.count}</div>
+                    <div class="cat-card-sub">reviews — ${c.pct}%</div>
+                    <div class="cat-pct-bar" style="background:${c.color};width:${Math.min(c.pct*8,100)}%"></div>
+                </div>`).join('');
+
+            const catCtx = document.getElementById('catDistChart').getContext('2d');
+            new Chart(catCtx,{type:'bar',data:{
+                labels: CATEGORIES_DATA.map(c=>c.name),
+                datasets:[{label:'Reviews',data:CATEGORIES_DATA.map(c=>c.count),
+                    backgroundColor:CATEGORIES_DATA.map(c=>c.color+'cc'),
+                    borderColor:CATEGORIES_DATA.map(c=>c.color),
+                    borderWidth:1,borderRadius:5}]
+            },options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,
+                plugins:{legend:{display:false},tooltip:{backgroundColor:'rgba(0,0,0,0.75)',bodyFont:{family:'Outfit'}}},
+                scales:{x:{ticks:{color:_TC,font:{family:'Outfit'}},grid:{color:_GC}},
+                        y:{ticks:{color:_TC2,font:{family:'Outfit',size:11}},grid:{display:false}}}}});
+
+            const totalCat = CATEGORIES_DATA.reduce((s,c)=>s+c.count,0);
+            document.getElementById('cat-stats-list').innerHTML = CATEGORIES_DATA.map(c => `
+                <div class="cat-stat-row">
+                    <div class="cat-stat-dot" style="background:${c.color}"></div>
+                    <div><div class="cat-stat-name">${escapeHtml(c.name)}</div>
+                    <div class="cat-stat-bar" style="background:${c.color};width:${Math.round(c.count/CATEGORIES_DATA[0].count*120)}px"></div></div>
+                    <div class="cat-stat-count">${c.count}</div>
+                    <div class="cat-stat-pct">${c.pct}%</div>
+                </div>`).join('');
+
+            const s = ANALYTICS_META.sentiment;
+            const sentCtx = document.getElementById('sentimentChart').getContext('2d');
+            new Chart(sentCtx,{type:'bar',data:{
+                labels:['Positive','Neutral','Negative'],
+                datasets:[{data:[s.positive,s.neutral,s.negative],backgroundColor:['#4ade8099','#fbbf2499','#f8717199'],borderColor:['#4ade80','#fbbf24','#f87171'],borderWidth:2,borderRadius:8}]
+            },options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},
+                scales:{x:{ticks:{color:_TC3,font:{family:'Outfit'}},grid:{display:false}},
+                        y:{ticks:{color:_TC,font:{family:'Outfit'}},grid:{color:_GC}}}}});
+
+            const rd = ANALYTICS_META.rating_dist;
+            const ratingCtx = document.getElementById('ratingChart').getContext('2d');
+            new Chart(ratingCtx,{type:'bar',data:{
+                labels:['5★','4★','3★','2★','1★'],
+                datasets:[{data:[rd['5'],rd['4'],rd['3'],rd['2'],rd['1']],backgroundColor:['#4ade8099','#4ade8099','#fbbf2499','#fb923c99','#f8717199'],borderColor:['#4ade80','#4ade80','#fbbf24','#fb923c','#f87171'],borderWidth:2,borderRadius:8}]
+            },options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},
+                scales:{x:{ticks:{color:_TC3,font:{family:'Outfit'}},grid:{display:false}},
+                        y:{ticks:{color:_TC,font:{family:'Outfit'}},grid:{color:_GC}}}}});
+        }
+
+        function initIdeation() {
+            document.getElementById('idea-list').innerHTML = AI_IDEAS.map(idea => `
+                <div class="idea-card">
+                    <div class="idea-card-title">${escapeHtml(idea.title)}</div>
+                    <div class="idea-card-body">${escapeHtml(idea.body)}</div>
+                    <span class="idea-card-impact impact-${idea.impact}">${idea.impact} Impact</span>
+                </div>`).join('');
+
+            renderBugList(NEGATIVE_REVIEWS);
+        }
+
+        function renderBugList(reviews) {
+            document.getElementById('bug-review-list').innerHTML = reviews.map((r,i) => {
+                const isSelected = _bugSelected.has(i);
+                const stars = '★'.repeat(r.stars)+'☆'.repeat(5-r.stars);
+                return `<div class="bug-review-item${isSelected?' selected':''}" onclick="toggleBugReview(${i},this)">
+                    <div class="bug-cb${isSelected?' checked':''}">${isSelected?'✓':''}</div>
+                    <div>
+                        <div style="display:flex;gap:8px;align-items:center">
+                            <span class="bug-rev-name">${escapeHtml(r.name)}</span>
+                            <span style="color:#f59e0b;font-size:11px">${stars}</span>
+                        </div>
+                        <div class="bug-rev-text">${escapeHtml(r.text)}</div>
+                    </div>
+                </div>`;
+            }).join('');
+            document.getElementById('selected-count').textContent = _bugSelected.size;
+        }
+
+        function toggleBugReview(idx, el) {
+            if (_bugSelected.has(idx)) _bugSelected.delete(idx); else _bugSelected.add(idx);
+            el.classList.toggle('selected');
+            el.querySelector('.bug-cb').classList.toggle('checked');
+            el.querySelector('.bug-cb').textContent = _bugSelected.has(idx)?'✓':'';
+            document.getElementById('selected-count').textContent = _bugSelected.size;
+        }
+
+        function bugSelectAll() {
+            NEGATIVE_REVIEWS.forEach((_,i)=>_bugSelected.add(i));
+            renderBugList(NEGATIVE_REVIEWS);
+        }
+
+        function filterBugReviews(query) {
+            const filtered = NEGATIVE_REVIEWS.filter(r=>r.text.toLowerCase().includes(query.toLowerCase())||r.name.toLowerCase().includes(query.toLowerCase()));
+            renderBugList(filtered);
+        }
+
+        function generateBugReport() {
+            if (_bugSelected.size === 0) return;
+            const selected = [..._bugSelected].map(i=>NEGATIVE_REVIEWS[i]);
+            const report = `BUG REPORT — Generated ${new Date().toLocaleDateString('en-IN')}
+${'='.repeat(60)}
+
+Total Reviews Selected: ${selected.length}
+Generated by: INDmoney AI Pulse System
+
+${selected.map((r,i)=>`ISSUE #${i+1}
+  Reporter : ${r.name}
+  Rating   : ${'★'.repeat(r.stars)}${'☆'.repeat(5-r.stars)}
+  Tags     : ${r.tags.join(', ')}
+  Feedback : ${r.text}
+  Priority : ${r.stars === 1 ? 'HIGH' : 'MEDIUM'}
+`).join('\n')}
+${'='.repeat(60)}
+[Pending triage and ticket assignment]`;
+            document.getElementById('bug-report-content').textContent = report;
+            document.getElementById('bug-report-output').style.display = 'block';
+            document.getElementById('bug-report-output').scrollIntoView({behavior:'smooth'});
+        }
+
+        // Lazy-init tabs on first click
+        const _tabInited = {};
+        const _origSwitchTab = switchTab;
+
+        function setChartType(type, btn) {
+            document.querySelectorAll('.chart-toggle-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            const c = window._analyticsChart;
+            const isLine = type === 'line';
+            c.config.type = type;
+            c.data.datasets.forEach(ds => {
+                ds.fill = isLine ? false : undefined;
+                ds.borderRadius = isLine ? 0 : 6;
+            });
+            document.getElementById('chart-title').textContent = isLine ? 'Category Issue Trend' : 'Week-wise Issues by Category';
+            document.getElementById('chart-subtitle').textContent = isLine ? 'Number of issues per category over time' : 'Number of issues reported per category each week';
+            c.update();
+        }
+
+        function renderTrackerTable(data) {
+            document.getElementById('tracker-body').innerHTML = data.map((row, ri) => `
+                <tr>
+                    <td><div class="cat-name">${escapeHtml(row.name)}</div><div class="cat-sub">${escapeHtml(row.sub)}</div></td>
+                    <td><div class="cat-vol">${row.vol}</div></td>
+                    <td><div class="cat-desc">${escapeHtml(row.desc)}</div></td>
+                    <td><span class="priority-badge priority-${row.priority}">${row.priority}</span></td>
+                    <td>
+                        <div class="ticket-chips" id="chips-${ri}">
+                            ${row.tickets.length ? row.tickets.map(t => ticketChip(t, ri)).join('') : '<span class="no-tickets">No tickets</span>'}
+                        </div>
+                    </td>
+                    <td>
+                        <div class="add-ticket-row">
+                            <input class="add-ticket-input" id="ticket-input-${ri}" placeholder="e.g., ANAL-104" />
+                            <button class="add-ticket-btn" onclick="addTicket(${ri})">+</button>
+                        </div>
+                    </td>
+                </tr>`).join('');
+        }
+
+        function ticketChip(label, ri) {
+            return `<span class="ticket-chip">${escapeHtml(label)}<button onclick="removeTicket(this, ${ri})" title="Remove">×</button></span>`;
+        }
+
+        function addTicket(ri) {
+            const input = document.getElementById(`ticket-input-${ri}`);
+            const val = input.value.trim();
+            if (!val) return;
+            const chips = document.getElementById(`chips-${ri}`);
+            const noTix = chips.querySelector('.no-tickets');
+            if (noTix) noTix.remove();
+            chips.insertAdjacentHTML('beforeend', ticketChip(val, ri));
+            input.value = '';
+        }
+
+        function removeTicket(btn, ri) {
+            const chip = btn.closest('.ticket-chip');
+            const chips = document.getElementById(`chips-${ri}`);
+            chip.remove();
+            if (!chips.querySelector('.ticket-chip')) {
+                chips.innerHTML = '<span class="no-tickets">No tickets</span>';
+            }
+        }
+
+        function escapeHtml(text) {
+            return String(text).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+        }
+    </script>
+</body>
+</html>

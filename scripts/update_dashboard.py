@@ -11,6 +11,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 DASHBOARD = ROOT / "data" / "dashboard.html"
+TEMPLATE  = ROOT / "data" / "dashboard_template.html"  # read-only source; never overwritten
 DATA = ROOT / "data"
 
 _CAT_COLORS = ["#4ade80", "#60a5fa", "#f59e0b", "#f472b6", "#a78bfa"]
@@ -136,7 +137,9 @@ def run() -> None:
     }
 
     # ── Patch dashboard.html ──────────────────────────────────────────────────
-    html = DASHBOARD.read_text(encoding="utf-8")
+    # Read from template (always present in git); write patched version to DASHBOARD
+    src = TEMPLATE if TEMPLATE.exists() else DASHBOARD
+    html = src.read_text(encoding="utf-8")
 
     # Remove the standalone header block (title + meta) — shown by the Streamlit app instead
     html = re.sub(r"\s*<header>[\s\S]*?</header>", "", html)
