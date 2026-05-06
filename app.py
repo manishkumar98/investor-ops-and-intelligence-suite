@@ -1511,10 +1511,10 @@ with h_col2:
                 "Use this to start a fresh demo or if the app gets into a stuck state."
             ),
         ):
-            had_mcp = Path("data/mcp_state.json").exists()
+            had_mcp = Path(__file__).parent / "data" / "mcp_state.json".exists()
             for key in list(st.session_state.keys()):
                 del st.session_state[key]
-            Path("data/mcp_state.json").unlink(missing_ok=True)
+            Path(__file__).parent / "data" / "mcp_state.json".unlink(missing_ok=True)
             st.session_state["_show_reset_dialog"] = {"had_mcp": had_mcp}
             st.rerun()
 
@@ -2097,7 +2097,7 @@ with tab2:
   </div>
 </div>
 """, unsafe_allow_html=True)
-        _state_file = Path("data/system_state.json")
+        _state_file = Path(__file__).parent / "data" / "system_state.json"
         if _state_file.exists():
             try:
                 _st = json.loads(_state_file.read_text())
@@ -2205,7 +2205,7 @@ with tab2:
             try:
                 if step_key == "scrape":
                     from phase3_review_pillar_b.review_scraper import run_scraper
-                    df = run_scraper(Path("data/reviews_latest.csv"))
+                    df = run_scraper(Path(__file__).parent / "data" / "reviews_latest.csv")
                     p_data["df"] = df.to_dict("records")
                     p_data["review_count"] = len(df)
 
@@ -2231,7 +2231,7 @@ with tab2:
                     analytics["generated_at"] = _dt2.now().isoformat()
                     analytics["review_count"] = p_data["review_count"]
                     p_data["analytics"] = analytics
-                    Path("data/analytics_latest.json").write_text(json.dumps(analytics, indent=2, ensure_ascii=False))
+                    Path(__file__).parent / "data" / "analytics_latest.json".write_text(json.dumps(analytics, indent=2, ensure_ascii=False))
 
                 elif step_key == "fee":
                     from phase3_review_pillar_b.fee_explainer import explain
@@ -2244,11 +2244,11 @@ with tab2:
                     ts = _dt3.now().isoformat()
                     pulse_data = {"themes": cr.get("themes",[]), "top_3_themes": cr.get("top_3",[]), "quotes": cr.get("quotes",[]), "weekly_note": cr.get("weekly_note",""), "action_ideas": cr.get("action_ideas",[]), "generated_at": ts, "review_count": p_data["review_count"]}
                     fee_data   = {"scenario": fee.get("scenario",""), "bullets": fee.get("bullets",[]), "sources": fee.get("sources",[]), "checked": fee.get("checked",""), "generated_at": ts}
-                    Path("data/pulse_latest.json").write_text(json.dumps(pulse_data, indent=2, ensure_ascii=False))
-                    Path("data/fee_latest.json").write_text(json.dumps(fee_data, indent=2, ensure_ascii=False))
-                    state = json.loads(Path("data/system_state.json").read_text()) if Path("data/system_state.json").exists() else {}
+                    Path(__file__).parent / "data" / "pulse_latest.json".write_text(json.dumps(pulse_data, indent=2, ensure_ascii=False))
+                    Path(__file__).parent / "data" / "fee_latest.json".write_text(json.dumps(fee_data, indent=2, ensure_ascii=False))
+                    state = json.loads(Path(__file__).parent / "data" / "system_state.json".read_text()) if Path(__file__).parent / "data" / "system_state.json".exists() else {}
                     state["last_pipeline_run"] = ts; state["last_review_count"] = p_data["review_count"]
-                    Path("data/system_state.json").write_text(json.dumps(state, indent=2))
+                    Path(__file__).parent / "data" / "system_state.json".write_text(json.dumps(state, indent=2))
                     p_data["pulse"] = pulse_data
                     # Rebake dashboard.html so the analytics expander reflects fresh data
                     try:
@@ -2336,8 +2336,8 @@ with tab2:
     # ── Seed session state from saved JSONs (handles page reloads) ─────────────
     if not st.session_state.get("pulse_generated"):
         try:
-            _p = json.loads(Path("data/pulse_latest.json").read_text())
-            _f = json.loads(Path("data/fee_latest.json").read_text()) if Path("data/fee_latest.json").exists() else {}
+            _p = json.loads(Path(__file__).parent / "data" / "pulse_latest.json".read_text())
+            _f = json.loads(Path(__file__).parent / "data" / "fee_latest.json".read_text()) if Path(__file__).parent / "data" / "fee_latest.json".exists() else {}
             _top3 = _p.get("top_3_themes", [])
             st.session_state["weekly_pulse"]    = _p.get("weekly_note", "")
             st.session_state["top_theme"]       = _top3[0] if _top3 else "General Feedback"
@@ -2446,7 +2446,7 @@ with tab2:
             if st.button("▶ Start Call", key="start_call_btn", type="primary", use_container_width=True):
                 st.session_state["voice_agent"] = VoiceAgent(
                     session=st.session_state,
-                    calendar_path="data/mock_calendar.json",
+                    calendar_path=str(Path(__file__).parent / "data" / "mock_calendar.json"),
                 )
                 greeting_text, greeting_audio = st.session_state["voice_agent"].get_greeting()
                 st.session_state["va2_agent_speech"] = greeting_text
@@ -2753,7 +2753,7 @@ with tab3:
     # Fallback: load from saved JSON if session is fresh
     if not _pulse_text:
         try:
-            _p2 = json.loads(Path("data/pulse_latest.json").read_text())
+            _p2 = json.loads(Path(__file__).parent / "data" / "pulse_latest.json".read_text())
             _pulse_text = _p2.get("weekly_note", "")
         except Exception:
             pass
