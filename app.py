@@ -2028,6 +2028,69 @@ with tab1:
         cards_html += "</div>"
         st.markdown(cards_html, unsafe_allow_html=True)
 
+    # ── Chatbot header + info tooltip ─────────────────────────────────────────
+    st.markdown("""
+    <style>
+    .chatbot-header {
+        display: flex; align-items: center; gap: 10px; margin-bottom: 4px;
+    }
+    .chatbot-title {
+        font-size: 1.15rem; font-weight: 800; color: var(--text-1);
+        letter-spacing: -0.01em; margin: 0;
+    }
+    .chatbot-info-wrap { position: relative; display: inline-flex; align-items: center; }
+    .chatbot-info-icon {
+        width: 20px; height: 20px; border-radius: 50%;
+        background: var(--gold-glow); border: 1.5px solid var(--gold-dim);
+        color: var(--gold-1); font-size: 0.7rem; font-weight: 800;
+        display: flex; align-items: center; justify-content: center;
+        cursor: default; flex-shrink: 0; line-height: 1;
+    }
+    .chatbot-tooltip {
+        visibility: hidden; opacity: 0;
+        position: absolute; left: 28px; top: -8px;
+        width: 340px; z-index: 9999;
+        background: var(--bg-card); border: 1px solid var(--border);
+        border-radius: 12px; padding: 16px 18px;
+        box-shadow: 0 8px 32px rgba(0,0,0,0.35);
+        transition: opacity 0.18s;
+        font-size: 0.82rem; color: var(--text-2); line-height: 1.6;
+        pointer-events: none;
+    }
+    .chatbot-info-wrap:hover .chatbot-tooltip { visibility: visible; opacity: 1; }
+    .chatbot-tooltip-title { font-weight: 700; color: var(--text-1); margin-bottom: 6px; font-size: 0.88rem; }
+    .chatbot-tooltip-qa { margin-top: 10px; background: var(--bg-glass); border-radius: 8px; padding: 10px 12px; }
+    .chatbot-tooltip-q { color: var(--gold-1); font-weight: 600; font-size: 0.78rem; margin-bottom: 4px; }
+    .chatbot-tooltip-a { color: var(--text-2); font-size: 0.78rem; line-height: 1.55; }
+    </style>
+    <div class="chatbot-header">
+      <span class="chatbot-title">💬 Smart-Sync Knowledge Base Chatbot</span>
+      <div class="chatbot-info-wrap">
+        <div class="chatbot-info-icon">i</div>
+        <div class="chatbot-tooltip">
+          <div class="chatbot-tooltip-title">What is this chatbot?</div>
+          <div>
+            A <strong>RAG-powered FAQ assistant</strong> grounded in SBI Mutual Fund's official corpus —
+            scraped from sbimf.com, INDMoney, AMFI, SEBI, and Groww. It answers factual questions
+            about exit loads, expense ratios, SIP minimums, lock-in periods, and fund fees.
+            It <em>refuses</em> to give investment advice or return predictions.
+          </div>
+          <div>
+            Knowledge is synced live via <strong>Sync KB</strong> — the corpus auto-updates when you resync.
+          </div>
+          <div class="chatbot-tooltip-qa">
+            <div class="chatbot-tooltip-q">Q: What is the exit load for SBI ELSS and how is the expense ratio calculated?</div>
+            <div class="chatbot-tooltip-a">
+              SBI ELSS has a 3-year lock-in period — no exit load applies after lock-in.
+              The expense ratio for the Direct plan is ~0.99%, deducted daily from NAV.
+              <br><em>Source: sbimf.com · indmoney.com</em>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    """, unsafe_allow_html=True)
+
     if not st.session_state["chat_history"]:
         st.info(
             "**Try these compound questions:**\n"
