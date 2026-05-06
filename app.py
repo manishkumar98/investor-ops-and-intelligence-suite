@@ -1605,25 +1605,35 @@ if not st.session_state.get("pulse_generated"):
 
 
 
-# ── 3. Iterative sync loop — Phase 1: URL scraping, Phase 2: mfapi.in ────────
+# ── 3. Iterative sync loop — per-fund priority chains then mfapi fallback ────
 if st.session_state.get("_sync_active"):
     from phase2_corpus_pillar_a.ingest import (
         ingest_single_url, ingest_local_files, _load_snapshot, _save_snapshot,
         _INDEX_HASH_FILE, _parse_manifest, _MANIFEST_PATH, _RAW_DIR as _MFAPI_RAW_DIR,
     )
     from phase2_corpus_pillar_a.mfapi_loader import (
-        FUND_SCHEME_CODES, FUND_SEARCH_TERMS,
-        _fetch_scheme_data, format_fund_as_text,
+        FUND_SCHEME_CODES, _fetch_scheme_data, format_fund_as_text,
     )
+    from phase2_corpus_pillar_a.fund_url_map import FUND_PRIORITY_URLS
+    from urllib.parse import urlparse
     import hashlib
 
+    def _domain(u: str) -> str:
+        try:
+            return urlparse(u).netloc.replace("www.", "") or u
+        except Exception:
+            return u
+
     # ── Read state ────────────────────────────────────────────────────────
-    phase      = st.session_state.get("_sync_phase", "urls")   # "urls" | "mfapi"
-    url_queue  = st.session_state.get("_sync_queue", [])
-    mfapi_queue= st.session_state.get("_sync_mfapi_queue", [])
-    done       = st.session_state.get("_sync_done",  [])
-    stopped    = st.session_state.get("_sync_stop",  False)
-    total      = st.session_state.get("_sync_total", len(url_queue) + len(done))
+    phase           = st.session_state.get("_sync_phase", "fund_chains")
+    fund_queue      = st.session_state.get("_sync_fund_queue", [])
+    current_fund    = st.session_state.get("_sync_current_fund")
+    chain_idx       = st.session_state.get("_sync_current_chain_idx", 0)
+    failed_funds    = st.session_state.get("_sync_failed_funds", [])
+    extra_queue     = st.session_state.get("_sync_extra_queue", [])
+    mfapi_queue     = st.session_state.get("_sync_mfapi_queue", [])
+    done            = st.session_state.get("_sync_done", [])
+    stopped         = st.session_state.get("_sync_stop", False)
 
     # ── Header + stop button ──────────────────────────────────────────────
     st.markdown("### 🔄 Syncing Knowledge Base…")
@@ -1633,128 +1643,229 @@ if st.session_state.get("_sync_active"):
             st.session_state["_sync_stop"] = True
             stopped = True
 
+    pending_count = (
+        len(fund_queue) + (1 if current_fund else 0)
+        + len(extra_queue) + len(mfapi_queue)
+    )
     if stopped:
         st.warning(
             "**Sync stopped.**  \n"
             f"✅ {len(done)} items processed and saved to ChromaDB.  \n"
-            f"⏸ {len(url_queue) + len(mfapi_queue)} items were not processed.  \n\n"
+            f"⏸ {pending_count} items were not processed.  \n\n"
             "Already-ingested chunks remain in ChromaDB and are usable immediately."
         )
 
-    # ── Progress bar (urls + mfapi items together) ────────────────────────
-    mfapi_total = len(FUND_SEARCH_TERMS)
-    grand_total = st.session_state.get("_sync_total", 0) + mfapi_total
-    grand_done  = len(done)
-    st.caption(
-        f"{'Phase 1 — Scraping URLs' if phase == 'urls' else 'Phase 2 — Live data via mfapi.in (AMFI)'}  •  "
-        f"{grand_done} done  •  {grand_total - grand_done} remaining"
+    # ── Progress bar ──────────────────────────────────────────────────────
+    grand_total = (
+        len(FUND_PRIORITY_URLS)
+        + len(st.session_state.get("_sync_extra_queue_initial", extra_queue))
+        + len(failed_funds)  # mfapi adds one per failed fund
     )
-    st.progress(grand_done / grand_total if grand_total else 1.0)
+    grand_done = len(done)
+    phase_label = {
+        "fund_chains": "Phase 1 — Per-fund priority URL scraping",
+        "extra_urls":  "Phase 2 — Educational / regulatory URLs",
+        "mfapi":       "Phase 3 — mfapi.in fallback for failed funds",
+    }.get(phase, phase)
+    st.caption(
+        f"{phase_label}  •  {grand_done} done  •  "
+        f"{max(grand_total - grand_done, pending_count)} remaining"
+    )
+    st.progress(min(grand_done / grand_total if grand_total else 1.0, 1.0))
 
-    # ── Render completed items ────────────────────────────────────────────
-    url_done   = [r for r in done if r.get("source") != "mfapi"]
-    mfapi_done = [r for r in done if r.get("source") == "mfapi"]
+    # ── Render completed items grouped by phase ──────────────────────────
+    fund_done   = [r for r in done if r.get("source") == "fund_chain"]
+    extra_done  = [r for r in done if r.get("source") == "extra_url"]
+    mfapi_done  = [r for r in done if r.get("source") == "mfapi"]
 
-    if url_done:
-        for r in url_done:
-            icon   = "✅" if r["status"] == "ok" else "⚠️"
-            label  = r["url"].replace("https://", "").replace("http://", "")
-            detail = f"{r['chunks']} chunks" if r["status"] == "ok" else r.get("error", "skipped")
-            st.markdown(f"{icon} `{label[:70]}` — *{detail}*")
-
-    # Separator + mfapi section label once URL phase is done or mfapi has started
-    if phase == "mfapi" or mfapi_done:
-        st.markdown("---")
-        st.markdown("**📡 mfapi.in (AMFI live data) — fetching NAV & returns for each fund**")
-        for r in mfapi_done:
-            icon   = "✅" if r["status"] == "ok" else "⚠️"
-            detail = f"NAV: {r.get('nav', '')}  •  {r['chunks']} chunks" if r["status"] == "ok" else r.get("error", "failed")
+    if fund_done:
+        st.markdown("**🎯 Per-fund priority scrape**")
+        for r in fund_done:
+            icon = "✅" if r["status"] == "ok" else "⚠️"
+            if r["status"] == "ok":
+                detail = (
+                    f"scraped from **{r['source_domain']}** "
+                    f"(URL {r['chosen_idx'] + 1}/3) · {r['chunks']} chunks"
+                )
+            else:
+                detail = f"all {r.get('attempts', 3)} URLs failed → mfapi fallback"
             st.markdown(f"{icon} `{r['fund']}` — *{detail}*")
 
-    # ── Render pending items ──────────────────────────────────────────────
-    if phase == "urls" and url_queue and not stopped:
-        next_url, _ = url_queue[0]
-        label = next_url.replace("https://", "").replace("http://", "")
-        st.markdown(f"🔄 `{label[:70]}` — *scraping…*")
-        for u, _ in url_queue[1:]:
-            st.markdown(f"⏳ `{u.replace('https://','').replace('http://','')[:70]}` — *pending*")
-        if not mfapi_done:
-            st.markdown("---")
-            st.markdown("**📡 mfapi.in — will start after URL scraping**")
-            for name in FUND_SEARCH_TERMS:
-                st.markdown(f"⏳ `{name}` — *pending*")
-    elif phase == "urls" and url_queue and stopped:
-        for u, _ in url_queue:
-            st.markdown(f"⏸ `{u.replace('https://','').replace('http://','')[:70]}` — *not processed*")
-    elif phase == "mfapi" and mfapi_queue and not stopped:
-        next_fund = mfapi_queue[0]
-        st.markdown(f"🔄 `{next_fund}` — *fetching from mfapi.in…*")
-        for name in mfapi_queue[1:]:
-            st.markdown(f"⏳ `{name}` — *pending*")
-    elif phase == "mfapi" and mfapi_queue and stopped:
-        for name in mfapi_queue:
-            st.markdown(f"⏸ `{name}` — *not processed*")
+    if extra_done:
+        st.markdown("---")
+        st.markdown("**📚 Educational / regulatory URLs**")
+        for r in extra_done:
+            icon  = "✅" if r["status"] == "ok" else "⚠️"
+            label = _domain(r["url"])
+            detail = (f"{r['chunks']} chunks" if r["status"] == "ok"
+                      else r.get("error", "skipped"))
+            st.markdown(f"{icon} `{label[:70]}` — *{detail}*")
+
+    if mfapi_done:
+        st.markdown("---")
+        st.markdown("**📡 mfapi.in (AMFI live NAV) — fallback**")
+        for r in mfapi_done:
+            icon = "✅" if r["status"] == "ok" else "⚠️"
+            detail = (f"NAV: {r.get('nav', '')}  •  {r['chunks']} chunks"
+                      if r["status"] == "ok" else r.get("error", "failed"))
+            st.markdown(f"{icon} `{r['fund']}` — *{detail}*")
+
+    # ── Render pending / in-flight ────────────────────────────────────────
+    if not stopped:
+        if phase == "fund_chains" and current_fund:
+            url_now = FUND_PRIORITY_URLS[current_fund]["urls"][chain_idx]
+            st.markdown(
+                f"🔄 `{current_fund}` — trying **{_domain(url_now)}** "
+                f"(URL {chain_idx + 1}/3)…"
+            )
+            for f in fund_queue:
+                st.markdown(f"⏳ `{f}` — *pending*")
+        elif phase == "fund_chains" and fund_queue:
+            for f in fund_queue:
+                st.markdown(f"⏳ `{f}` — *pending*")
+        elif phase == "extra_urls" and extra_queue:
+            next_url, _ = extra_queue[0]
+            st.markdown(f"🔄 `{_domain(next_url)}` — *scraping…*")
+            for u, _ in extra_queue[1:]:
+                st.markdown(f"⏳ `{_domain(u)}` — *pending*")
+        elif phase == "mfapi" and mfapi_queue:
+            st.markdown(f"🔄 `{mfapi_queue[0]}` — *fetching from mfapi.in…*")
+            for n in mfapi_queue[1:]:
+                st.markdown(f"⏳ `{n}` — *pending*")
 
     # ── Process next item ─────────────────────────────────────────────────
     if stopped:
-        # Finalise with whatever we have
         snapshot = st.session_state.get("_sync_snapshot", _load_snapshot())
         _save_snapshot(snapshot)
         try:
             ingest_local_files()
         except Exception:
             pass
-        for k in ["_sync_active", "_sync_queue", "_sync_mfapi_queue", "_sync_done",
-                  "_sync_stop", "_sync_total", "_sync_phase", "_sync_snapshot",
-                  "_sync_mfapi_all_funds"]:
+        for k in [
+            "_sync_active", "_sync_queue", "_sync_mfapi_queue", "_sync_done",
+            "_sync_stop", "_sync_total", "_sync_phase", "_sync_snapshot",
+            "_sync_mfapi_all_funds", "_sync_fund_queue", "_sync_current_fund",
+            "_sync_current_chain_idx", "_sync_failed_funds", "_sync_extra_queue",
+            "_sync_extra_queue_initial",
+        ]:
             st.session_state.pop(k, None)
         st.session_state["_show_sync_dialog"] = {"done": done, "stopped": True}
         st.rerun()
 
-    elif phase == "urls" and url_queue:
-        # Process next URL
-        next_url, next_corpus = url_queue.pop(0)
-        snapshot = st.session_state.get("_sync_snapshot", _load_snapshot())
-        result   = ingest_single_url(next_url, next_corpus, snapshot)
-        done.append(result)
-        st.session_state["_sync_queue"]    = url_queue
-        st.session_state["_sync_done"]     = done
-        st.session_state["_sync_snapshot"] = snapshot
-        st.rerun()
+    elif phase == "fund_chains":
+        # Pick next fund if not currently mid-chain
+        if current_fund is None:
+            if fund_queue:
+                current_fund = fund_queue.pop(0)
+                chain_idx    = 0
+                st.session_state["_sync_fund_queue"]        = fund_queue
+                st.session_state["_sync_current_fund"]      = current_fund
+                st.session_state["_sync_current_chain_idx"] = chain_idx
+                st.rerun()
+            else:
+                # Fund chains complete → extra URLs phase
+                st.session_state["_sync_extra_queue_initial"] = list(extra_queue)
+                st.session_state["_sync_phase"] = "extra_urls"
+                st.rerun()
+        else:
+            # Try the current URL in this fund's chain
+            urls_for_fund = FUND_PRIORITY_URLS[current_fund]["urls"]
+            url_now       = urls_for_fund[chain_idx]
+            snapshot      = st.session_state.get("_sync_snapshot", _load_snapshot())
+            result        = ingest_single_url(url_now, "mf_faq_corpus", snapshot)
 
-    elif phase == "urls" and not url_queue:
-        # URL phase complete — write hash, transition to mfapi phase
-        snapshot = st.session_state.get("_sync_snapshot", _load_snapshot())
-        _save_snapshot(snapshot)
-        entries     = _parse_manifest(_MANIFEST_PATH)
-        urls_sorted = sorted(e[0] for e in entries)
-        new_hash    = hashlib.sha256("|".join(urls_sorted).encode()).hexdigest()
-        _INDEX_HASH_FILE.parent.mkdir(parents=True, exist_ok=True)
-        _INDEX_HASH_FILE.write_text(new_hash)
-        st.session_state["_sync_mfapi_queue"] = list(FUND_SCHEME_CODES.keys())
-        st.session_state["_sync_phase"]        = "mfapi"
-        st.rerun()
+            if result["status"] == "ok":
+                # Got usable content — record success and move to next fund
+                done.append({
+                    "fund":          current_fund,
+                    "url":           url_now,
+                    "source":        "fund_chain",
+                    "source_domain": _domain(url_now),
+                    "chosen_idx":    chain_idx,
+                    "chunks":        result["chunks"],
+                    "status":        "ok",
+                })
+                st.session_state["_sync_done"]              = done
+                st.session_state["_sync_snapshot"]          = snapshot
+                st.session_state["_sync_current_fund"]      = None
+                st.session_state["_sync_current_chain_idx"] = 0
+            else:
+                # This URL failed → try the next one in the chain
+                next_idx = chain_idx + 1
+                if next_idx < len(urls_for_fund):
+                    st.session_state["_sync_current_chain_idx"] = next_idx
+                else:
+                    # Entire chain exhausted → fall back to mfapi
+                    failed_funds.append(current_fund)
+                    done.append({
+                        "fund":     current_fund,
+                        "url":      url_now,
+                        "source":   "fund_chain",
+                        "status":   "failed",
+                        "attempts": len(urls_for_fund),
+                        "chunks":   0,
+                    })
+                    st.session_state["_sync_done"]              = done
+                    st.session_state["_sync_failed_funds"]      = failed_funds
+                    st.session_state["_sync_current_fund"]      = None
+                    st.session_state["_sync_current_chain_idx"] = 0
+            st.rerun()
+
+    elif phase == "extra_urls":
+        if extra_queue:
+            next_url, next_corpus = extra_queue.pop(0)
+            snapshot = st.session_state.get("_sync_snapshot", _load_snapshot())
+            result   = ingest_single_url(next_url, next_corpus, snapshot)
+            result["source"] = "extra_url"
+            done.append(result)
+            st.session_state["_sync_extra_queue"] = extra_queue
+            st.session_state["_sync_done"]        = done
+            st.session_state["_sync_snapshot"]    = snapshot
+            st.rerun()
+        else:
+            # Extra URLs done → mfapi phase for failed funds only
+            snapshot = st.session_state.get("_sync_snapshot", _load_snapshot())
+            _save_snapshot(snapshot)
+            entries     = _parse_manifest(_MANIFEST_PATH)
+            urls_sorted = sorted(e[0] for e in entries)
+            new_hash    = hashlib.sha256("|".join(urls_sorted).encode()).hexdigest()
+            _INDEX_HASH_FILE.parent.mkdir(parents=True, exist_ok=True)
+            _INDEX_HASH_FILE.write_text(new_hash)
+            st.session_state["_sync_mfapi_queue"] = list(failed_funds)
+            st.session_state["_sync_phase"]       = "mfapi"
+            st.rerun()
 
     elif phase == "mfapi" and mfapi_queue:
-        # Process next fund via mfapi.in using hardcoded scheme code
         fund_name   = mfapi_queue.pop(0)
-        scheme_code = FUND_SCHEME_CODES[fund_name]
-        result      = {"fund": fund_name, "url": f"https://api.mfapi.in/mf/{scheme_code}", "source": "mfapi",
-                       "chunks": 0, "nav": "", "status": "error", "error": ""}
+        scheme_code = FUND_SCHEME_CODES.get(fund_name) or \
+                      FUND_PRIORITY_URLS.get(fund_name, {}).get("mfapi_code")
+        result = {
+            "fund":   fund_name,
+            "url":    f"https://api.mfapi.in/mf/{scheme_code}" if scheme_code else "",
+            "source": "mfapi",
+            "chunks": 0, "nav": "", "status": "error", "error": "",
+        }
         try:
-            data = _fetch_scheme_data(scheme_code)
-            if not data or data.get("status") != "SUCCESS":
-                result["error"] = f"mfapi fetch failed for code {scheme_code}"
+            if not scheme_code:
+                result["error"] = f"no mfapi scheme code for {fund_name}"
             else:
-                meta     = data.get("meta", {})
-                nav_data = data.get("data", [])
-                text     = format_fund_as_text(fund_name, meta, nav_data)
-                safe     = fund_name.lower().replace(" ", "_")
-                out      = _MFAPI_RAW_DIR / f"{safe}_(mfapi).txt"
-                out.parent.mkdir(parents=True, exist_ok=True)
-                out.write_text(text, encoding="utf-8")
-                nav_val  = nav_data[0].get("nav", "") if nav_data else ""
-                result.update({"status": "ok", "chunks": len(nav_data), "nav": f"₹{nav_val}"})
+                data = _fetch_scheme_data(scheme_code)
+                if not data or data.get("status") != "SUCCESS":
+                    result["error"] = f"mfapi fetch failed for code {scheme_code}"
+                else:
+                    meta     = data.get("meta", {})
+                    nav_data = data.get("data", [])
+                    text     = format_fund_as_text(fund_name, meta, nav_data)
+                    safe     = fund_name.lower().replace(" ", "_")
+                    out      = _MFAPI_RAW_DIR / f"{safe}_(mfapi).txt"
+                    out.parent.mkdir(parents=True, exist_ok=True)
+                    out.write_text(text, encoding="utf-8")
+                    nav_val  = nav_data[0].get("nav", "") if nav_data else ""
+                    result.update({
+                        "status": "ok",
+                        "chunks": len(nav_data),
+                        "nav":    f"₹{nav_val}",
+                    })
         except Exception as exc:
             result["error"] = str(exc)
         done.append(result)
@@ -1763,14 +1874,18 @@ if st.session_state.get("_sync_active"):
         st.rerun()
 
     else:
-        # Both phases done — final local file ingest
+        # All phases done — final local file ingest
         try:
             ingest_local_files()
         except Exception:
             pass
-        for k in ["_sync_active", "_sync_queue", "_sync_mfapi_queue", "_sync_done",
-                  "_sync_stop", "_sync_total", "_sync_phase", "_sync_snapshot",
-                  "_sync_mfapi_all_funds"]:
+        for k in [
+            "_sync_active", "_sync_queue", "_sync_mfapi_queue", "_sync_done",
+            "_sync_stop", "_sync_total", "_sync_phase", "_sync_snapshot",
+            "_sync_mfapi_all_funds", "_sync_fund_queue", "_sync_current_fund",
+            "_sync_current_chain_idx", "_sync_failed_funds", "_sync_extra_queue",
+            "_sync_extra_queue_initial",
+        ]:
             st.session_state.pop(k, None)
         st.session_state["_show_sync_dialog"] = {"done": done, "stopped": False}
         st.rerun()
@@ -1976,12 +2091,34 @@ with tab1:
             ),
         ):
             from phase2_corpus_pillar_a.ingest import _parse_manifest, _MANIFEST_PATH
+            from phase2_corpus_pillar_a.fund_url_map import FUND_PRIORITY_URLS
             entries = _parse_manifest(_MANIFEST_PATH)
-            st.session_state["_sync_active"]   = True
-            st.session_state["_sync_queue"]    = list(entries)
-            st.session_state["_sync_done"]     = []
-            st.session_state["_sync_stop"]     = False
-            st.session_state["_sync_total"]    = len(entries)
+
+            # Split manifest entries into:
+            #   - URLs that belong to a fund's priority chain (handled per-fund)
+            #   - "extra" URLs (AMFI / SEBI educational, INDMoney portfolio
+            #     pages, etc.) handled flat as before
+            _priority_urls = {
+                u for f in FUND_PRIORITY_URLS.values() for u in f["urls"]
+            }
+            extra_entries = [
+                (u, c) for (u, c) in entries if u not in _priority_urls
+            ]
+
+            st.session_state["_sync_active"]      = True
+            st.session_state["_sync_phase"]       = "fund_chains"
+            st.session_state["_sync_fund_queue"]  = list(FUND_PRIORITY_URLS.keys())
+            st.session_state["_sync_current_fund"]      = None
+            st.session_state["_sync_current_chain_idx"] = 0
+            st.session_state["_sync_failed_funds"]      = []
+            st.session_state["_sync_extra_queue"] = extra_entries
+            st.session_state["_sync_queue"]       = []   # legacy — kept empty
+            st.session_state["_sync_mfapi_queue"] = []
+            st.session_state["_sync_done"]        = []
+            st.session_state["_sync_stop"]        = False
+            st.session_state["_sync_total"]       = (
+                len(FUND_PRIORITY_URLS) + len(extra_entries)
+            )
             st.session_state.pop("_sync_snapshot", None)
             st.rerun()
 
