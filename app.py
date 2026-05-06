@@ -61,7 +61,8 @@ def _show_reset_dialog(had_mcp: bool) -> None:
     )
     st.markdown("---")
     st.caption("All three pillars are ready for a fresh demo.")
-    st.button("✅ Got it, close", use_container_width=True, type="primary", on_click=st.rerun)
+    if st.button("✅ Got it, close", use_container_width=True, type="primary"):
+        st.rerun()
 
 
 @st.dialog("🔄 Knowledge Base Sync — Complete", width="large")
@@ -102,7 +103,8 @@ def _show_sync_dialog(done: list, stopped: bool) -> None:
     else:
         st.caption("ChromaDB updated. Local files from `data/raw/` also re-ingested. FAQ and Fee Explainer are now current.")
 
-    st.button("✅ Got it, close", use_container_width=True, type="primary", on_click=st.rerun)
+    if st.button("✅ Got it, close", use_container_width=True, type="primary"):
+        st.rerun()
 
 
 # ── Shared download helpers ───────────────────────────────────────────────────
@@ -197,7 +199,8 @@ def _show_pipeline_stop_dialog(info: dict) -> None:
         "**Note on saved data:** Partially-completed pipeline data (e.g. scraped reviews) "
         "is preserved on disk. A fresh run will overwrite it from Step 1."
     )
-    st.button("✅ Got it, close", use_container_width=True, type="primary", on_click=st.rerun)
+    if st.button("✅ Got it, close", use_container_width=True, type="primary"):
+        st.rerun()
 
 
 @st.dialog("📊 Weekly Pipeline — Complete", width="large")
@@ -243,7 +246,8 @@ def _show_pipeline_dialog(result: dict) -> None:
         "The advisor email Market Context will be outdated. The fee bullets may not match the current top issue."
     )
 
-    st.button("✅ Got it, close", use_container_width=True, type="primary", on_click=st.rerun)
+    if st.button("✅ Got it, close", use_container_width=True, type="primary"):
+        st.rerun()
 
 
 def _build_css(is_light: bool) -> str:
@@ -1253,6 +1257,14 @@ st.set_page_config(
 )
 init_session_state(st.session_state)
 
+# ── Theme state (applied BEFORE any dialog so theme persists across them) ────
+if "theme" not in st.session_state:
+    st.session_state["theme"] = "dark"
+_theme    = st.session_state["theme"]
+_is_light = _theme == "light"
+
+st.markdown(_build_css(_is_light), unsafe_allow_html=True)
+
 # ── Pending dialog triggers ───────────────────────────────────────────────────
 if "_show_reset_dialog" in st.session_state:
     _d = st.session_state.pop("_show_reset_dialog")
@@ -1267,14 +1279,6 @@ if "_show_pipeline_dialog" in st.session_state:
 
 if "_show_pipeline_stop_dialog" in st.session_state:
     _show_pipeline_stop_dialog(st.session_state.pop("_show_pipeline_stop_dialog"))
-
-# ── Theme state ───────────────────────────────────────────────────────────────
-if "theme" not in st.session_state:
-    st.session_state["theme"] = "dark"
-_theme    = st.session_state["theme"]
-_is_light = _theme == "light"
-
-st.markdown(_build_css(_is_light), unsafe_allow_html=True)
 
 # ── Tab-2 Voice Agent helpers ─────────────────────────────────────────────────
 
@@ -1635,13 +1639,38 @@ if st.session_state.get("_sync_active"):
     done            = st.session_state.get("_sync_done", [])
     stopped         = st.session_state.get("_sync_stop", False)
 
-    # ── Header + stop button ──────────────────────────────────────────────
+    # ── Header + Stop / Exit buttons ──────────────────────────────────────
     st.markdown("### 🔄 Syncing Knowledge Base…")
-    stop_col, _ = st.columns([1, 3])
+    stop_col, exit_col, _ = st.columns([1, 1, 3])
     with stop_col:
-        if not stopped and st.button("⏹ Stop", type="secondary", use_container_width=True):
+        if not stopped and st.button(
+            "⏹ Stop & Save",
+            key="sync_stop_btn",
+            type="secondary",
+            use_container_width=True,
+            help="Stop after the current item; save progress and finalise.",
+        ):
             st.session_state["_sync_stop"] = True
             stopped = True
+            st.rerun()
+    with exit_col:
+        if st.button(
+            "❌ Exit Sync",
+            key="sync_exit_btn",
+            type="secondary",
+            use_container_width=True,
+            help="Abandon the sync immediately. Already-ingested chunks remain "
+                 "in ChromaDB; the rest is discarded.",
+        ):
+            for k in [
+                "_sync_active", "_sync_queue", "_sync_mfapi_queue", "_sync_done",
+                "_sync_stop", "_sync_total", "_sync_phase", "_sync_snapshot",
+                "_sync_mfapi_all_funds", "_sync_fund_queue", "_sync_current_fund",
+                "_sync_current_chain_idx", "_sync_failed_funds",
+                "_sync_extra_queue", "_sync_extra_queue_initial",
+            ]:
+                st.session_state.pop(k, None)
+            st.rerun()
 
     pending_count = (
         len(fund_queue) + (1 if current_fund else 0)
