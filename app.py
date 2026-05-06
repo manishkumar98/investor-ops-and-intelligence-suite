@@ -1612,7 +1612,7 @@ if st.session_state.get("_sync_active"):
         _INDEX_HASH_FILE, _parse_manifest, _MANIFEST_PATH, _RAW_DIR as _MFAPI_RAW_DIR,
     )
     from phase2_corpus_pillar_a.mfapi_loader import (
-        FUND_SEARCH_TERMS, _fetch_all_funds, _find_scheme_code,
+        FUND_SCHEME_CODES, FUND_SEARCH_TERMS,
         _fetch_scheme_data, format_fund_as_text,
     )
     import hashlib
@@ -1731,38 +1731,29 @@ if st.session_state.get("_sync_active"):
         new_hash    = hashlib.sha256("|".join(urls_sorted).encode()).hexdigest()
         _INDEX_HASH_FILE.parent.mkdir(parents=True, exist_ok=True)
         _INDEX_HASH_FILE.write_text(new_hash)
-        # Fetch AMFI fund list once, cache in session
-        all_funds = _fetch_all_funds()
-        st.session_state["_sync_mfapi_all_funds"] = all_funds
-        st.session_state["_sync_mfapi_queue"]     = list(FUND_SEARCH_TERMS.keys())
-        st.session_state["_sync_phase"]           = "mfapi"
+        st.session_state["_sync_mfapi_queue"] = list(FUND_SCHEME_CODES.keys())
+        st.session_state["_sync_phase"]        = "mfapi"
         st.rerun()
 
     elif phase == "mfapi" and mfapi_queue:
-        # Process next fund via mfapi.in
+        # Process next fund via mfapi.in using hardcoded scheme code
         fund_name   = mfapi_queue.pop(0)
-        search_name = FUND_SEARCH_TERMS[fund_name]
-        all_funds   = st.session_state.get("_sync_mfapi_all_funds", [])
-        result      = {"fund": fund_name, "url": f"api.mfapi.in/mf/{fund_name}", "source": "mfapi",
+        scheme_code = FUND_SCHEME_CODES[fund_name]
+        result      = {"fund": fund_name, "url": f"https://api.mfapi.in/mf/{scheme_code}", "source": "mfapi",
                        "chunks": 0, "nav": "", "status": "error", "error": ""}
         try:
-            code = _find_scheme_code(all_funds, search_name)
-            if not code:
-                result["error"] = "scheme not found in AMFI list"
+            data = _fetch_scheme_data(scheme_code)
+            if not data or data.get("status") != "SUCCESS":
+                result["error"] = f"mfapi fetch failed for code {scheme_code}"
             else:
-                data = _fetch_scheme_data(code)
-                if not data or data.get("status") != "SUCCESS":
-                    result["error"] = "mfapi fetch failed"
-                else:
-                    meta     = data.get("meta", {})
-                    nav_data = data.get("data", [])
-                    text     = format_fund_as_text(fund_name, meta, nav_data)
-                    safe     = fund_name.lower().replace(" ", "_")
-                    out      = _MFAPI_RAW_DIR / f"{safe}_(mfapi).txt"
-                    out.write_text(text, encoding="utf-8")
-                    # Quick NAV extraction for display
-                    nav_val  = nav_data[0].get("nav", "") if nav_data else ""
-                    result.update({"status": "ok", "chunks": len(nav_data), "nav": f"₹{nav_val}"})
+                meta     = data.get("meta", {})
+                nav_data = data.get("data", [])
+                text     = format_fund_as_text(fund_name, meta, nav_data)
+                safe     = fund_name.lower().replace(" ", "_")
+                out      = _MFAPI_RAW_DIR / f"{safe}_(mfapi).txt"
+                out.write_text(text, encoding="utf-8")
+                nav_val  = nav_data[0].get("nav", "") if nav_data else ""
+                result.update({"status": "ok", "chunks": len(nav_data), "nav": f"₹{nav_val}"})
         except Exception as exc:
             result["error"] = str(exc)
         done.append(result)

@@ -15,23 +15,28 @@ from typing import Optional
 import urllib.request
 import urllib.error
 
-# ── Canonical fund names → AMFI scheme name search terms ─────────────────────
-# We match these strings (case-insensitive) against the full AMFI fund list
-# to find the correct Direct Plan Growth scheme code automatically.
-FUND_SEARCH_TERMS: dict[str, str] = {
-    "SBI Large Cap Fund":                   "SBI Bluechip Fund - Direct Plan Growth",
-    "SBI Flexicap Fund":                    "SBI Flexicap Fund - Direct Plan Growth",
-    "SBI ELSS Tax Saver Fund":              "SBI Long Term Equity Fund - Direct Plan Growth",
-    "SBI Small Cap Fund":                   "SBI Small Cap Fund - Direct Plan Growth",
-    "SBI Midcap Fund":                      "SBI Magnum Midcap Fund - Direct Plan Growth",
-    "SBI Focused Equity Fund":              "SBI Focused Equity Fund - Direct Plan Growth",
-    "SBI Liquid Fund":                      "SBI Liquid Fund - Direct Plan Growth",
-    "SBI Contra Fund":                      "SBI Contra Fund - Direct Plan Growth",
-    "SBI Technology Opportunities Fund":    "SBI Technology Opportunities Fund - Direct Plan Growth",
-    "SBI Healthcare Opportunities Fund":    "SBI Healthcare Opportunities Fund - Direct Plan Growth",
-    "SBI Equity Hybrid Fund":               "SBI Equity Hybrid Fund - Direct Plan Growth",
-    "SBI Magnum Global Fund":               "SBI Magnum Global Fund - Direct Plan Growth",
+# ── Canonical fund names → AMFI scheme codes (hardcoded, verified live) ────────
+# Scheme codes are stable identifiers from api.mfapi.in/mf
+# Last verified: 2026-05-06 against live AMFI list
+# NOTE: Fund names in AMFI change over time (rebranding, renaming).
+#       Use scheme codes as the primary lookup key — they never change.
+FUND_SCHEME_CODES: dict[str, int] = {
+    "SBI Large Cap Fund":                   119598,   # SBI Large Cap FUND-DIRECT PLAN -GROWTH
+    "SBI Flexicap Fund":                    119718,   # SBI Flexicap Fund - DIRECT PLAN - Growth Option
+    "SBI ELSS Tax Saver Fund":              119723,   # SBI ELSS Tax Saver FUND - DIRECT PLAN -GROWTH
+    "SBI Small Cap Fund":                   125497,   # SBI Small Cap Fund - Direct Plan - Growth
+    "SBI Midcap Fund":                      119716,   # SBI MIDCAP FUND - DIRECT PLAN - GROWTH
+    "SBI Focused Equity Fund":              119727,   # SBI FOCUSED FUND - DIRECT PLAN -GROWTH
+    "SBI Liquid Fund":                      119800,   # SBI Liquid Fund - DIRECT PLAN -Growth
+    "SBI Contra Fund":                      119835,   # SBI CONTRA FUND - DIRECT PLAN - GROWTH
+    "SBI Technology Opportunities Fund":    120578,   # SBI TECHNOLOGY OPPORTUNITIES FUND - DIRECT PLAN - GROWTH
+    "SBI Healthcare Opportunities Fund":    119783,   # SBI HEALTHCARE OPPORTUNITIES FUND - DIRECT PLAN -GROWTH
+    "SBI Equity Hybrid Fund":               119609,   # SBI EQUITY HYBRID FUND - DIRECT PLAN - Growth
+    "SBI Magnum Global Fund":               120575,   # SBI CONSUMPTION OPPORTUNITIES FUND - DIRECT PLAN - GROWTH (renamed)
 }
+
+# Keep FUND_SEARCH_TERMS as an alias so existing code that references it still works
+FUND_SEARCH_TERMS: dict[str, str] = {k: str(v) for k, v in FUND_SCHEME_CODES.items()}
 
 _MFAPI_BASE = "https://api.mfapi.in/mf"
 _TIMEOUT = 15
@@ -56,13 +61,21 @@ def _fetch_all_funds() -> list[dict]:
 
 
 def _find_scheme_code(all_funds: list[dict], search_name: str) -> Optional[int]:
-    """Find scheme code by exact name match, then partial match fallback."""
+    """Look up scheme code — first checks FUND_SCHEME_CODES by canonical name,
+    then falls back to name-matching against the AMFI list for unknown funds."""
+    # Primary path: canonical name → hardcoded scheme code (instant, no API needed)
+    if search_name in FUND_SCHEME_CODES:
+        return FUND_SCHEME_CODES[search_name]
+    # Try interpreting search_name as a numeric code string (from FUND_SEARCH_TERMS alias)
+    try:
+        return int(search_name)
+    except ValueError:
+        pass
+    # Fallback: fuzzy name match against live AMFI list
     search_lower = search_name.lower()
-    # Exact match first
     for fund in all_funds:
         if fund.get("schemeName", "").lower() == search_lower:
             return fund["schemeCode"]
-    # Partial match — all words in search_name must be in scheme name
     words = [w for w in search_lower.split() if len(w) > 2]
     for fund in all_funds:
         name = fund.get("schemeName", "").lower()
@@ -215,30 +228,16 @@ def fetch_all_sbi_funds(
 ) -> dict[str, str]:
     """Fetch data for all 12 SBI funds from mfapi.in and write to data/raw/.
 
+    Uses hardcoded scheme codes (FUND_SCHEME_CODES) for reliable lookup —
+    bypasses the full AMFI list download entirely.
+
     Returns dict of canonical_name → status ("ok" / "not_found" / "error")
     """
-    print("[mfapi] Fetching full AMFI fund list...")
-    try:
-        all_funds = _fetch_all_funds()
-    except Exception as exc:
-        print(f"[mfapi] ERROR fetching fund list: {exc}")
-        return {name: "error" for name in FUND_SEARCH_TERMS}
-    if not all_funds:
-        print("[mfapi] ERROR: Could not fetch fund list from mfapi.in")
-        return {name: "not_found" for name in FUND_SEARCH_TERMS}
-
-    print(f"[mfapi] {len(all_funds)} funds in AMFI list")
     raw_dir.mkdir(parents=True, exist_ok=True)
     results = {}
 
-    for canonical_name, search_name in FUND_SEARCH_TERMS.items():
-        print(f"[mfapi] Looking up: {search_name}")
-        scheme_code = _find_scheme_code(all_funds, search_name)
-        if not scheme_code:
-            print(f"[mfapi]   NOT FOUND: {search_name}")
-            results[canonical_name] = "not_found"
-            continue
-
+    for canonical_name, scheme_code in FUND_SCHEME_CODES.items():
+        print(f"[mfapi] Fetching scheme {scheme_code}: {canonical_name}")
         time.sleep(delay_seconds)
         scheme_data = _fetch_scheme_data(scheme_code)
         if not scheme_data or scheme_data.get("status") != "SUCCESS":
