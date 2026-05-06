@@ -1,13 +1,73 @@
 import json
+import re
 import smtplib
 import uuid
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import datetime, timedelta
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from pathlib import Path
 
+import pytz
+
 MCP_STATE_PATH = Path(__file__).resolve().parents[1] / "data" / "mcp_state.json"
+IST = pytz.timezone("Asia/Kolkata")
+
+
+def _coerce_slot_iso(date_str: str, time_str: str) -> tuple[str, str]:
+    """
+    Build (slot_start_iso, slot_end_iso) from voice-agent payload fields.
+
+    Inputs may be:
+      date_str  : "2026-05-08"  or  "Friday, 2026-05-08 at 10:00 AM IST"  or  ""
+      time_str  : "10:00"  or  "10:00 AM IST"  or  "10:00 AM"  or  ""
+
+    Returns ISO 8601 strings parseable by datetime.fromisoformat(),
+    e.g. ("2026-05-08T10:00:00+05:30", "2026-05-08T10:30:00+05:30").
+
+    Returns ("", "") if no usable date+time can be derived.
+    """
+    # Pull a YYYY-MM-DD anywhere in date_str
+    iso_date_match = re.search(r"(\d{4}-\d{2}-\d{2})", date_str or "")
+    if not iso_date_match:
+        # Fall back to today's date if only a time is given
+        iso_date = datetime.now(IST).strftime("%Y-%m-%d")
+    else:
+        iso_date = iso_date_match.group(1)
+
+    # Parse the time part — accept "10:00", "10:00 AM", "10:00 AM IST",
+    # "2 PM", or extract from "Friday, 2026-05-08 at 10:00 AM IST"
+    sources = [time_str or "", date_str or ""]
+    hour: int | None = None
+    minute: int = 0
+    for src in sources:
+        raw = src.upper().replace("IST", "")
+        m = re.search(r"\b(\d{1,2})(?::(\d{2}))?\s*(AM|PM)\b", raw)
+        if not m:
+            m = re.search(r"\b([01]?\d|2[0-3]):([0-5]\d)\b", raw)
+            if m:
+                hour = int(m.group(1))
+                minute = int(m.group(2))
+                break
+            continue
+        hour = int(m.group(1))
+        minute = int(m.group(2)) if m.group(2) else 0
+        ampm = m.group(3)
+        if ampm == "PM" and hour < 12:
+            hour += 12
+        elif ampm == "AM" and hour == 12:
+            hour = 0
+        break
+    if hour is None:
+        return "", ""
+
+    try:
+        naive = datetime.fromisoformat(f"{iso_date}T{hour:02d}:{minute:02d}:00")
+    except ValueError:
+        return "", ""
+    start_aware = IST.localize(naive)
+    end_aware   = start_aware + timedelta(minutes=30)
+    return start_aware.isoformat(), end_aware.isoformat()
 
 
 def _send_advisor_email_live(payload: dict) -> None:
@@ -111,16 +171,24 @@ class MCPClient:
                 from phase7_pillar_c_hitl.mcp.models import MCPPayload
                 from phase7_pillar_c_hitl.mcp.calendar_tool import create_calendar_hold
                 p = action["payload"]
+                slot_start_iso, slot_end_iso = _coerce_slot_iso(
+                    p.get("date", ""), p.get("time", "")
+                )
+                if not slot_start_iso:
+                    raise ValueError(
+                        f"calendar_hold: could not parse slot from "
+                        f"date={p.get('date')!r} time={p.get('time')!r}"
+                    )
                 mcp_payload = MCPPayload(
                     booking_code=p.get("booking_code", ""),
                     call_id=p.get("call_id", ""),
                     topic_key=p.get("topic", ""),
                     topic_label=p.get("title", ""),
-                    slot_start_iso=p.get("time", ""),
-                    slot_start_ist=p.get("time", ""),
-                    slot_end_iso="",
+                    slot_start_iso=slot_start_iso,
+                    slot_start_ist=slot_start_iso,
+                    slot_end_iso=slot_end_iso,
                     advisor_id="",
-                    created_at_ist=p.get("date", ""),
+                    created_at_ist=datetime.now(IST).isoformat(),
                     status="booked",
                 )
                 asyncio.run(create_calendar_hold(mcp_payload))
@@ -133,16 +201,22 @@ class MCPClient:
                 from phase7_pillar_c_hitl.mcp.models import MCPPayload
                 from phase7_pillar_c_hitl.mcp.sheets_tool import _append_row_sync
                 p = action["payload"]
+                # slot_start_ist payload may be human-readable; derive ISO from date + slot/time
+                _slot_human = p.get("slot_start_ist", "") or p.get("slot", "")
+                slot_start_iso, _ = _coerce_slot_iso(
+                    p.get("date", "") or _slot_human,
+                    _slot_human,
+                )
                 mcp_payload = MCPPayload(
                     booking_code=p.get("booking_code", ""),
                     call_id=p.get("call_id", ""),
                     topic_key=p.get("topic_key", ""),
                     topic_label=p.get("topic_label", ""),
-                    slot_start_iso=p.get("slot_start_ist", ""),
-                    slot_start_ist=p.get("slot_start_ist", ""),
+                    slot_start_iso=slot_start_iso or _slot_human,
+                    slot_start_ist=_slot_human or slot_start_iso,
                     slot_end_iso="",
                     advisor_id=p.get("advisor_id", ""),
-                    created_at_ist=p.get("date", ""),
+                    created_at_ist=datetime.now(IST).isoformat(),
                     status=p.get("status", "booked"),
                 )
                 _append_row_sync(mcp_payload, event_id=None)
