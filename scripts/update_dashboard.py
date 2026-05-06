@@ -225,6 +225,7 @@ header h1 {
 
     DASHBOARD.write_text(html, encoding="utf-8")
     print(f"✅ dashboard.html updated — Week of {today_str}")
+    return html
 
 
 if __name__ == "__main__":

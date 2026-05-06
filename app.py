@@ -2314,10 +2314,12 @@ with tab2:
                     state["last_pipeline_run"] = ts; state["last_review_count"] = p_data["review_count"]
                     _state_path.write_text(json.dumps(state, indent=2))
                     p_data["pulse"] = pulse_data
-                    # Rebake dashboard.html so the analytics expander reflects fresh data
+                    # Rebake dashboard.html and cache HTML in session state
                     try:
                         from scripts.update_dashboard import run as _update_dashboard
-                        _update_dashboard()
+                        _dash_html_result = _update_dashboard()
+                        if _dash_html_result:
+                            st.session_state["dashboard_html"] = _dash_html_result
                     except Exception as _dash_exc:
                         print(f"[pipeline] dashboard update skipped: {_dash_exc}")
 
@@ -2689,6 +2691,14 @@ with tab2:
     # ── Full Analytics Dashboard (collapsed — available for deep review) ─────
     st.markdown("---")
     _dashboard = Path(__file__).parent / "data" / "dashboard.html"
+    _dashboard_template = Path(__file__).parent / "data" / "dashboard_template.html"
+    # If the generated file is missing (e.g. fresh Railway deploy, empty volume),
+    # seed it from the committed template so the display never crashes.
+    if not _dashboard.exists() and _dashboard_template.exists():
+        try:
+            _dashboard.write_text(_dashboard_template.read_text(encoding="utf-8"), encoding="utf-8")
+        except Exception:
+            pass
     _DASHBOARD_LIGHT_CSS = """<style>
 body{background:linear-gradient(135deg,#e8f0fe 0%,#dce8fb 50%,#e4eaf5 100%)!important;color:#1a2340!important;}
 body *{color:#1a2340!important;}
@@ -2773,7 +2783,9 @@ header p,header a{color:rgba(26,35,64,0.6)!important;}
                 if _pulse_src.exists():
                     try:
                         from scripts.update_dashboard import run as _update_dashboard
-                        _update_dashboard()
+                        _dash_html_result = _update_dashboard()
+                        if _dash_html_result:
+                            st.session_state["dashboard_html"] = _dash_html_result
                         st.toast("✅ Dashboard refreshed!", icon="✅")
                         st.rerun()
                     except Exception as _e:
@@ -2781,9 +2793,12 @@ header p,header a{color:rgba(26,35,64,0.6)!important;}
                 else:
                     st.warning("No pipeline data found. Run the pipeline first.")
 
-        if _dashboard.exists():
-            _dash_html = _dashboard.read_text(encoding="utf-8")
-            _dash_html = _dash_html.replace("</head>", _HIDE_DRAFT_TABS + "</head>", 1)
+        _dash_html_src = (
+            st.session_state.get("dashboard_html")
+            or (_dashboard.read_text(encoding="utf-8") if _dashboard.exists() else None)
+        )
+        if _dash_html_src:
+            _dash_html = _dash_html_src.replace("</head>", _HIDE_DRAFT_TABS + "</head>", 1)
             if _is_light:
                 _dash_html = _dash_html.replace("<body", '<body data-theme="light"', 1)
                 _dash_html = _dash_html.replace("</head>", _DASHBOARD_LIGHT_CSS + "</head>", 1)
@@ -2809,7 +2824,9 @@ header p,header a{color:rgba(26,35,64,0.6)!important;}
                 if _pulse_src.exists():
                     try:
                         from scripts.update_dashboard import run as _update_dashboard
-                        _update_dashboard()
+                        _dash_html_result = _update_dashboard()
+                        if _dash_html_result:
+                            st.session_state["dashboard_html"] = _dash_html_result
                         st.toast("✅ Dashboard refreshed!", icon="✅")
                         st.rerun()
                     except Exception as _e:
@@ -2817,9 +2834,12 @@ header p,header a{color:rgba(26,35,64,0.6)!important;}
                 else:
                     st.warning("No pipeline data found. Run the pipeline first.")
 
-        if _dashboard.exists():
-            _draft_html = _dashboard.read_text(encoding="utf-8")
-            _draft_html = _draft_html.replace("</head>", _HIDE_ANALYTICS_TABS + "</head>", 1)
+        _draft_html_src = (
+            st.session_state.get("dashboard_html")
+            or (_dashboard.read_text(encoding="utf-8") if _dashboard.exists() else None)
+        )
+        if _draft_html_src:
+            _draft_html = _draft_html_src.replace("</head>", _HIDE_ANALYTICS_TABS + "</head>", 1)
             # Make Approval Gate the active tab in this embed
             _draft_html = _draft_html.replace(
                 'id="tab-gate" class="tab-content"',
