@@ -1743,7 +1743,7 @@ if st.session_state.get("_sync_active"):
         fund_name   = mfapi_queue.pop(0)
         search_name = FUND_SEARCH_TERMS[fund_name]
         all_funds   = st.session_state.get("_sync_mfapi_all_funds", [])
-        result      = {"fund": fund_name, "url": f"mfapi.in/{fund_name}", "source": "mfapi",
+        result      = {"fund": fund_name, "url": f"api.mfapi.in/mf/{fund_name}", "source": "mfapi",
                        "chunks": 0, "nav": "", "status": "error", "error": ""}
         try:
             code = _find_scheme_code(all_funds, search_name)
