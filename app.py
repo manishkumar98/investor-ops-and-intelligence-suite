@@ -2958,8 +2958,14 @@ with tab3:
     import os as _os
     if not _os.environ.get("GMAIL_ADDRESS"):
         _missing.append("GMAIL_ADDRESS not set")
-    if not _os.environ.get("GMAIL_APP_PASSWORD"):
-        _missing.append("GMAIL_APP_PASSWORD not set")
+    # Either Brevo (HTTPS, works on Railway) or Gmail SMTP (local) is required.
+    _has_brevo = bool(_os.environ.get("BREVO_API_KEY", "").strip())
+    _has_smtp  = bool(_os.environ.get("GMAIL_APP_PASSWORD", "").strip())
+    if not _has_brevo and not _has_smtp:
+        _missing.append(
+            "no email provider configured "
+            "(set BREVO_API_KEY for Railway or GMAIL_APP_PASSWORD for local)"
+        )
     if _missing:
         st.warning(
             "⚠ Action Centre will not deliver emails until the following are "

@@ -1,4 +1,5 @@
 import json
+import os
 import re
 import smtplib
 import uuid
@@ -9,6 +10,7 @@ from email.mime.text import MIMEText
 from pathlib import Path
 
 import pytz
+import requests
 
 MCP_STATE_PATH = Path(__file__).resolve().parents[1] / "data" / "mcp_state.json"
 IST = pytz.timezone("Asia/Kolkata")
@@ -70,10 +72,61 @@ def _coerce_slot_iso(date_str: str, time_str: str) -> tuple[str, str]:
     return start_aware.isoformat(), end_aware.isoformat()
 
 
-def _send_advisor_email_live(payload: dict) -> str:
-    """Send the rich advisor pre-booking email (HTML + plain fallback) via Gmail SMTP.
+def _send_via_brevo(sender: str, sender_name: str, to_email: str, to_name: str,
+                    subject: str, html_body: str, plain_body: str) -> str:
+    """
+    Send an email via Brevo's HTTPS REST API.
 
-    Returns a short status string ("delivered to <addr>") on success.
+    Cloud platforms like Railway block outbound SMTP (port 587/465) on most
+    plans, which surfaces as 'Network is unreachable'.  Brevo uses HTTPS
+    (port 443) so it goes through.  Requires BREVO_API_KEY env var.
+
+    Returns 'delivered via brevo to <addr>' on success.
+    """
+    api_key = os.environ.get("BREVO_API_KEY", "").strip()
+    if not api_key:
+        raise RuntimeError("BREVO_API_KEY not set")
+    resp = requests.post(
+        "https://api.brevo.com/v3/smtp/email",
+        headers={
+            "accept": "application/json",
+            "api-key": api_key,
+            "content-type": "application/json",
+        },
+        json={
+            "sender":      {"name": sender_name, "email": sender},
+            "to":          [{"email": to_email, "name": to_name or to_email}],
+            "subject":     subject,
+            "htmlContent": html_body,
+            "textContent": plain_body,
+        },
+        timeout=20,
+    )
+    if not resp.ok:
+        raise RuntimeError(f"brevo API {resp.status_code}: {resp.text[:200]}")
+    return f"delivered via brevo to {to_email}"
+
+
+def _send_via_smtp(sender: str, password: str, smtp_host: str, smtp_port: int,
+                   to_email: str, msg_bytes: bytes) -> str:
+    """SMTP send. Used as a fallback when Brevo is unavailable."""
+    with smtplib.SMTP(smtp_host, smtp_port, timeout=20) as smtp:
+        smtp.ehlo()
+        smtp.starttls()
+        smtp.login(sender, password)
+        refused = smtp.sendmail(sender, [to_email], msg_bytes)
+    if refused:
+        raise RuntimeError(f"recipient(s) refused by SMTP: {refused}")
+    return f"delivered via smtp to {to_email}"
+
+
+def _send_advisor_email_live(payload: dict) -> str:
+    """Send the rich advisor pre-booking email (HTML + plain fallback).
+
+    Tries Brevo HTTPS API first (works on Railway / cloud platforms that
+    block outbound SMTP), then falls back to Gmail SMTP for local dev.
+
+    Returns a short status string ("delivered via <provider> to <addr>").
     Raises with a clear message on any misconfiguration so the HITL UI
     surfaces it instead of silently showing 'Approved' with no email.
     """
@@ -82,33 +135,45 @@ def _send_advisor_email_live(payload: dict) -> str:
 
     if not config.gmail_address:
         raise RuntimeError("GMAIL_ADDRESS env var not set")
-    if not config.gmail_app_password:
-        raise RuntimeError("GMAIL_APP_PASSWORD env var not set")
     if not config.advisor_email:
         raise RuntimeError("ADVISOR_EMAIL env var not set (and GMAIL_ADDRESS empty)")
 
     subject = payload.get("subject", "Advisor Pre-Booking")
     body    = payload.get("body", "")
+    html    = _advisor_html(payload)
 
+    # ── Path 1: Brevo HTTPS (preferred on Railway) ─────────────────────────
+    if os.environ.get("BREVO_API_KEY", "").strip():
+        return _send_via_brevo(
+            sender=config.gmail_address,
+            sender_name="AdvisorBot",
+            to_email=config.advisor_email,
+            to_name=config.advisor_email,
+            subject=subject,
+            html_body=html,
+            plain_body=body,
+        )
+
+    # ── Path 2: SMTP fallback (works locally, blocked on Railway) ──────────
+    if not config.gmail_app_password:
+        raise RuntimeError(
+            "Neither BREVO_API_KEY nor GMAIL_APP_PASSWORD is set. "
+            "On Railway, set BREVO_API_KEY (SMTP is blocked)."
+        )
     msg = MIMEMultipart("alternative")
     msg["From"]    = f"AdvisorBot <{config.gmail_address}>"
     msg["To"]      = config.advisor_email
     msg["Subject"] = subject
-
     msg.attach(MIMEText(body, "plain"))
-    msg.attach(MIMEText(_advisor_html(payload), "html"))
-
-    with smtplib.SMTP(config.gmail_smtp_host, config.gmail_smtp_port, timeout=20) as smtp:
-        smtp.ehlo()
-        smtp.starttls()
-        smtp.login(config.gmail_address, config.gmail_app_password)
-        # sendmail returns dict of refused recipients; empty == fully delivered.
-        refused = smtp.sendmail(
-            config.gmail_address, [config.advisor_email], msg.as_bytes()
-        )
-    if refused:
-        raise RuntimeError(f"recipient(s) refused by SMTP: {refused}")
-    return f"delivered to {config.advisor_email}"
+    msg.attach(MIMEText(html, "html"))
+    return _send_via_smtp(
+        sender=config.gmail_address,
+        password=config.gmail_app_password,
+        smtp_host=config.gmail_smtp_host,
+        smtp_port=config.gmail_smtp_port,
+        to_email=config.advisor_email,
+        msg_bytes=msg.as_bytes(),
+    )
 
 
 @dataclass

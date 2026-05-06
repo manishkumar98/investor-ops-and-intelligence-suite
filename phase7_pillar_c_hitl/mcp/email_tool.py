@@ -378,12 +378,15 @@ def send_user_confirmation(
     slot_ist: str,
     date_str: str = "",
 ) -> dict:
-    """Send an appointment confirmation email to the user via SMTP."""
-    msg = MIMEMultipart("alternative")
-    msg["From"]    = f"AdvisorBot <{config.gmail_address}>"
-    msg["To"]      = to_email
-    msg["Subject"] = f"Appointment Confirmed — {booking_code} | {topic_label}"
+    """Send an appointment confirmation email to the user.
 
+    Uses Brevo HTTPS API when BREVO_API_KEY is set (Railway-friendly),
+    otherwise falls back to Gmail SMTP for local dev.
+    """
+    import os as _os
+    import requests as _requests
+
+    subject = f"Appointment Confirmed — {booking_code} | {topic_label}"
     plain = (
         f"Dear {to_name},\n\n"
         f"Your advisor appointment is confirmed.\n\n"
@@ -395,19 +398,50 @@ def send_user_confirmation(
         f"This is an informational consultation only — not investment advice.\n\n"
         f"To reschedule or cancel, call us and quote your booking code.\n"
     )
-    msg.attach(MIMEText(plain, "plain"))
-    msg.attach(MIMEText(
-        _user_confirmation_html(to_name, booking_code, topic_label, slot_ist, date_str),
-        "html"
-    ))
+    html = _user_confirmation_html(to_name, booking_code, topic_label, slot_ist, date_str)
 
-    with smtplib.SMTP(config.gmail_smtp_host, config.gmail_smtp_port) as smtp:
+    # ── Path 1: Brevo HTTPS (Railway-friendly) ─────────────────────────────
+    brevo_key = _os.environ.get("BREVO_API_KEY", "").strip()
+    if brevo_key:
+        resp = _requests.post(
+            "https://api.brevo.com/v3/smtp/email",
+            headers={
+                "accept": "application/json",
+                "api-key": brevo_key,
+                "content-type": "application/json",
+            },
+            json={
+                "sender":      {"name": "AdvisorBot", "email": config.gmail_address},
+                "to":          [{"email": to_email, "name": to_name or to_email}],
+                "subject":     subject,
+                "htmlContent": html,
+                "textContent": plain,
+            },
+            timeout=20,
+        )
+        if not resp.ok:
+            raise RuntimeError(f"brevo API {resp.status_code}: {resp.text[:200]}")
+        return {"to": to_email, "booking_code": booking_code, "provider": "brevo"}
+
+    # ── Path 2: SMTP fallback (works locally, blocked on Railway) ──────────
+    if not config.gmail_app_password:
+        raise RuntimeError(
+            "Neither BREVO_API_KEY nor GMAIL_APP_PASSWORD is set. "
+            "On Railway, set BREVO_API_KEY (SMTP is blocked)."
+        )
+    msg = MIMEMultipart("alternative")
+    msg["From"]    = f"AdvisorBot <{config.gmail_address}>"
+    msg["To"]      = to_email
+    msg["Subject"] = subject
+    msg.attach(MIMEText(plain, "plain"))
+    msg.attach(MIMEText(html, "html"))
+    with smtplib.SMTP(config.gmail_smtp_host, config.gmail_smtp_port, timeout=20) as smtp:
         smtp.ehlo()
         smtp.starttls()
         smtp.login(config.gmail_address, config.gmail_app_password)
         smtp.sendmail(config.gmail_address, to_email, msg.as_bytes())
 
-    return {"to": to_email, "booking_code": booking_code}
+    return {"to": to_email, "booking_code": booking_code, "provider": "smtp"}
 
 
 def send_waitlist_notification(
