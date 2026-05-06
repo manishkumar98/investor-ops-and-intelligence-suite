@@ -110,6 +110,7 @@ def _groq_transcribe(audio_bytes: bytes) -> TranscriptResult:
                     model="whisper-large-v3",
                     file=("audio.wav", af, "audio/wav"),
                     response_format="verbose_json",
+                    timeout=10.0,
                 )
                 if whisper_lang:
                     kwargs["language"] = whisper_lang

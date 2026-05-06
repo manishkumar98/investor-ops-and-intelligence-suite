@@ -94,6 +94,7 @@ def _make_groq_callable():
                 messages=[{"role": "system", "content": system}, {"role": "user", "content": user}],
                 temperature=0.0,
                 max_tokens=512,
+                timeout=8.0,
             )
             return resp.choices[0].message.content or ""
         return _call
@@ -115,6 +116,7 @@ def _make_anthropic_callable():
                 max_tokens=512,
                 system=system,
                 messages=[{"role": "user", "content": user}],
+                timeout=8.0,
             )
             return msg.content[0].text if msg.content else ""
         return _call
