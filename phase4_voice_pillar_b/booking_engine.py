@@ -291,7 +291,26 @@ def is_valid_booking_code(code: str) -> bool:
 
 
 def load_calendar(calendar_path: str) -> list[dict]:
-    data = json.loads(Path(calendar_path).read_text())
+    p = Path(calendar_path)
+    if not p.exists():
+        # Generate a default 2-week rolling calendar so the voice agent always starts
+        from datetime import datetime, timedelta
+        slots = []
+        base = datetime.now().replace(hour=10, minute=0, second=0, microsecond=0)
+        for day_offset in range(1, 15):
+            d = base + timedelta(days=day_offset)
+            if d.weekday() < 5:  # Mon–Fri only
+                for hour in [10, 14, 16]:
+                    start = d.replace(hour=hour)
+                    slots.append({
+                        "slot_id": f"S{day_offset}{hour}",
+                        "start":   start.isoformat(),
+                        "end":     (start + timedelta(hours=1)).isoformat(),
+                        "advisor": "ADV-001",
+                    })
+        p.parent.mkdir(parents=True, exist_ok=True)
+        p.write_text(json.dumps({"slots": slots}, indent=2))
+    data = json.loads(p.read_text())
     if isinstance(data, dict):
         return data.get("available_slots", data.get("slots", list(data.values())[0] if data else []))
     return data
