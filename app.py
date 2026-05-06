@@ -61,7 +61,7 @@ def _show_reset_dialog(had_mcp: bool) -> None:
     )
     st.markdown("---")
     st.caption("All three pillars are ready for a fresh demo.")
-    st.button("✅ Got it, close", use_container_width=True, type="primary", on_click=lambda: None)
+    st.button("✅ Got it, close", use_container_width=True, type="primary", on_click=st.rerun)
 
 
 @st.dialog("🔄 Knowledge Base Sync — Complete", width="large")
@@ -102,7 +102,7 @@ def _show_sync_dialog(done: list, stopped: bool) -> None:
     else:
         st.caption("ChromaDB updated. Local files from `data/raw/` also re-ingested. FAQ and Fee Explainer are now current.")
 
-    st.button("✅ Got it, close", use_container_width=True, type="primary", on_click=lambda: None)
+    st.button("✅ Got it, close", use_container_width=True, type="primary", on_click=st.rerun)
 
 
 # ── Shared download helpers ───────────────────────────────────────────────────
@@ -197,7 +197,7 @@ def _show_pipeline_stop_dialog(info: dict) -> None:
         "**Note on saved data:** Partially-completed pipeline data (e.g. scraped reviews) "
         "is preserved on disk. A fresh run will overwrite it from Step 1."
     )
-    st.button("✅ Got it, close", use_container_width=True, type="primary", on_click=lambda: None)
+    st.button("✅ Got it, close", use_container_width=True, type="primary", on_click=st.rerun)
 
 
 @st.dialog("📊 Weekly Pipeline — Complete", width="large")
@@ -243,7 +243,7 @@ def _show_pipeline_dialog(result: dict) -> None:
         "The advisor email Market Context will be outdated. The fee bullets may not match the current top issue."
     )
 
-    st.button("✅ Got it, close", use_container_width=True, type="primary", on_click=lambda: None)
+    st.button("✅ Got it, close", use_container_width=True, type="primary", on_click=st.rerun)
 
 
 def _build_css(is_light: bool) -> str:
