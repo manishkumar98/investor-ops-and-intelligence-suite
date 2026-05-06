@@ -2671,10 +2671,17 @@ with tab2:
                             _repeat_words = ["repeat","again","say that again","pardon","sorry","excuse me","come again","huh","what"]
                             if any(w in transcript.lower() for w in _repeat_words) and len(transcript) < 40:
                                 st.session_state["va2_tts_played"] = ""   # replay last response
+                            elif not transcript or not transcript.strip():
+                                # STT returned empty (all providers failed/timed out) — ask to repeat
+                                _retry_msg = "Sorry, I didn't catch that. Could you say it again?"
+                                st.session_state["va2_agent_speech"] = _retry_msg
+                                st.session_state["va2_tts_audio"]    = None
+                                st.session_state["va2_tts_played"]   = ""
+                                st.session_state["va2_user_text"]    = ""
                             else:
                                 st.session_state["va2_backend_status"] = "Processing…"
-                                st.session_state["va2_user_text"] = transcript or ""
-                                resp_text, resp_audio = agent.step(transcript or "")
+                                st.session_state["va2_user_text"] = transcript
+                                resp_text, resp_audio = agent.step(transcript)
                                 st.session_state["va2_agent_speech"]  = resp_text
                                 st.session_state["va2_tts_audio"]     = resp_audio
                                 st.session_state["va2_tts_played"]    = ""
