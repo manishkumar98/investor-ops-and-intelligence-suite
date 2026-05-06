@@ -11,7 +11,8 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 DASHBOARD = ROOT / "data" / "dashboard.html"
-TEMPLATE  = ROOT / "data" / "dashboard_template.html"  # read-only source; never overwritten
+# Template lives in scripts/ (never under data/) so Railway volume can't shadow it
+TEMPLATE  = Path(__file__).resolve().parent / "dashboard_template.html"
 DATA = ROOT / "data"
 
 _CAT_COLORS = ["#4ade80", "#60a5fa", "#f59e0b", "#f472b6", "#a78bfa"]
@@ -223,8 +224,12 @@ header h1 {
 </style>"""
     html = html.replace("</head>", _THEME + "\n</head>")
 
-    DASHBOARD.write_text(html, encoding="utf-8")
-    print(f"✅ dashboard.html updated — Week of {today_str}")
+    try:
+        DASHBOARD.parent.mkdir(parents=True, exist_ok=True)
+        DASHBOARD.write_text(html, encoding="utf-8")
+        print(f"✅ dashboard.html updated — Week of {today_str}")
+    except Exception as _e:
+        print(f"[update_dashboard] disk write skipped: {_e}")
     return html
 
 
