@@ -409,6 +409,43 @@ class VoiceAgent:
             return msg, _tts(msg)
         self._no_input_count = 0  # reset on valid input
 
+        # ── Global end_call intercept (works in any state) ────────────────────
+        _low = utterance.lower().strip()
+        _end_phrases = (
+            "bye", "goodbye", "good bye", "end the call", "hang up",
+            "i'm done", "i am done", "that's all", "that is all",
+            "nothing else", "no thanks", "no thank you", "never mind",
+            "forget it", "not interested", "leave it",
+        )
+        if self.state not in ("BOOKED",) and any(p in _low for p in _end_phrases):
+            self.state = "BOOKED"
+            farewell = "Thank you for calling. Feel free to call back whenever you're ready. Goodbye!"
+            self._log_interaction(utterance, farewell)
+            return farewell, _tts(farewell)
+
+        # ── Global intent-switch intercept (cancel / reschedule) ──────────────
+        # Mid-reschedule slot collection (TIMEPREF/OFFERSLOTS/CONFIRM) is excluded —
+        # "Monday at 10am" can mis-classify as book_new but we must stay in flow.
+        _mid_reschedule_slot = (
+            self._is_reschedule
+            and self.state in ("TIMEPREF", "OFFERSLOTS", "CONFIRM")
+        )
+        if (self.state not in ("GREET", "INTENT", "BOOKED",
+                               "RESCHEDULE_CODE", "CANCEL_CODE", "CANCEL_CONFIRM")
+                and not _mid_reschedule_slot):
+            _switch_keywords = {
+                "cancel":     ("cancel my", "cancel the booking", "want to cancel",
+                               "cancel my appointment", "cancel my booking"),
+                "reschedule": ("reschedule", "change my appointment",
+                               "move my booking", "different day instead"),
+            }
+            for _new_intent, _kws in _switch_keywords.items():
+                if any(k in _low for k in _kws):
+                    self.state = "INTENT"
+                    _resp = self._dispatch(utterance)
+                    self._log_interaction(utterance, _resp)
+                    return _resp, _tts(_resp)
+
         # ── PII scrub input ───────────────────────────────────────────────────
         pii_result = scrub_pii(utterance)
         clean_input = pii_result.cleaned_text
@@ -715,9 +752,18 @@ class VoiceAgent:
 
     @staticmethod
     def _extract_code(text: str) -> str:
-        """Extract booking code like NL-AB23 from user utterance. Returns '' if none found."""
+        """Extract booking code from utterance. Returns '' if none found.
+
+        Handles 'NL-AB23', 'N L A B 2 3' (spoken), 'EN EL AB23' (Whisper Indian-English
+        mishear of N-L), via the robust regex set in intent_classifier._extract_booking_code.
+        """
+        # First try the strict pattern
         m = _CODE_RE.search(text)
-        return m.group(1).upper() if m else ""
+        if m:
+            return m.group(1).upper()
+        # Fall back to spoken-form parser
+        from phase4_voice_pillar_b.intent_classifier import _extract_booking_code
+        return (_extract_booking_code(text) or "").upper()
 
     @staticmethod
     def _validate_booking_code(code: str) -> str | None:
