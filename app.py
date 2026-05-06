@@ -1805,10 +1805,11 @@ st.components.v1.html("""<script>
 # ══════════════════════════════════════════════════════════════════════════════
 _SUPPORTED_FUNDS = [
     {
-        "name": "SBI Bluechip Fund",
+        "name": "SBI Large Cap Fund",
         "category": "Large Cap Equity",
         "risk": "Moderate",
         "coverage": "Exit load, expense ratio, SIP minimums, AUM, fund manager",
+        "former_names": ["SBI Bluechip Fund"],
     },
     {
         "name": "SBI Flexicap Fund",
@@ -1871,10 +1872,11 @@ _SUPPORTED_FUNDS = [
         "coverage": "Equity-debt mix, rebalancing strategy, expense ratio",
     },
     {
-        "name": "SBI Magnum Global Fund",
+        "name": "SBI MNC Fund",
         "category": "Thematic / MNC",
         "risk": "High",
         "coverage": "MNC theme, global exposure, exit load & SIP details",
+        "former_names": ["SBI Magnum Global Fund"],
     },
 ]
 

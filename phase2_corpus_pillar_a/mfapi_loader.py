@@ -32,7 +32,7 @@ FUND_SCHEME_CODES: dict[str, int] = {
     "SBI Technology Opportunities Fund":    120578,   # SBI TECHNOLOGY OPPORTUNITIES FUND - DIRECT PLAN - GROWTH
     "SBI Healthcare Opportunities Fund":    119783,   # SBI HEALTHCARE OPPORTUNITIES FUND - DIRECT PLAN -GROWTH
     "SBI Equity Hybrid Fund":               119609,   # SBI EQUITY HYBRID FUND - DIRECT PLAN - Growth
-    "SBI Magnum Global Fund":               120575,   # SBI CONSUMPTION OPPORTUNITIES FUND - DIRECT PLAN - GROWTH (renamed)
+    "SBI MNC Fund":                         120575,   # SBI MNC FUND - DIRECT PLAN - GROWTH (formerly SBI Magnum Global Fund)
 }
 
 # Keep FUND_SEARCH_TERMS as an alias so existing code that references it still works

@@ -37,7 +37,10 @@ _SLUG_MAP: dict[str, str] = {
     "sbi-technology-opportunities-fund":    "SBI Technology Opportunities Fund",
     "sbi-healthcare-opportunities-fund":    "SBI Healthcare Opportunities Fund",
     "sbi-equity-hybrid-fund":               "SBI Equity Hybrid Fund",
-    "sbi-magnum-global-fund":               "SBI Magnum Global Fund",
+    "sbi-magnum-global-fund":               "SBI MNC Fund",
+    "sbi-mnc-fund":                         "SBI MNC Fund",
+    "sbi-large-cap-fund":                   "SBI Large Cap Fund",
+    "sbi-bluechip-fund":                    "SBI Large Cap Fund",
 }
 
 # Slug map for raw local file names (stem → canonical name)
@@ -55,7 +58,7 @@ _FILE_SLUG_MAP: dict[str, str] = {
     "sbi_technology_opportunities_fund":    "SBI Technology Opportunities Fund",
     "sbi_healthcare_opportunities_fund":    "SBI Healthcare Opportunities Fund",
     "sbi_equity_hybrid_fund":               "SBI Equity Hybrid Fund",
-    "sbi_magnum_global_fund":               "SBI Magnum Global Fund",
+    "sbi_magnum_global_fund":               "SBI MNC Fund",
 }
 
 # ── Field patterns ─────────────────────────────────────────────────────────────
