@@ -215,7 +215,13 @@ class VoiceAgent:
 
     @staticmethod
     def _parse_month_day(text: str) -> tuple[int | None, int | None]:
-        """Parse '9th May', 'May 9', '9 may' → (day, month) ints. Returns (None, None) if not found."""
+        """
+        Parse date references → (day, month) ints.  Returns (None, None) if not found.
+
+        Handles:
+          '9th May' / 'May 9' / '9 may'      → month-name + ordinal
+          '5/9' / '5-9' / '5/9/2026'          → DD/MM or DD-MM (day first, Indian convention)
+        """
         _MONTHS = {
             "jan": 1, "january": 1, "feb": 2, "february": 2,
             "mar": 3, "march": 3, "apr": 4, "april": 4,
@@ -226,17 +232,24 @@ class VoiceAgent:
         }
         low = text.lower()
         month_pat = '|'.join(_MONTHS.keys())
+        # "9th May" or "May 9th"
         m = re.search(rf'\b(\d{{1,2}})(?:st|nd|rd|th)?\s+({month_pat})\b', low)
         if m:
             day, month_str = int(m.group(1)), m.group(2)
-        else:
-            m = re.search(rf'\b({month_pat})\s+(\d{{1,2}})(?:st|nd|rd|th)?\b', low)
-            if m:
-                month_str, day = m.group(1), int(m.group(2))
-            else:
-                return None, None
-        month = _MONTHS.get(month_str)
-        return (day, month) if month and 1 <= day <= 31 else (None, None)
+            month = _MONTHS.get(month_str)
+            return (day, month) if month and 1 <= day <= 31 else (None, None)
+        m = re.search(rf'\b({month_pat})\s+(\d{{1,2}})(?:st|nd|rd|th)?\b', low)
+        if m:
+            month_str, day = m.group(1), int(m.group(2))
+            month = _MONTHS.get(month_str)
+            return (day, month) if month and 1 <= day <= 31 else (None, None)
+        # "5/9" or "5-9" or "5/9/2026"  (DD/MM Indian convention)
+        m = re.search(r'\b(\d{1,2})[/\-](\d{1,2})(?:[/\-]\d{2,4})?\b', low)
+        if m:
+            day, month = int(m.group(1)), int(m.group(2))
+            if 1 <= day <= 31 and 1 <= month <= 12:
+                return day, month
+        return None, None
 
     @staticmethod
     def _slot_hour(slot: dict) -> int:
@@ -880,10 +893,15 @@ class VoiceAgent:
                 ]
 
                 if ordinal_day is not None:
-                    _target_month = _md_month  # may be None if parsed from weekday/ordinal
+                    _target_month = _md_month
+                    if _target_month is None:
+                        # Bare ordinal like "the 15th" — assume current month; roll to next if date passed
+                        _target_month = _today.month
+                        if ordinal_day < _today.day:
+                            _target_month = (_today.month % 12) + 1
                     day_filtered = [s for s in pool
                                     if (dt := _slot_start_dt(s)) and dt.day == ordinal_day
-                                    and (_target_month is None or dt.month == _target_month)]
+                                    and dt.month == _target_month]
                     if day_filtered:
                         pool = day_filtered
                 elif new_day:

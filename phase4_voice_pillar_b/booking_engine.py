@@ -19,8 +19,11 @@ _DAY_MAP = {
 }
 
 _TIME_BAND_MAP = {
-    "morning": (9, 12), "afternoon": (12, 17),
-    "evening": (17, 20), "night": (18, 21),
+    "early morning": (8, 10), "late morning": (10, 12),
+    "morning": (9, 12),
+    "early afternoon": (12, 14), "late afternoon": (15, 18),
+    "afternoon": (12, 17),
+    "early evening": (17, 19), "evening": (17, 20), "night": (18, 21),
     "noon": (12, 14), "midday": (11, 14),
     "am": (9, 12), "pm": (12, 17),
 }
@@ -34,12 +37,16 @@ _MONTH_MAP = {
 
 # Band → implied am/pm and a sensible display hour
 _BAND_AMPM = {
-    "morning": "am", "noon": "pm", "midday": "pm",
-    "afternoon": "pm", "evening": "pm", "night": "pm",
+    "early morning": "am", "late morning": "am", "morning": "am",
+    "noon": "pm", "midday": "pm",
+    "early afternoon": "pm", "late afternoon": "pm", "afternoon": "pm",
+    "early evening": "pm", "evening": "pm", "night": "pm",
 }
 _BAND_DEFAULT_HOUR = {
-    "morning": 10, "noon": 12, "midday": 12,
-    "afternoon": 14, "evening": 18, "night": 20,
+    "early morning": 8, "late morning": 11, "morning": 10,
+    "noon": 12, "midday": 12,
+    "early afternoon": 13, "late afternoon": 16, "afternoon": 14,
+    "early evening": 17, "evening": 18, "night": 20,
 }
 
 

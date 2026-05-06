@@ -180,6 +180,9 @@ def _extract_day_preference(low: str) -> str | None:
     for day in _WEEKDAY_NAMES:
         if f"next {day}" in low:
             return f"next {day}"
+    for day in _WEEKDAY_NAMES:
+        if f"this {day}" in low:
+            return f"this {day}"
     m = _DATE_REGEX.search(low)
     if m:
         return m.group(0).strip()
