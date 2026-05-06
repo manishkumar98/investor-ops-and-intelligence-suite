@@ -2294,7 +2294,7 @@ with tab2:
                     analytics["generated_at"] = _dt2.now().isoformat()
                     analytics["review_count"] = p_data["review_count"]
                     p_data["analytics"] = analytics
-                    Path(__file__).parent / "data" / "analytics_latest.json".write_text(json.dumps(analytics, indent=2, ensure_ascii=False))
+                    (Path(__file__).parent / "data" / "analytics_latest.json").write_text(json.dumps(analytics, indent=2, ensure_ascii=False))
 
                 elif step_key == "fee":
                     from phase3_review_pillar_b.fee_explainer import explain
@@ -2307,11 +2307,12 @@ with tab2:
                     ts = _dt3.now().isoformat()
                     pulse_data = {"themes": cr.get("themes",[]), "top_3_themes": cr.get("top_3",[]), "quotes": cr.get("quotes",[]), "weekly_note": cr.get("weekly_note",""), "action_ideas": cr.get("action_ideas",[]), "generated_at": ts, "review_count": p_data["review_count"]}
                     fee_data   = {"scenario": fee.get("scenario",""), "bullets": fee.get("bullets",[]), "sources": fee.get("sources",[]), "checked": fee.get("checked",""), "generated_at": ts}
-                    Path(__file__).parent / "data" / "pulse_latest.json".write_text(json.dumps(pulse_data, indent=2, ensure_ascii=False))
-                    Path(__file__).parent / "data" / "fee_latest.json".write_text(json.dumps(fee_data, indent=2, ensure_ascii=False))
-                    state = json.loads(Path(__file__).parent / "data" / "system_state.json".read_text()) if Path(__file__).parent / "data" / "system_state.json".exists() else {}
+                    (Path(__file__).parent / "data" / "pulse_latest.json").write_text(json.dumps(pulse_data, indent=2, ensure_ascii=False))
+                    (Path(__file__).parent / "data" / "fee_latest.json").write_text(json.dumps(fee_data, indent=2, ensure_ascii=False))
+                    _state_path = Path(__file__).parent / "data" / "system_state.json"
+                    state = json.loads(_state_path.read_text()) if _state_path.exists() else {}
                     state["last_pipeline_run"] = ts; state["last_review_count"] = p_data["review_count"]
-                    Path(__file__).parent / "data" / "system_state.json".write_text(json.dumps(state, indent=2))
+                    _state_path.write_text(json.dumps(state, indent=2))
                     p_data["pulse"] = pulse_data
                     # Rebake dashboard.html so the analytics expander reflects fresh data
                     try:
