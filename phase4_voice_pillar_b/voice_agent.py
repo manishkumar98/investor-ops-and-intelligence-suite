@@ -214,6 +214,31 @@ class VoiceAgent:
         return None
 
     @staticmethod
+    def _parse_month_day(text: str) -> tuple[int | None, int | None]:
+        """Parse '9th May', 'May 9', '9 may' → (day, month) ints. Returns (None, None) if not found."""
+        _MONTHS = {
+            "jan": 1, "january": 1, "feb": 2, "february": 2,
+            "mar": 3, "march": 3, "apr": 4, "april": 4,
+            "may": 5, "jun": 6, "june": 6, "jul": 7, "july": 7,
+            "aug": 8, "august": 8, "sep": 9, "september": 9,
+            "oct": 10, "october": 10, "nov": 11, "november": 11,
+            "dec": 12, "december": 12,
+        }
+        low = text.lower()
+        month_pat = '|'.join(_MONTHS.keys())
+        m = re.search(rf'\b(\d{{1,2}})(?:st|nd|rd|th)?\s+({month_pat})\b', low)
+        if m:
+            day, month_str = int(m.group(1)), m.group(2)
+        else:
+            m = re.search(rf'\b({month_pat})\s+(\d{{1,2}})(?:st|nd|rd|th)?\b', low)
+            if m:
+                month_str, day = m.group(1), int(m.group(2))
+            else:
+                return None, None
+        month = _MONTHS.get(month_str)
+        return (day, month) if month and 1 <= day <= 31 else (None, None)
+
+    @staticmethod
     def _slot_hour(slot: dict) -> int:
         from phase4_voice_pillar_b.booking_engine import _slot_start_dt
         dt = _slot_start_dt(slot)
@@ -825,12 +850,15 @@ class VoiceAgent:
         new_day    = new_pref.get("day")
         new_period = new_pref.get("period")
 
-        has_new_day    = new_day and new_day != self._ctx.day_preference
+        # Detect "9th May", "May 9th" etc. that extract_time_pref misses
+        _md_day, _md_month = self._parse_month_day(utterance)
+        specific_hour = self._parse_specific_hour(utterance)
+
+        has_new_day    = bool(new_day and new_day != self._ctx.day_preference) or _md_day is not None
         has_new_period = new_period and new_period != self._ctx.time_preference
 
         if wants_change or has_new_day or has_new_period:
-            specific_hour = self._parse_specific_hour(utterance)
-            ordinal_day   = self._parse_ordinal_day(new_day) if new_day else None
+            ordinal_day = _md_day if _md_day is not None else (self._parse_ordinal_day(new_day) if new_day else None)
 
             if has_new_day or has_new_period:
                 if new_day:
@@ -852,8 +880,10 @@ class VoiceAgent:
                 ]
 
                 if ordinal_day is not None:
+                    _target_month = _md_month  # may be None if parsed from weekday/ordinal
                     day_filtered = [s for s in pool
-                                    if (dt := _slot_start_dt(s)) and dt.day == ordinal_day]
+                                    if (dt := _slot_start_dt(s)) and dt.day == ordinal_day
+                                    and (_target_month is None or dt.month == _target_month)]
                     if day_filtered:
                         pool = day_filtered
                 elif new_day:
