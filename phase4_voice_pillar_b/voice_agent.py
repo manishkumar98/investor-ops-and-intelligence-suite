@@ -6,9 +6,12 @@ Integrates:
 - DialogueContext (M3 phase2 state tracker)
 - RAG injector for what_to_prepare (M3 phase0)
 - Intent classifier with Groq→Anthropic→rule-based chain (M3 phase2)
-- 8-state FSM compatible with app.py interface
+- 11-state FSM: GREET / INTENT / TOPIC / TIMEPREF / OFFERSLOTS / CONFIRM /
+                BOOKED / WAITLIST_OFFER / WAITLIST /
+                RESCHEDULE_CODE / CANCEL_CODE / CANCEL_CONFIRM
 """
 import json
+import re
 import uuid
 from datetime import datetime
 from pathlib import Path
@@ -19,7 +22,7 @@ from phase4_voice_pillar_b.slot_filler import extract_topic, extract_time_pref
 from phase4_voice_pillar_b.booking_engine import load_calendar, book, _to_12h
 from phase4_voice_pillar_b.pii_scrubber import scrub_pii
 from phase4_voice_pillar_b.compliance_guard import ComplianceGuard
-from phase4_voice_pillar_b.dialogue_states import DialogueContext, DialogueState, TOPIC_LABELS, IST  # IST used in __init__
+from phase4_voice_pillar_b.dialogue_states import DialogueContext, DialogueState, TOPIC_LABELS, IST
 from phase4_voice_pillar_b.rag_injector import get_rag_context
 
 _guard = ComplianceGuard()
@@ -28,6 +31,12 @@ DISCLAIMER = (
     "This is an informational service only — not investment advice. "
     "I'll help you book a tentative call with a human advisor."
 )
+
+_CODE_RE = re.compile(r'\b([A-Z]{2}-[A-Z0-9]{4,6})\b', re.IGNORECASE)
+
+MAX_NO_INPUT    = 3   # consecutive empty turns before graceful exit
+MAX_TOPIC_RETRY = 4   # topic extraction failures before circuit-breaker
+MAX_CODE_RETRY  = 3   # bad/unknown booking codes before circuit-breaker
 
 
 def _slot_display(slot: dict) -> str:
@@ -70,24 +79,42 @@ def _tts(text: str) -> bytes | None:
 
 
 class VoiceAgent:
-    """8-state FSM: GREET → INTENT → TOPIC → TIMEPREF → OFFERSLOTS → CONFIRM → BOOKED / WAITLIST."""
+    """11-state FSM voice booking agent.
 
-    STATES = ("GREET", "INTENT", "TOPIC", "TIMEPREF", "OFFERSLOTS", "CONFIRM", "BOOKED", "WAITLIST")
+    States (self.state string):
+      GREET → INTENT → TOPIC → TIMEPREF → OFFERSLOTS → CONFIRM → BOOKED
+      WAITLIST_OFFER → WAITLIST
+      RESCHEDULE_CODE → TIMEPREF (reused for new slot)
+      CANCEL_CODE → CANCEL_CONFIRM
+    """
+
+    STATES = (
+        "GREET", "INTENT", "TOPIC", "TIMEPREF", "OFFERSLOTS", "CONFIRM",
+        "BOOKED", "WAITLIST_OFFER", "WAITLIST",
+        "RESCHEDULE_CODE", "CANCEL_CODE", "CANCEL_CONFIRM",
+    )
 
     def __init__(self, session: dict, calendar_path: str = ""):
         if not calendar_path:
             calendar_path = str(Path(__file__).resolve().parents[1] / "data" / "mock_calendar.json")
-        self.session = session
-        self.calendar = load_calendar(calendar_path)
-        self.state = "GREET"
-        self._topic: str | None = None
-        self._time_pref: dict = {}
-        self._offered_slots: list[dict] = []
+        self.session        = session
+        self.calendar       = load_calendar(calendar_path)
+        self._topic: str | None        = None
+        self._time_pref: dict          = {}
+        self._offered_slots: list[dict]= []
         self._chosen_slot: dict | None = None
-        self._all_available: list[dict] = []   # full list of available slots for pagination
-        self._slot_page: int = 0               # which page of 2 slots we're on
+        self._all_available: list[dict]= []
+        self._slot_page: int           = 0
 
-        # M3 DialogueContext for rich slot tracking
+        # Counters (Phase A)
+        self._no_input_count: int    = 0
+        self._topic_retry: int       = 0
+        self._code_retry: int        = 0
+
+        # Reschedule / cancel working memory
+        self._pending_code: str      = ""   # code being validated
+        self._is_reschedule: bool    = False  # True while in reschedule flow
+
         call_id = str(uuid.uuid4())[:8].upper()
         self._ctx = DialogueContext(
             call_id=call_id,
@@ -95,10 +122,39 @@ class VoiceAgent:
             current_state=DialogueState.IDLE,
         )
 
+        # Single source of truth — always use _set_state()
+        self._state: str = "GREET"
+
+    # ── State property (canonical) ────────────────────────────────────────────
+
+    @property
+    def state(self) -> str:
+        return self._state
+
+    @state.setter
+    def state(self, value: str) -> None:
+        """Keep _ctx.current_state in sync whenever self.state changes."""
+        self._state = value
+        _state_map = {
+            "GREET":          DialogueState.IDLE,
+            "INTENT":         DialogueState.DISCLAIMER_CONFIRMED,
+            "TOPIC":          DialogueState.INTENT_IDENTIFIED,
+            "TIMEPREF":       DialogueState.TOPIC_COLLECTED,
+            "OFFERSLOTS":     DialogueState.SLOTS_OFFERED,
+            "CONFIRM":        DialogueState.SLOT_CONFIRMED,
+            "BOOKED":         DialogueState.BOOKING_COMPLETE,
+            "WAITLIST_OFFER": DialogueState.WAITLIST_OFFERED,
+            "WAITLIST":       DialogueState.WAITLIST_CONFIRMED,
+            "RESCHEDULE_CODE":DialogueState.RESCHEDULE_CODE_COLLECTED,
+            "CANCEL_CODE":    DialogueState.CANCEL_CODE_COLLECTED,
+            "CANCEL_CONFIRM": DialogueState.CANCEL_CODE_COLLECTED,
+        }
+        if value in _state_map:
+            self._ctx.current_state = _state_map[value]
+
     # ── Helpers ───────────────────────────────────────────────────────────────
 
     def _available_days_hint(self) -> str:
-        """Return a short spoken hint of available days from the calendar, e.g. 'Monday, Tuesday and Wednesday'."""
         from phase4_voice_pillar_b.booking_engine import _slot_available, _slot_day_name
         seen = []
         for s in self.calendar:
@@ -113,14 +169,12 @@ class VoiceAgent:
         return ", ".join(seen[:-1]) + " and " + seen[-1]
 
     def _get_topic_label(self, topic: str | None = None) -> str:
-        """Human-readable label for a topic key, handling the special 'top_theme' key."""
         t = topic or self._topic or ""
         if t == "top_theme":
             return self.session.get("top_theme", "Top Theme")
         return TOPIC_LABELS.get(t, t) if t else "General Query"
 
     def _topic_options(self) -> str:
-        """Return spoken topic options, prepending the current week's top theme if available."""
         top = self.session.get("top_theme", "")
         base = (
             "KYC and Onboarding, SIP and Mandates, Statements and Tax, "
@@ -132,11 +186,8 @@ class VoiceAgent:
 
     @staticmethod
     def _parse_specific_hour(text: str) -> int | None:
-        """'2 pm', '2 p.m.', '14:00' → hour in 24h. 'morning' → None."""
-        import re as _re
-        # Normalise a.m./p.m. → am/pm
-        norm = _re.sub(r'\b([ap])\.m\.?\b', r'\1m', text.lower())
-        m = _re.search(r'\b(\d{1,2})(?::(\d{2}))?\s*(am|pm)\b', norm)
+        norm = re.sub(r'\b([ap])\.m\.?\b', r'\1m', text.lower())
+        m = re.search(r'\b(\d{1,2})(?::(\d{2}))?\s*(am|pm)\b', norm)
         if m:
             h, ap = int(m.group(1)), m.group(3).lower()
             if ap == "pm" and h != 12:
@@ -144,18 +195,16 @@ class VoiceAgent:
             elif ap == "am" and h == 12:
                 h = 0
             return h
-        m = _re.search(r'\b([01]?\d|2[0-3]):([0-5]\d)\b', norm)
+        m = re.search(r'\b([01]?\d|2[0-3]):([0-5]\d)\b', norm)
         if m:
             return int(m.group(1))
         return None
 
     @staticmethod
     def _parse_ordinal_day(day_str: str) -> int | None:
-        """'28th' or '28' → 28, 'monday' → None."""
-        import re as _re
         if not day_str:
             return None
-        m = _re.search(r'\b(\d{1,2})(?:st|nd|rd|th)?\b', day_str.lower())
+        m = re.search(r'\b(\d{1,2})(?:st|nd|rd|th)?\b', day_str.lower())
         if m:
             val = int(m.group(1))
             if 1 <= val <= 31:
@@ -164,7 +213,6 @@ class VoiceAgent:
 
     @staticmethod
     def _slot_hour(slot: dict) -> int:
-        """Return slot start hour (0-23), or -1 if unknown."""
         from phase4_voice_pillar_b.booking_engine import _slot_start_dt
         dt = _slot_start_dt(slot)
         if dt:
@@ -178,18 +226,28 @@ class VoiceAgent:
         return -1
 
     def _load_all_available(self, day: str | None = None, period: str | None = None) -> None:
-        """Populate self._all_available (no :2 cap) and reset pagination."""
-        from phase4_voice_pillar_b.booking_engine import _slot_available, _slot_start_dt, _slot_day_name, _DAY_MAP, resolve_day_pref, parse_time_preference, _today_ist
-        from datetime import date as _date
+        """Populate self._all_available with multi-strategy fallback (Phase B)."""
+        from phase4_voice_pillar_b.booking_engine import (
+            _slot_available, _slot_start_dt, _slot_day_name,
+            _DAY_MAP, resolve_day_pref, parse_time_preference, _today_ist,
+        )
+        from datetime import date as _date, timedelta
         today = _today_ist()
 
-        # Start from all future available slots
-        available = [
+        all_future = [
             s for s in self.calendar
             if _slot_available(s) and (
                 _slot_start_dt(s) is None or _slot_start_dt(s).date() >= today
             )
         ]
+
+        if not day and not period:
+            self._all_available = all_future
+            self._slot_page = 0
+            return
+
+        # ── Strategy 1: exact day + period filter ────────────────────────────
+        pool = list(all_future)
 
         if day:
             resolved = resolve_day_pref(day)
@@ -197,19 +255,33 @@ class VoiceAgent:
             if len(resolved_lower) == 10 and resolved_lower[4] == "-":
                 try:
                     target_date = _date.fromisoformat(resolved_lower)
-                    available = [s for s in available if _slot_start_dt(s) and _slot_start_dt(s).date() == target_date]
+                    day_filtered = [s for s in pool if _slot_start_dt(s) and _slot_start_dt(s).date() == target_date]
+                    if day_filtered:
+                        pool = day_filtered
                 except ValueError:
                     pass
             else:
-                target_wd = next((v for k, v in _DAY_MAP.items() if k == resolved_lower or k in resolved_lower), None)
+                target_wd = next(
+                    (v for k, v in _DAY_MAP.items() if k == resolved_lower or k in resolved_lower), None
+                )
                 if target_wd is not None:
-                    available = [s for s in available if _DAY_MAP.get(_slot_day_name(s)[:3]) == target_wd]
+                    day_filtered = [s for s in pool if _DAY_MAP.get(_slot_day_name(s)[:3]) == target_wd]
+                    if day_filtered:
+                        pool = day_filtered
+                    else:
+                        # ── Strategy 2: day not available → try next week same day ──
+                        next_week = [
+                            s for s in all_future
+                            if _slot_start_dt(s) and _slot_start_dt(s).date() >= today + timedelta(days=7)
+                            and _DAY_MAP.get(_slot_day_name(s)[:3]) == target_wd
+                        ]
+                        pool = next_week if next_week else all_future
 
-        if period and period.lower() not in ("any", "anytime", "flexible", "") and available:
+        if period and period.lower() not in ("any", "anytime", "flexible", "") and pool:
             time_band, _ = parse_time_preference(period)
             if time_band:
-                matched = []
-                for s in available:
+                period_filtered = []
+                for s in pool:
                     h = None
                     if "time" in s:
                         try:
@@ -221,24 +293,32 @@ class VoiceAgent:
                         if dt:
                             h = dt.hour
                     if h is not None and time_band[0] <= h < time_band[1]:
-                        matched.append(s)
-                available = matched  # empty triggers waitlist in _offer_next_page
+                        period_filtered.append(s)
 
-        self._all_available = available
+                if period_filtered:
+                    pool = period_filtered
+                else:
+                    # ── Strategy 3: period not available on that day → same day any time ──
+                    # pool already has day-filtered results; keep them, drop period restriction
+                    pass  # pool stays as day-filtered
+
+        # ── Strategy 4: still empty → broadest available ─────────────────────
+        if not pool:
+            pool = all_future
+
+        self._all_available = pool
         self._slot_page = 0
 
     def _offer_next_page(self) -> str:
-        """Present the next 2 slots from _all_available. Falls to waitlist when exhausted."""
+        """Present up to 2 slots. Falls to WAITLIST_OFFER when exhausted."""
         start = self._slot_page * 2
         batch = self._all_available[start:start + 2]
         if not batch:
-            self._ctx.current_state = DialogueState.WAITLIST_OFFERED
-            self.state = "WAITLIST"
-            return self._handle_waitlist("")
+            self.state = "WAITLIST_OFFER"
+            return self._handle_waitlist_offer("")
         self._slot_page += 1
         self._offered_slots = batch
         self._ctx.offered_slots = batch
-        self._ctx.current_state = DialogueState.SLOTS_OFFERED
         self.state = "OFFERSLOTS"
         slot_lines = [f"Option {i}: {_slot_display(s)}" for i, s in enumerate(batch, 1)]
         has_more = len(self._all_available) > start + 2
@@ -252,26 +332,44 @@ class VoiceAgent:
     # ── Public API ────────────────────────────────────────────────────────────
 
     def get_greeting(self) -> tuple[str, bytes | None]:
-        """Return (text, audio). Called once before first step()."""
         top_theme = self.session.get("top_theme")
         theme_line = (
             f"I see many users are asking about {top_theme} this week — "
             "I can help you book a call for that! "
         ) if top_theme else ""
-
         text = (
             f"Welcome to Investor Ops Booking. {DISCLAIMER} "
             f"{theme_line}"
             "Would you like to book a call, reschedule, or cancel an appointment?"
         )
-        self._ctx.current_state = DialogueState.GREETED
+        self.state = "GREET"
         return text, _tts(text)
 
     def step(self, utterance: str) -> tuple[str, bytes | None]:
         """Process one user turn. Returns (response_text, audio_or_None)."""
         self._ctx.turn_count += 1
 
-        # ── M3 Layer 1: PII scrub input ────────────────────────────────────
+        # ── No-input / silence handling ───────────────────────────────────────
+        if not utterance or not utterance.strip():
+            self._no_input_count += 1
+            if self._no_input_count >= MAX_NO_INPUT:
+                self.state = "BOOKED"  # terminal — treated as natural end
+                farewell = (
+                    "I haven't heard anything for a while — ending the call. "
+                    "Feel free to call back whenever you're ready. Goodbye!"
+                )
+                self._log_interaction("", farewell)
+                return farewell, _tts(farewell)
+            prompts = {
+                1: "I didn't catch that — could you say that again?",
+                2: "Still here! Please speak when you're ready.",
+            }
+            msg = prompts.get(self._no_input_count, "I didn't catch that.")
+            self._log_interaction("", msg)
+            return msg, _tts(msg)
+        self._no_input_count = 0  # reset on valid input
+
+        # ── PII scrub input ───────────────────────────────────────────────────
         pii_result = scrub_pii(utterance)
         clean_input = pii_result.cleaned_text
         if pii_result.pii_found:
@@ -284,33 +382,30 @@ class VoiceAgent:
         else:
             response_text = self._dispatch(clean_input)
 
-        # ── M3 Layer 3: Compliance guard output ───────────────────────────
+        # ── Compliance guard output ───────────────────────────────────────────
         response_text = _guard.check_and_gate(response_text)
 
-        # ── Interaction log ───────────────────────────────────────────────
         self._log_interaction(utterance, response_text)
-
         return response_text, _tts(response_text)
 
     def _log_interaction(self, user_text: str, agent_text: str) -> None:
-        """Append one JSONL line to data/logs/voice_interactions.jsonl."""
         try:
             log_path = Path(__file__).resolve().parents[1] / "data" / "logs" / "voice_interactions.jsonl"
             log_path.parent.mkdir(parents=True, exist_ok=True)
             entry = {
-                "ts":        datetime.now(IST).isoformat(),
-                "call_id":   self._ctx.call_id,
-                "turn":      self._ctx.turn_count,
-                "state":     self.state,
-                "user":      user_text,
-                "agent":     agent_text,
-                "topic":     self._topic,
-                "booking":   self._ctx.booking_code,
+                "ts":      datetime.now(IST).isoformat(),
+                "call_id": self._ctx.call_id,
+                "turn":    self._ctx.turn_count,
+                "state":   self.state,
+                "user":    user_text,
+                "agent":   agent_text,
+                "topic":   self._topic,
+                "booking": self._ctx.booking_code,
             }
             with log_path.open("a", encoding="utf-8") as fh:
                 fh.write(json.dumps(entry, ensure_ascii=False) + "\n")
         except Exception:
-            pass  # logging must never break the call
+            pass
 
     # ── FSM dispatcher ────────────────────────────────────────────────────────
 
@@ -322,7 +417,6 @@ class VoiceAgent:
 
     def _handle_greet(self, utterance: str) -> str:
         self.state = "INTENT"
-        self._ctx.current_state = DialogueState.DISCLAIMER_CONFIRMED
         return self._handle_intent(utterance)
 
     def _handle_intent(self, utterance: str) -> str:
@@ -332,13 +426,12 @@ class VoiceAgent:
 
         self._ctx.intent = intent
         self._ctx.apply_slots(slots)
-        self._ctx.current_state = DialogueState.INTENT_IDENTIFIED
 
         if result.get("compliance_flag") in ("refuse_advice", "refuse_pii", "out_of_scope"):
             return result.get("speech", "I can only help with advisor appointment scheduling.")
 
         if intent == "end_call":
-            self._ctx.current_state = DialogueState.END
+            self.state = "BOOKED"
             return "Thank you for calling. We'll be happy to help whenever you're ready. Goodbye!"
 
         if intent == "timezone_query":
@@ -349,9 +442,9 @@ class VoiceAgent:
             )
 
         if intent == "book_new":
+            # Check if code was embedded in the utterance (user switched from reschedule/cancel)
             if self._ctx.topic:
                 self._topic = self._ctx.topic
-                self._ctx.current_state = DialogueState.TOPIC_COLLECTED
                 label = self._get_topic_label()
                 self._load_all_available()
                 return f"Great! I'll help you book a call about {label}. " + self._offer_next_page()
@@ -362,25 +455,36 @@ class VoiceAgent:
             )
 
         if intent == "reschedule":
-            self._ctx.current_state = DialogueState.RESCHEDULE_CODE_COLLECTED
+            self._is_reschedule = True
+            self._code_retry = 0
+            self._pending_code = slots.get("existing_booking_code", "").upper()
+            self.state = "RESCHEDULE_CODE"
+            if self._pending_code:
+                # Code already provided in the same utterance — process immediately
+                return self._handle_reschedule_code(self._pending_code)
             return (
                 "To reschedule, please share your existing booking code "
-                "(format: NL-XXXX) and I'll note the request for our team."
+                "(for example: NL-AB23)."
             )
 
         if intent == "cancel":
-            self._ctx.current_state = DialogueState.CANCEL_CODE_COLLECTED
+            self._is_reschedule = False
+            self._code_retry = 0
+            self._pending_code = slots.get("existing_booking_code", "").upper()
+            self.state = "CANCEL_CODE"
+            if self._pending_code:
+                return self._handle_cancel_code(self._pending_code)
             return (
-                "To cancel, please share your booking code (format: NL-XXXX) "
-                "and our team will process it within one business day."
+                "To cancel, please share your booking code "
+                "(for example: NL-AB23)."
             )
 
         if intent == "what_to_prepare":
             return self._handle_what_to_prepare(utterance)
 
         if intent == "check_availability":
+            self._is_reschedule = False
             self.state = "TIMEPREF"
-            self._ctx.current_state = DialogueState.TIME_PREFERENCE_COLLECTED
             return (
                 "I can check available slots. "
                 "Which day and time works for you? (e.g., 'Thursday morning')"
@@ -388,130 +492,341 @@ class VoiceAgent:
 
         return "I didn't catch that. Would you like to book a new appointment with an advisor?"
 
+    # ── Reschedule code collection & validation ───────────────────────────────
+
+    def _handle_reschedule_code(self, utterance: str) -> str:
+        """Collect and validate booking code for reschedule."""
+        code = self._extract_code(utterance)
+
+        if not code:
+            self._code_retry += 1
+            if self._code_retry >= MAX_CODE_RETRY:
+                self.state = "BOOKED"
+                return (
+                    "I wasn't able to find your booking code after several tries. "
+                    "Please contact support or try again. Goodbye!"
+                )
+            hints = {1: "Please say your code clearly, e.g. 'NL-AB23'.",
+                     2: "One more try — your code should be in format NL-XXXX."}
+            return f"I didn't catch a valid booking code. {hints.get(self._code_retry, '')}"
+
+        # Validate code exists
+        original_topic = self._validate_booking_code(code)
+        if original_topic is None:
+            self._code_retry += 1
+            if self._code_retry >= MAX_CODE_RETRY:
+                self.state = "BOOKED"
+                return (
+                    f"I couldn't find booking {code} after several attempts. "
+                    "Please check your code or contact support. Goodbye!"
+                )
+            return (
+                f"I couldn't find a booking with code {code}. "
+                "Please double-check and try again."
+            )
+
+        # Code valid — restore topic and move to time preference
+        self._code_retry = 0
+        self._pending_code = code
+        if original_topic and not self._topic:
+            self._topic = original_topic
+            self._ctx.topic = original_topic
+        self._is_reschedule = True
+        self.state = "TIMEPREF"
+        topic_label = self._get_topic_label()
+        return (
+            f"Found your booking {code} — {topic_label}. "
+            "What new day and time would you like? (e.g., 'Monday afternoon')"
+        )
+
+    # ── Cancel code collection & validation ──────────────────────────────────
+
+    def _handle_cancel_code(self, utterance: str) -> str:
+        """Collect and validate booking code for cancellation."""
+        code = self._extract_code(utterance)
+
+        if not code:
+            self._code_retry += 1
+            if self._code_retry >= MAX_CODE_RETRY:
+                self.state = "BOOKED"
+                return (
+                    "I wasn't able to find your booking code. "
+                    "Please contact support or try again. Goodbye!"
+                )
+            hints = {1: "Please say your code clearly, e.g. 'NL-AB23'.",
+                     2: "One more try — your code should be in format NL-XXXX."}
+            return f"I didn't catch a valid booking code. {hints.get(self._code_retry, '')}"
+
+        original_topic = self._validate_booking_code(code)
+        if original_topic is None:
+            self._code_retry += 1
+            if self._code_retry >= MAX_CODE_RETRY:
+                self.state = "BOOKED"
+                return (
+                    f"I couldn't find booking {code} after several attempts. "
+                    "Please check your code or contact support. Goodbye!"
+                )
+            return (
+                f"I couldn't find a booking with code {code}. "
+                "Please double-check and try again."
+            )
+
+        self._code_retry = 0
+        self._pending_code = code
+        topic_label = self._get_topic_label(original_topic) if original_topic else "your appointment"
+        self.state = "CANCEL_CONFIRM"
+        return (
+            f"I found booking {code} — {topic_label}. "
+            "Just to confirm — would you like to cancel this appointment? "
+            "Please say 'yes' to cancel or 'no' to keep it."
+        )
+
+    # ── Cancel confirmation ───────────────────────────────────────────────────
+
+    def _handle_cancel_confirm(self, utterance: str) -> str:
+        lower = utterance.lower()
+
+        if any(w in lower for w in ("yes", "confirm", "ok", "sure", "go ahead", "yeah", "yep")):
+            return self._complete_cancellation()
+
+        if any(w in lower for w in ("no", "keep", "don't", "cancel that", "never mind", "nevermind")):
+            self.state = "INTENT"
+            self._pending_code = ""
+            return (
+                "No problem — your booking is kept as-is. "
+                "Is there anything else I can help you with?"
+            )
+
+        return (
+            f"Please say 'yes' to cancel booking {self._pending_code}, "
+            "or 'no' to keep it."
+        )
+
+    def _complete_cancellation(self) -> str:
+        """Execute cancellation: enqueue MCP actions and update state."""
+        from phase7_pillar_c_hitl.mcp_client import enqueue_action
+        from datetime import date
+
+        code = self._pending_code
+        topic = self._topic or self._ctx.topic or "General"
+        topic_label = self._get_topic_label(topic)
+
+        enqueue_action(
+            self.session,
+            type="calendar_hold",
+            payload={
+                "action":       "cancel",
+                "booking_code": code,
+                "topic":        topic,
+                "topic_label":  topic_label,
+            },
+            source="m3_voice",
+        )
+        enqueue_action(
+            self.session,
+            type="notes_append",
+            payload={
+                "doc_title": "Advisor Pre-Bookings",
+                "entry": {
+                    "date":         str(date.today()),
+                    "topic":        topic_label,
+                    "slot":         "CANCELLED",
+                    "booking_code": code,
+                    "status":       "CANCELLED",
+                },
+            },
+            source="m3_voice",
+        )
+        enqueue_action(
+            self.session,
+            type="email_draft",
+            payload={
+                "subject": f"Cancellation Request — {topic_label} — {code}",
+                "body": (
+                    f"Booking {code} ({topic_label}) has been requested for cancellation.\n"
+                    "Please process the cancellation and notify any waitlisted users."
+                ),
+            },
+            source="m3_voice",
+        )
+        enqueue_action(
+            self.session,
+            type="sheet_entry",
+            payload={
+                "booking_code": code,
+                "topic_key":    topic,
+                "topic_label":  topic_label,
+                "status":       "CANCELLED",
+                "date":         str(date.today()),
+            },
+            source="m3_voice",
+        )
+
+        self.session["booking_code"] = code
+        self.state = "BOOKED"
+
+        return (
+            f"Done — booking {code} has been cancelled. "
+            "Your cancellation actions are queued for team review. "
+            "Feel free to rebook anytime. Goodbye!"
+        )
+
+    # ── Code helpers ──────────────────────────────────────────────────────────
+
+    @staticmethod
+    def _extract_code(text: str) -> str:
+        """Extract booking code like NL-AB23 from user utterance. Returns '' if none found."""
+        m = _CODE_RE.search(text)
+        return m.group(1).upper() if m else ""
+
+    @staticmethod
+    def _validate_booking_code(code: str) -> str | None:
+        """Return original topic string if code exists in session/sheets, else None.
+
+        Tries sheets lookup first; falls back to accepting any well-formed code
+        (NL-XXXX pattern) so demo works without live Sheets integration.
+        """
+        try:
+            from phase7_pillar_c_hitl.mcp.sheets_tool import _get_booking_row_sync
+            row = _get_booking_row_sync(code)
+            if row:
+                return row.get("topic_key") or row.get("topic_label") or ""
+        except Exception:
+            pass
+        # Fallback: accept any NL-XXXX pattern (demo mode)
+        if _CODE_RE.match(code):
+            return ""  # empty string = valid but topic unknown
+        return None
+
+    # ── What-to-prepare ───────────────────────────────────────────────────────
+
     def _handle_what_to_prepare(self, utterance: str) -> str:
-        """Use RAG injector for topic-specific checklist (M3 phase0)."""
         topic = self._ctx.topic or self._topic
         self._ctx.prepare_shown = True
-
         rag_context = get_rag_context(
             query=utterance or "what documents do I need",
             topic=topic or "kyc_onboarding",
         )
-        response = (
+        self.state = "INTENT"  # allow user to say "yes" → book_new flow
+        return (
             f"Here's what to have ready for your advisor call:\n\n{rag_context}\n\n"
             "Would you like to book a call now? I can check available slots."
         )
-        return response
+
+    # ── Top theme selection ───────────────────────────────────────────────────
 
     def _is_selecting_top_theme(self, utterance: str) -> bool:
-        """Return True if the utterance is selecting the week's top theme."""
         top = self.session.get("top_theme", "")
         if not top:
             return False
         low = utterance.lower().strip()
-        # Direct trigger words that clearly mean "the first/top option"
         _triggers = {"that", "that one", "first", "first one", "top", "top theme",
                      "the theme", "this week", "this week's", "it", "same"}
         if any(low == t or low.startswith(t + " ") or low.endswith(" " + t) for t in _triggers):
             return True
-        # Word-overlap: ≥2 words in common with the theme text
         _top_words = {w for w in top.lower().split() if len(w) > 3}
         _utter_words = set(low.split())
         return len(_top_words & _utter_words) >= 2
 
+    # ── Topic collection with circuit breaker ────────────────────────────────
+
     def _handle_topic(self, utterance: str) -> str:
-        # Check if user is selecting this week's top theme before standard extraction
         top = self.session.get("top_theme", "")
         if top and self._is_selecting_top_theme(utterance):
             self._topic = "top_theme"
             self._ctx.topic = "top_theme"
-            self._ctx.current_state = DialogueState.TOPIC_COLLECTED
+            self._topic_retry = 0
             self._load_all_available()
             return f"Got it — {top}. " + self._offer_next_page()
 
         topic = extract_topic(utterance)
         if not topic:
-            self._ctx.topic_retry_count += 1
-            return f"I didn't catch the topic. Please choose one: {self._topic_options()}."
+            self._topic_retry += 1
+            if self._topic_retry >= MAX_TOPIC_RETRY:
+                self.state = "BOOKED"
+                return (
+                    "I'm having trouble understanding the topic. "
+                    "A human advisor will reach out to assist you directly. "
+                    "Thank you for calling — goodbye!"
+                )
+            msgs = {
+                1: f"I didn't catch the topic. Please choose one: {self._topic_options()}.",
+                2: f"Still didn't catch it. To connect you with the right advisor, please say one of: {self._topic_options()}.",
+                3: f"One last try — please clearly say the topic, for example 'SIP' or 'KYC'.",
+            }
+            return msgs.get(self._topic_retry, f"Please choose a topic: {self._topic_options()}.")
+
+        self._topic_retry = 0
         self._topic = topic
         self._ctx.topic = topic
-        self._ctx.current_state = DialogueState.TOPIC_COLLECTED
         label = self._get_topic_label(topic)
         self._load_all_available()
         return f"Got it — {label}. " + self._offer_next_page()
 
+    # ── Time preference ───────────────────────────────────────────────────────
+
     def _handle_timepref(self, utterance: str) -> str:
-        # Re-classify in case user expressed intent change
+        # Guard: if mid-reschedule, don't let "Monday" trigger book_new
         result = classify(utterance, context=self._ctx.slots_filled())
         if result.get("intent") == "end_call":
+            self.state = "BOOKED"
             return "No problem! Call us whenever you're ready. Goodbye!"
+
+        # Ignore book_new intent if we're mid-reschedule slot collection
+        if not self._is_reschedule and result.get("intent") in ("cancel", "reschedule"):
+            return self._handle_intent(utterance)
 
         self._time_pref = extract_time_pref(utterance)
         day    = self._ctx.day_preference or self._time_pref.get("day")
         period = self._ctx.time_preference or self._time_pref.get("period")
 
-        # Merge extracted slots into context
         if day:
             self._ctx.day_preference = day
         if period:
             self._ctx.time_preference = period
 
         self._load_all_available(day, period)
-        self._offered_slots = self._all_available[:2]
 
-        # Echo-back what was understood before offering/declining slots
         from phase4_voice_pillar_b.booking_engine import parse_datetime_summary
         summary, needs_confirm = parse_datetime_summary(day or "", period or "")
         echo = f"I understood: {summary}. "
 
-        if not self._offered_slots:
-            self._ctx.current_state = DialogueState.WAITLIST_OFFERED
-            self.state = "WAITLIST"
+        if not self._all_available:
+            self.state = "WAITLIST_OFFER"
             return (
                 f"{echo}I'm sorry, I don't have any available slots for that preference. "
-                + self._handle_waitlist(utterance)
+                + self._handle_waitlist_offer(utterance)
             )
 
-        self._ctx.offered_slots = self._offered_slots
-        self._ctx.current_state = DialogueState.SLOTS_OFFERED
-        self.state = "OFFERSLOTS"
-
-        slot_lines = [
-            f"Option {i}: {_slot_display(s)}"
-            for i, s in enumerate(self._offered_slots, 1)
-        ]
-        has_more = len(self._all_available) > 2
-        more_hint = " Say 'other' to see more options." if has_more else ""
         confirm_hint = " Could you confirm that's right?" if needs_confirm else ""
-        return (
-            f"{echo}{confirm_hint}\nHere are the available slots:\n"
-            + "\n".join(slot_lines)
-            + f"\nWhich option would you prefer? (say '1' or '2'){more_hint}"
-        )
+        return echo + confirm_hint + "\n" + self._offer_next_page()
+
+    # ── Slot offering ─────────────────────────────────────────────────────────
 
     def _handle_offerslots(self, utterance: str) -> str:
-        # Re-classify to catch end_call / change of mind
         result = classify(utterance, context=self._ctx.slots_filled())
         if result.get("intent") == "end_call":
+            self.state = "BOOKED"
             return "No problem! Call us whenever you're ready. Goodbye!"
+
+        # Allow intent switch to cancel/reschedule (but guard mid-reschedule)
+        if not self._is_reschedule and result.get("intent") in ("cancel", "reschedule"):
+            return self._handle_intent(utterance)
 
         lower = utterance.lower()
 
-        # Detect if user is requesting a different slot or stating new day/time preference
         _change_signals = {"other", "another", "different", "else", "instead",
                            "change", "different time", "not these", "none of these"}
         wants_change = any(w in lower for w in _change_signals)
 
-        new_pref = extract_time_pref(utterance)
-        new_day = new_pref.get("day")
+        new_pref   = extract_time_pref(utterance)
+        new_day    = new_pref.get("day")
         new_period = new_pref.get("period")
 
-        # A new specific day/time that differs from what was previously offered
-        has_new_day = new_day and new_day != self._ctx.day_preference
+        has_new_day    = new_day and new_day != self._ctx.day_preference
         has_new_period = new_period and new_period != self._ctx.time_preference
 
         if wants_change or has_new_day or has_new_period:
-            # Parse directly from raw utterance — covers "p.m." dots and ordinals
             specific_hour = self._parse_specific_hour(utterance)
             ordinal_day   = self._parse_ordinal_day(new_day) if new_day else None
 
@@ -521,8 +836,10 @@ class VoiceAgent:
                 if new_period:
                     self._ctx.time_preference = new_period
 
-                # Build a precisely filtered candidate pool from the full calendar (future only)
-                from phase4_voice_pillar_b.booking_engine import _slot_available, _slot_start_dt, _slot_day_name, _DAY_MAP, resolve_day_pref, _today_ist
+                from phase4_voice_pillar_b.booking_engine import (
+                    _slot_available, _slot_start_dt, _slot_day_name,
+                    _DAY_MAP, resolve_day_pref, _today_ist,
+                )
                 from datetime import date as _date
                 _today = _today_ist()
                 pool = [
@@ -549,25 +866,24 @@ class VoiceAgent:
                         except ValueError:
                             pass
                     else:
-                        target_wd = next((v for k, v in _DAY_MAP.items() if k == resolved_lower or k in resolved_lower), None)
+                        target_wd = next(
+                            (v for k, v in _DAY_MAP.items() if k == resolved_lower or k in resolved_lower), None
+                        )
                         if target_wd is not None:
-                            wf = [s for s in pool
-                                  if _DAY_MAP.get(_slot_day_name(s)[:3]) == target_wd]
+                            wf = [s for s in pool if _DAY_MAP.get(_slot_day_name(s)[:3]) == target_wd]
                             if wf:
                                 pool = wf
 
                 if specific_hour is not None:
-                    hour_filtered = [s for s in pool
-                                     if abs(self._slot_hour(s) - specific_hour) <= 1]
+                    hour_filtered = [s for s in pool if abs(self._slot_hour(s) - specific_hour) <= 1]
                     if hour_filtered:
                         pool = hour_filtered
 
-                # User specified both a day AND a specific time → skip options, go direct to confirm
+                # User gave both day AND specific time → skip options, direct to confirm
                 if (ordinal_day is not None or new_day) and specific_hour is not None and pool:
                     best = min(pool, key=lambda s: abs(self._slot_hour(s) - specific_hour))
                     self._chosen_slot = best
                     self._ctx.resolved_slot = best
-                    self._ctx.current_state = DialogueState.SLOT_CONFIRMED
                     self.state = "CONFIRM"
                     return (
                         f"Got it! To confirm: booking for {self._get_topic_label()} "
@@ -575,28 +891,22 @@ class VoiceAgent:
                         "Does that sound right? (say 'yes' to confirm)"
                     )
 
-                # Only day or only time specified — show filtered page
                 self._all_available = pool
                 self._slot_page = 0
                 if not self._all_available:
-                    self._ctx.current_state = DialogueState.WAITLIST_OFFERED
-                    self.state = "WAITLIST"
-                    return self._handle_waitlist(utterance)
-            # "other"/"more" with no new preference — paginate current pool
+                    self.state = "WAITLIST_OFFER"
+                    return self._handle_waitlist_offer(utterance)
             return self._offer_next_page()
 
         idx = 0
         if "2" in lower or "second" in lower or "two" in lower:
             idx = 1
-
         if idx >= len(self._offered_slots):
             idx = 0
 
         self._chosen_slot = self._offered_slots[idx]
         self._ctx.resolved_slot = self._chosen_slot
-        self._ctx.current_state = DialogueState.SLOT_CONFIRMED
         self.state = "CONFIRM"
-
         topic_label = self._get_topic_label()
         slot_str = _slot_display(self._chosen_slot)
         return (
@@ -604,28 +914,51 @@ class VoiceAgent:
             "Does that sound right? (say 'yes' to confirm)"
         )
 
+    # ── Booking confirmation ──────────────────────────────────────────────────
+
     def _handle_confirm(self, utterance: str) -> str:
         lower = utterance.lower()
         if any(w in lower for w in ("yes", "confirm", "ok", "sure", "correct", "yep", "yeah")):
+            if self._is_reschedule:
+                return self._complete_reschedule()
             return self._complete_booking()
         if any(w in lower for w in ("no", "change", "different", "other")):
             self.state = "OFFERSLOTS"
-            self._ctx.current_state = DialogueState.SLOTS_OFFERED
             return "No problem. " + self._handle_offerslots(utterance)
-        return "Please say 'yes' to confirm the booking or 'no' to choose a different slot."
+        return "Please say 'yes' to confirm or 'no' to choose a different slot."
+
+    # ── Booked / terminal ─────────────────────────────────────────────────────
 
     def _handle_booked(self, utterance: str) -> str:
         lower = utterance.lower()
-        # Graceful farewell on any goodbye / thanks signal
         if any(w in lower for w in ("bye", "goodbye", "thank", "thanks", "that's all",
                                     "that is all", "nothing else", "no thanks", "done")):
             return "Thank you for calling! Have a wonderful day. Goodbye!"
         code = self.session.get("booking_code", "N/A")
         return (
             f"Your appointment is confirmed! Booking code: {code}. "
-            "Please click the '-> Go to Super-Agent MCP Workflow' button below "
+            "Please click the '→ Go to Super-Agent MCP Workflow' button below "
             "to go to the Action Centre and approve your pending actions. "
             "Is there anything else I can help you with?"
+        )
+
+    # ── Waitlist offer (Phase B: ask before enrolling) ────────────────────────
+
+    def _handle_waitlist_offer(self, utterance: str) -> str:
+        lower = utterance.lower()
+        if any(w in lower for w in ("yes", "ok", "sure", "add me", "waitlist", "yeah", "yep")):
+            return self._handle_waitlist(utterance)
+        if any(w in lower for w in ("no", "other", "different", "try", "change")):
+            self.state = "TIMEPREF"
+            return "No problem. What day or time would you prefer? I'll look for slots."
+        # First call (no user input yet) — just show the prompt
+        day_pref  = self._ctx.day_preference or "flexible"
+        time_pref = self._ctx.time_preference or "any"
+        return (
+            f"There are no slots available for {day_pref} {time_pref} right now. "
+            "I can add you to the waitlist and our team will reach out when a slot opens. "
+            "Would you like to join the waitlist? (say 'yes') "
+            "Or say 'other' to try a different day or time."
         )
 
     def _handle_waitlist(self, _: str) -> str:
@@ -642,7 +975,6 @@ class VoiceAgent:
         )
         code = entry.waitlist_code
         self._ctx.waitlist_code = code
-        self._ctx.current_state = DialogueState.WAITLIST_CONFIRMED
         self.session["booking_code"] = code
         self.state = "WAITLIST"
 
@@ -650,8 +982,7 @@ class VoiceAgent:
         from datetime import date
 
         enqueue_action(
-            self.session,
-            type="notes_append",
+            self.session, type="notes_append",
             payload={
                 "doc_title": "Advisor Pre-Bookings",
                 "entry": {
@@ -665,16 +996,13 @@ class VoiceAgent:
             source="m3_voice",
         )
         enqueue_action(
-            self.session,
-            type="email_draft",
+            self.session, type="email_draft",
             payload={
                 "subject": f"Waitlist Request — {topic} — {code}",
                 "body": (
                     f"A user has been added to the waitlist.\n"
-                    f"Topic: {topic}\n"
-                    f"Preferred: {day_pref} {time_pref}\n"
-                    f"Waitlist code: {code}\n"
-                    f"Entry: {entry.summary()}\n"
+                    f"Topic: {topic}\nPreferred: {day_pref} {time_pref}\n"
+                    f"Waitlist code: {code}\nEntry: {entry.summary()}\n"
                     "Please follow up to offer available slots."
                 ),
             },
@@ -682,8 +1010,7 @@ class VoiceAgent:
         )
 
         return (
-            f"No exact slots match your preference right now. "
-            f"I've added you to the waitlist with code {code}. "
+            f"Done! I've added you to the waitlist with code {code}. "
             "Our team will reach out with available slots soon. "
             f"Complete your details at {SECURE_BASE_URL}/complete/{code}"
         )
@@ -702,15 +1029,102 @@ class VoiceAgent:
         self._ctx.booking_code = code
         if not self._ctx.topic:
             self._ctx.topic = self._topic
-        self._ctx.current_state = DialogueState.BOOKING_COMPLETE
         self.state = "BOOKED"
 
         topic_label = self._get_topic_label()
+        self._enqueue_booking_actions(detail, code, topic_label)
 
-        # ── MCP Super-Agent: Claude orchestrates all post-booking actions ─────
-        # Claude receives booking context + M2 weekly_pulse and calls all 4 tools
-        # via tool_use (Model Context Protocol). The resulting actions are queued
-        # in mcp_queue for HITL human approval before any Google API fires.
+        self._ctx.calendar_hold_created = False
+        self._ctx.notes_appended = False
+        self._ctx.email_drafted = False
+
+        return (
+            f"Your appointment is confirmed! "
+            f"Booking code: {code}. "
+            f"Slot: {detail['slot']}. "
+            "Your booking actions are ready for review. "
+            "Please click the Go to Super-Agent MCP Workflow button below "
+            "to head to the Action Centre and approve the calendar hold, notes, and email draft. "
+            "Thank you for calling — have a great day!"
+        )
+
+    def _complete_reschedule(self) -> str:
+        """Confirm the new slot for a reschedule flow."""
+        if not self._chosen_slot:
+            return "Something went wrong with the reschedule. Please try again."
+
+        old_code    = self._pending_code
+        topic       = self._topic or self._ctx.topic or "General"
+        topic_label = self._get_topic_label(topic)
+
+        from phase7_pillar_c_hitl.mcp_client import enqueue_action
+        from datetime import date
+
+        enqueue_action(
+            self.session, type="calendar_hold",
+            payload={
+                "action":       "reschedule",
+                "booking_code": old_code,
+                "title":        f"Advisor Q&A — {topic_label} — {old_code}",
+                "date":         self._chosen_slot.get("date", ""),
+                "time":         self._chosen_slot.get("time", ""),
+                "tz":           "IST",
+                "topic":        topic,
+            },
+            source="m3_voice",
+        )
+        enqueue_action(
+            self.session, type="notes_append",
+            payload={
+                "doc_title": "Advisor Pre-Bookings",
+                "entry": {
+                    "date":         str(date.today()),
+                    "topic":        topic_label,
+                    "slot":         _slot_display(self._chosen_slot),
+                    "booking_code": old_code,
+                    "status":       "RESCHEDULED",
+                },
+            },
+            source="m3_voice",
+        )
+        enqueue_action(
+            self.session, type="email_draft",
+            payload={
+                "subject":        f"Reschedule Alert: {topic_label} — {old_code}",
+                "booking_code":   old_code,
+                "body": (
+                    f"Booking {old_code} ({topic_label}) has been rescheduled.\n"
+                    f"New slot: {_slot_display(self._chosen_slot)}\n"
+                    "Please update the calendar event accordingly."
+                ),
+            },
+            source="m3_voice",
+        )
+        enqueue_action(
+            self.session, type="sheet_entry",
+            payload={
+                "booking_code":  old_code,
+                "topic_key":     topic,
+                "topic_label":   topic_label,
+                "slot_start_ist": _slot_display(self._chosen_slot),
+                "date":          self._chosen_slot.get("date", ""),
+                "status":        "RESCHEDULED",
+            },
+            source="m3_voice",
+        )
+
+        self.session["booking_code"] = old_code
+        self.state = "BOOKED"
+        self._is_reschedule = False
+
+        return (
+            f"Done! Booking {old_code} has been rescheduled to {_slot_display(self._chosen_slot)}. "
+            "The reschedule actions are queued for team review. "
+            "Thank you for calling — have a great day!"
+        )
+
+    def _enqueue_booking_actions(self, detail: dict, code: str, topic_label: str) -> None:
+        """Run Claude super-agent (or fallback) to enqueue MCP actions."""
         from phase7_pillar_c_hitl.super_agent import run as _super_agent_run
         from phase7_pillar_c_hitl.mcp_client import enqueue_action
 
@@ -727,11 +1141,9 @@ class VoiceAgent:
         _agent_actions = _super_agent_run(_booking_ctx, self.session)
 
         if _agent_actions:
-            # Claude generated the actions — add to queue directly
             if "mcp_queue" not in self.session:
                 self.session["mcp_queue"] = []
             for _action in _agent_actions:
-                # Dedup: supersede any existing pending action of same type
                 self.session["mcp_queue"] = [
                     a for a in self.session["mcp_queue"]
                     if not (a["status"] == "pending" and a["type"] == _action["type"]
@@ -739,13 +1151,12 @@ class VoiceAgent:
                 ]
                 self.session["mcp_queue"].append(_action)
         else:
-            # Fallback: hard-coded payloads if super-agent unavailable
-            pulse        = self.session.get("weekly_pulse", "")
-            fee_bullets  = self.session.get("fee_bullets", [])
-            fee_sources  = self.session.get("fee_sources", [])
-            top_3        = self.session.get("top_3_themes", [])
-            market_ctx   = " ".join(pulse.split()[:120]) if pulse else "No pulse data available."
-            themes_line  = (
+            pulse       = self.session.get("weekly_pulse", "")
+            fee_bullets = self.session.get("fee_bullets", [])
+            fee_sources = self.session.get("fee_sources", [])
+            top_3       = self.session.get("top_3_themes", [])
+            market_ctx  = " ".join(pulse.split()[:120]) if pulse else "No pulse data available."
+            themes_line = (
                 "Top themes: " + "  |  ".join(f"#{i+1} {t}" for i, t in enumerate(top_3[:3]))
                 if top_3 else ""
             )
@@ -793,18 +1204,3 @@ class VoiceAgent:
                 "slot_start_ist": detail.get("slot", ""), "date": detail["date"],
                 "status": "CONFIRMED", "call_id": self._ctx.call_id,
             })
-
-        # Actions are pending HITL approval — flags stay False until advisor approves
-        self._ctx.calendar_hold_created = False
-        self._ctx.notes_appended = False
-        self._ctx.email_drafted = False
-
-        return (
-            f"Your appointment is confirmed! "
-            f"Booking code: {code}. "
-            f"Slot: {detail['slot']}. "
-            "Your booking actions are ready for review. "
-            "Please click the Go to Super-Agent MCP Workflow button below "
-            "to head to the Action Centre and approve the calendar hold, notes, and email draft. "
-            "Thank you for calling — have a great day!"
-        )
