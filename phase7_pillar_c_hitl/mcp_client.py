@@ -238,7 +238,13 @@ class MCPClient:
         # Live mode
         if action["type"] == "email_draft":
             try:
-                smtp_result = _send_advisor_email_live(action["payload"])
+                # Propagate the captured client_email onto the payload so the
+                # advisor email's "Add to Google Calendar" link pre-adds the
+                # user as a guest (Google sends invite on save).
+                _payload_for_send = dict(action["payload"])
+                if action.get("client_email"):
+                    _payload_for_send["client_email"] = action["client_email"]
+                smtp_result = _send_advisor_email_live(_payload_for_send)
                 # Surface the SMTP server's response to the UI so the user can
                 # tell at a glance whether the message was actually accepted.
                 action["smtp_status"] = smtp_result or "accepted"

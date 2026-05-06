@@ -1288,8 +1288,11 @@ class VoiceAgent:
             enqueue_action(self.session, type="email_draft", source="m3_voice", payload={
                 "subject":        f"Pre-Booking Alert: {topic_label} — {detail['date']} @ {detail.get('slot', '')}",
                 "booking_code":   code,
+                "topic":          self._topic,
                 "topic_label":    topic_label,
+                "date":           detail["date"],
                 "slot_start_ist": detail.get("slot", ""),
+                "call_id":        self._ctx.call_id,
                 "body": (
                     f"Dear Advisor,\n\nA new appointment has been pre-booked.\n\n"
                     f"{div}\n MEETING DETAILS\n{div}\n"

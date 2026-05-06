@@ -25,8 +25,14 @@ _IST = timezone(timedelta(hours=5, minutes=30))
 
 # ── Google Calendar URL helper ────────────────────────────────────────────────
 
-def _gcal_url(title: str, date_iso: str, time_str: str, description: str = "", duration_min: int = 60) -> str:
-    """Build a Google Calendar 'add event' URL from date (YYYY-MM-DD) and time string."""
+def _gcal_url(title: str, date_iso: str, time_str: str, description: str = "",
+              duration_min: int = 60, guests: list[str] | None = None) -> str:
+    """Build a Google Calendar 'add event' URL from date (YYYY-MM-DD) and time string.
+
+    Pass `guests=["user@example.com"]` to pre-fill the guest list on the
+    Google Calendar create-event page (param `add`).  When the advisor
+    saves the event Google sends an invite to each guest.
+    """
     # Parse time — accept "2:00 PM", "14:00", "10:00 AM IST", etc.
     hour, minute = 9, 0   # sensible default
     t = time_str.strip().upper().replace(" IST", "")
@@ -63,6 +69,9 @@ def _gcal_url(title: str, date_iso: str, time_str: str, description: str = "", d
         "ctz":     "Asia/Kolkata",
         "details": description,
     }
+    if guests:
+        # Google Calendar accepts comma-separated emails in `add`
+        params["add"] = ",".join(g for g in guests if g)
     return "https://calendar.google.com/calendar/render?" + urlencode(params)
 
 
@@ -75,6 +84,9 @@ def _advisor_html(payload: dict, event_id: str | None = None) -> str:
     slot        = payload.get("slot_start_ist", payload.get("time", payload.get("slot", "—")))
     market_ctx  = payload.get("body", "")
     call_id     = payload.get("call_id", "—")
+    # Optional client email — when set, advisor's calendar link will pre-add
+    # them as a guest so saving the event invites the user automatically.
+    client_email = payload.get("client_email", "")
 
     # Build Google Calendar link
     gcal_href = _gcal_url(
@@ -82,6 +94,7 @@ def _advisor_html(payload: dict, event_id: str | None = None) -> str:
         date_iso=date,
         time_str=slot,
         description=f"INDMoney Advisor pre-booking.\nBooking code: {code}\nTopic: {topic}",
+        guests=[client_email] if client_email else None,
     )
 
     cal_row = (

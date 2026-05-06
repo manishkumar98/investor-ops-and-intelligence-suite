@@ -352,6 +352,12 @@ def _render_single_action(action: dict, session: dict, mcp_client: MCPClient) ->
                              and bool(client_name.strip()))
                 btn_label = "✓ Approve & Send Email" if can_send else "✓ Approve"
                 if st.button(btn_label, key=f"approve_{key_base}", type="primary"):
+                    # Persist client contact info onto the action so the Retry
+                    # button can re-send the user-confirmation email later.
+                    if can_send:
+                        action["client_name"]  = client_name.strip()
+                        action["client_email"] = client_email.strip()
+                        action["client_phone"] = client_phone.strip()
                     action["status"] = "approved"
                     result = mcp_client.execute(action)
                     if result.success:
@@ -381,31 +387,84 @@ def _render_single_action(action: dict, session: dict, mcp_client: MCPClient) ->
             tail = "  ·  " + "  ·  ".join(extras) if extras else ""
             st.success(f"✓ Approved — ref: {ref}{tail}")
 
-            # If an email_draft was approved but no smtp_status was recorded,
-            # the SMTP send didn't actually happen (legacy action, MCP_MODE
-            # was 'mock', or an old code path that didn't capture status).
-            # Show a Retry button so the user can re-execute and actually send.
-            if action["type"] == "email_draft" and not action.get("smtp_status"):
-                st.warning(
-                    "⚠ This email was marked Approved but no SMTP delivery was "
-                    "recorded. The advisor may not have received it. "
-                    "Click Retry to send it now."
-                )
+            # email_draft retry path — re-send advisor email AND optionally
+            # re-send / send-for-the-first-time the client confirmation.
+            if action["type"] == "email_draft":
                 key_base = action["action_id"][:8]
-                if st.button("🔁 Retry SMTP send", key=f"retry_{key_base}",
-                             type="secondary"):
-                    result = mcp_client.execute(action)
-                    if result.success:
-                        action["ref_id"] = result.ref_id
-                        st.success(
-                            f"✓ Re-sent — ref: {result.ref_id} "
-                            f"({action.get('smtp_status', 'sent')})"
+                _stored_name  = action.get("client_name", "")
+                _stored_email = action.get("client_email", "")
+                _stored_phone = action.get("client_phone", "")
+
+                _missing_smtp   = not action.get("smtp_status")
+                _missing_client = not action.get("client_email_sent")
+
+                if _missing_smtp or _missing_client:
+                    if _missing_smtp:
+                        st.warning(
+                            "⚠ Advisor email has no SMTP delivery record. "
+                            "Click Retry below to actually send it."
                         )
-                    else:
-                        action["status"] = "error"
-                        st.error(f"Retry failed: {action.get('error_msg', 'unknown')}")
-                    _persist(session)
-                    st.rerun()
+                    if _missing_client and action.get("source") == "m3_voice":
+                        st.info(
+                            "📧 Send / resend the client confirmation email "
+                            "(name + email required)."
+                        )
+
+                    rc1, rc2 = st.columns(2)
+                    with rc1:
+                        _retry_name = st.text_input(
+                            "Client Name",
+                            value=_stored_name,
+                            key=f"retry_name_{key_base}",
+                            placeholder="e.g. Rahul Sharma",
+                        )
+                        _retry_email = st.text_input(
+                            "Client Email",
+                            value=_stored_email,
+                            key=f"retry_email_{key_base}",
+                            placeholder="e.g. rahul@example.com",
+                        )
+                    with rc2:
+                        _retry_phone = st.text_input(
+                            "Phone (optional)",
+                            value=_stored_phone,
+                            key=f"retry_phone_{key_base}",
+                            placeholder="+91 …",
+                        )
+
+                    if st.button("🔁 Retry / resend",
+                                 key=f"retry_{key_base}",
+                                 type="secondary"):
+                        # Step 1: re-execute advisor email if needed
+                        if _missing_smtp:
+                            result = mcp_client.execute(action)
+                            if result.success:
+                                action["ref_id"] = result.ref_id
+                                st.success(
+                                    f"✓ Advisor email re-sent — ref: {result.ref_id}"
+                                )
+                            else:
+                                action["status"] = "error"
+                                st.error(
+                                    f"Advisor retry failed: "
+                                    f"{action.get('error_msg', 'unknown')}"
+                                )
+                                _persist(session)
+                                st.rerun()
+                        # Step 2: send (or re-send) client email if name+email given
+                        if _retry_name.strip() and _retry_email.strip():
+                            action["client_name"]  = _retry_name.strip()
+                            action["client_email"] = _retry_email.strip()
+                            action["client_phone"] = _retry_phone.strip()
+                            try:
+                                _send_client_email(
+                                    action, _retry_name, _retry_email, _retry_phone
+                                )
+                                action["client_email_sent"] = True
+                            except Exception as exc:
+                                st.error(f"Client email failed: {exc}")
+                        _persist(session)
+                        st.rerun()
 
         elif status == "rejected":
             st.error("✗ Rejected")
@@ -432,11 +491,17 @@ def _render_single_action(action: dict, session: dict, mcp_client: MCPClient) ->
 
 
 def _send_client_email(action: dict, name: str, email: str, phone: str) -> None:
-    """Send a confirmation email to the client and show inline status."""
+    """Send a confirmation email to the client and show inline status.
+
+    Marks action['client_email_sent']=True on success so the Retry UI
+    knows not to ask again. Re-raises on failure so callers can decide
+    whether to retry; the inline error toast is still shown here.
+    """
     payload      = action.get("payload", {})
     booking_code = payload.get("booking_code") or session_booking_code(action)
     topic_label  = payload.get("topic_label", "Advisor Appointment")
     slot_ist     = payload.get("slot_start_ist", "TBD")
+    date_str     = payload.get("date", "")
 
     phone_line = f"\nPhone: {phone.strip()}" if phone.strip() else ""
 
@@ -448,12 +513,15 @@ def _send_client_email(action: dict, name: str, email: str, phone: str) -> None:
             booking_code = booking_code,
             topic_label  = topic_label,
             slot_ist     = slot_ist + phone_line,
+            date_str     = date_str,
         )
+        action["client_email_sent"] = True
         st.success(f"📧 Confirmation email sent to {email.strip()}!")
         if phone.strip():
             st.caption(f"Phone {phone.strip()} noted in the email.")
     except Exception as exc:
         st.error(f"Failed to send client email: {exc}")
+        raise
 
 
 def session_booking_code(action: dict) -> str:
