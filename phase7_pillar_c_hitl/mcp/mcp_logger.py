@@ -11,7 +11,7 @@ from pathlib import Path
 
 import pytz
 
-from .models import MCPPayload, MCPResults
+from phase7_pillar_c_hitl.mcp.models import MCPPayload, MCPResults
 
 IST = pytz.timezone("Asia/Kolkata")
 

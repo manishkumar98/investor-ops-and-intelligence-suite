@@ -13,11 +13,11 @@ Public API::
 """
 from __future__ import annotations
 
-from .stt_engine import STTEngine, TranscriptResult
-from .tts_engine import TTSEngine, SynthesisResult
-from .vad import VADEngine, VADResult
-from .voice_logger import VoiceLogger, VoiceLogEntry
-from .audio_pipeline import AudioPipeline, PipelineResult, PipelineSession
+from phase6_pillar_b_voice.src.voice.stt_engine import STTEngine, TranscriptResult
+from phase6_pillar_b_voice.src.voice.tts_engine import TTSEngine, SynthesisResult
+from phase6_pillar_b_voice.src.voice.vad import VADEngine, VADResult
+from phase6_pillar_b_voice.src.voice.voice_logger import VoiceLogger, VoiceLogEntry
+from phase6_pillar_b_voice.src.voice.audio_pipeline import AudioPipeline, PipelineResult, PipelineSession
 
 __all__ = [
     # STT

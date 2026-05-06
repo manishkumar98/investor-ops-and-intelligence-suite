@@ -11,8 +11,8 @@ import time
 import gspread
 from google.oauth2 import service_account
 
-from .config import config
-from .models import MCPPayload, ToolResult
+from phase7_pillar_c_hitl.mcp.config import config
+from phase7_pillar_c_hitl.mcp.models import MCPPayload, ToolResult
 
 _SCOPES = [
     "https://www.googleapis.com/auth/spreadsheets",

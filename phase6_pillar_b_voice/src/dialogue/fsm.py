@@ -17,7 +17,7 @@ from datetime import datetime, timedelta
 
 import pytz
 
-from .states import DialogueContext, DialogueState, LLMResponse, TOPIC_LABELS
+from phase6_pillar_b_voice.src.dialogue.states import DialogueContext, DialogueState, LLMResponse, TOPIC_LABELS
 
 IST = pytz.timezone("Asia/Kolkata")
 

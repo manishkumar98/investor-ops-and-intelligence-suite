@@ -5,7 +5,7 @@ from typing import Optional
 
 import pytz
 
-from .booking_engine import generate_waitlist_code
+from phase4_voice_pillar_b.booking_engine import generate_waitlist_code
 
 IST = pytz.timezone("Asia/Kolkata")
 VALID_STATUSES = {"ACTIVE", "FULFILLED", "EXPIRED", "CANCELLED"}

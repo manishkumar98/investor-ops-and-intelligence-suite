@@ -16,7 +16,7 @@ from typing import Optional
 
 import pytz
 
-from .states import DialogueContext
+from phase6_pillar_b_voice.src.dialogue.states import DialogueContext
 
 IST = pytz.timezone("Asia/Kolkata")
 TTL_MINUTES = 30

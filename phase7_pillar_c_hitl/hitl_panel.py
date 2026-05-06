@@ -3,7 +3,7 @@ from pathlib import Path
 
 import streamlit as st
 
-from .mcp_client import MCPClient
+from phase7_pillar_c_hitl.mcp_client import MCPClient
 
 MCP_STATE_PATH = Path(__file__).resolve().parents[1] / "data" / "mcp_state.json"
 
@@ -392,7 +392,7 @@ def _send_client_email(action: dict, name: str, email: str, phone: str) -> None:
     phone_line = f"\nPhone: {phone.strip()}" if phone.strip() else ""
 
     try:
-        from .mcp.email_tool import send_user_confirmation
+        from phase7_pillar_c_hitl.mcp.email_tool import send_user_confirmation
         send_user_confirmation(
             to_name      = name.strip(),
             to_email     = email.strip(),

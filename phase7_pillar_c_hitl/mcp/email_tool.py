@@ -16,8 +16,8 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from urllib.parse import urlencode
 
-from .config import config
-from .models import MCPPayload, ToolResult
+from phase7_pillar_c_hitl.mcp.config import config
+from phase7_pillar_c_hitl.mcp.models import MCPPayload, ToolResult
 
 _IMAP_HOST = "imap.gmail.com"
 _IST = timezone(timedelta(hours=5, minutes=30))

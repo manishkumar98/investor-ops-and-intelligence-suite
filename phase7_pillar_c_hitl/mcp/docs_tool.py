@@ -11,7 +11,7 @@ from datetime import datetime
 from google.oauth2 import service_account
 from googleapiclient.discovery import build
 
-from .config import config
+from phase7_pillar_c_hitl.mcp.config import config
 
 _SCOPES = ["https://www.googleapis.com/auth/documents"]
 

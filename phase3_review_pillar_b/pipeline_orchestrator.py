@@ -3,11 +3,11 @@ from typing import Union
 
 import pandas as pd
 
-from .pii_scrubber import scrub
-from .theme_clusterer import cluster, generate_analytics
-from .quote_extractor import extract
-from .pulse_writer import write
-from .fee_explainer import explain
+from phase3_review_pillar_b.pii_scrubber import scrub
+from phase3_review_pillar_b.theme_clusterer import cluster, generate_analytics
+from phase3_review_pillar_b.quote_extractor import extract
+from phase3_review_pillar_b.pulse_writer import write
+from phase3_review_pillar_b.fee_explainer import explain
 
 
 REQUIRED_COLUMNS = {"review_id", "review_text", "rating"}

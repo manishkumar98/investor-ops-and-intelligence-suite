@@ -14,7 +14,7 @@ from typing import Optional
 
 import pytz
 
-from .booking_code_generator import generate_waitlist_code
+from phase6_pillar_b_voice.src.booking.booking_code_generator import generate_waitlist_code
 
 IST = pytz.timezone("Asia/Kolkata")
 

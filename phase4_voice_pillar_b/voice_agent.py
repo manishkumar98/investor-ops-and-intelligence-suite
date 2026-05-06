@@ -14,13 +14,13 @@ from datetime import datetime
 from pathlib import Path
 
 from config import SECURE_BASE_URL
-from .intent_classifier import classify
-from .slot_filler import extract_topic, extract_time_pref
-from .booking_engine import load_calendar, book, _to_12h
-from .pii_scrubber import scrub_pii
-from .compliance_guard import ComplianceGuard
-from .dialogue_states import DialogueContext, DialogueState, TOPIC_LABELS, IST  # IST used in __init__
-from .rag_injector import get_rag_context
+from phase4_voice_pillar_b.intent_classifier import classify
+from phase4_voice_pillar_b.slot_filler import extract_topic, extract_time_pref
+from phase4_voice_pillar_b.booking_engine import load_calendar, book, _to_12h
+from phase4_voice_pillar_b.pii_scrubber import scrub_pii
+from phase4_voice_pillar_b.compliance_guard import ComplianceGuard
+from phase4_voice_pillar_b.dialogue_states import DialogueContext, DialogueState, TOPIC_LABELS, IST  # IST used in __init__
+from phase4_voice_pillar_b.rag_injector import get_rag_context
 
 _guard = ComplianceGuard()
 
@@ -32,7 +32,7 @@ DISCLAIMER = (
 
 def _slot_display(slot: dict) -> str:
     """Return 'Day, YYYY-MM-DD at HH:MM IST' from a slot dict."""
-    from .booking_engine import _slot_start_dt
+    from phase4_voice_pillar_b.booking_engine import _slot_start_dt
     day = slot.get("day", "")
     time_str = slot.get("time", "")
     slot_date = slot.get("date", "")
@@ -99,7 +99,7 @@ class VoiceAgent:
 
     def _available_days_hint(self) -> str:
         """Return a short spoken hint of available days from the calendar, e.g. 'Monday, Tuesday and Wednesday'."""
-        from .booking_engine import _slot_available, _slot_day_name
+        from phase4_voice_pillar_b.booking_engine import _slot_available, _slot_day_name
         seen = []
         for s in self.calendar:
             if _slot_available(s):
@@ -165,7 +165,7 @@ class VoiceAgent:
     @staticmethod
     def _slot_hour(slot: dict) -> int:
         """Return slot start hour (0-23), or -1 if unknown."""
-        from .booking_engine import _slot_start_dt
+        from phase4_voice_pillar_b.booking_engine import _slot_start_dt
         dt = _slot_start_dt(slot)
         if dt:
             return dt.hour
@@ -179,7 +179,7 @@ class VoiceAgent:
 
     def _load_all_available(self, day: str | None = None, period: str | None = None) -> None:
         """Populate self._all_available (no :2 cap) and reset pagination."""
-        from .booking_engine import _slot_available, _slot_start_dt, _slot_day_name, _DAY_MAP, resolve_day_pref, parse_time_preference, _today_ist
+        from phase4_voice_pillar_b.booking_engine import _slot_available, _slot_start_dt, _slot_day_name, _DAY_MAP, resolve_day_pref, parse_time_preference, _today_ist
         from datetime import date as _date
         today = _today_ist()
 
@@ -460,7 +460,7 @@ class VoiceAgent:
         self._offered_slots = self._all_available[:2]
 
         # Echo-back what was understood before offering/declining slots
-        from .booking_engine import parse_datetime_summary
+        from phase4_voice_pillar_b.booking_engine import parse_datetime_summary
         summary, needs_confirm = parse_datetime_summary(day or "", period or "")
         echo = f"I understood: {summary}. "
 
@@ -522,7 +522,7 @@ class VoiceAgent:
                     self._ctx.time_preference = new_period
 
                 # Build a precisely filtered candidate pool from the full calendar (future only)
-                from .booking_engine import _slot_available, _slot_start_dt, _slot_day_name, _DAY_MAP, resolve_day_pref, _today_ist
+                from phase4_voice_pillar_b.booking_engine import _slot_available, _slot_start_dt, _slot_day_name, _DAY_MAP, resolve_day_pref, _today_ist
                 from datetime import date as _date
                 _today = _today_ist()
                 pool = [
@@ -629,7 +629,7 @@ class VoiceAgent:
         )
 
     def _handle_waitlist(self, _: str) -> str:
-        from .waitlist_handler import create_waitlist_entry
+        from phase4_voice_pillar_b.waitlist_handler import create_waitlist_entry
 
         day_pref  = self._ctx.day_preference or "flexible"
         time_pref = self._ctx.time_preference or "any"

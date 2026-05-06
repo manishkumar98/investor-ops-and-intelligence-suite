@@ -48,10 +48,10 @@ from typing import Callable
 
 import pytz
 
-from .stt_engine import STTEngine, TranscriptResult, transcribe as _default_transcribe
-from .tts_engine import TTSEngine, SynthesisResult, synthesise as _default_synthesise
-from .vad import VADEngine, VADResult
-from .voice_logger import VoiceLogger, get_default_logger
+from phase6_pillar_b_voice.src.voice.stt_engine import STTEngine, TranscriptResult, transcribe as _default_transcribe
+from phase6_pillar_b_voice.src.voice.tts_engine import TTSEngine, SynthesisResult, synthesise as _default_synthesise
+from phase6_pillar_b_voice.src.voice.vad import VADEngine, VADResult
+from phase6_pillar_b_voice.src.voice.voice_logger import VoiceLogger, get_default_logger
 
 logger = logging.getLogger(__name__)
 IST = pytz.timezone("Asia/Kolkata")
@@ -507,7 +507,7 @@ class AudioPipeline:
     @staticmethod
     def _scrub(text: str) -> tuple[str, bool, list[str]]:
         """Delegate to voice_logger's scrub helper (single point of truth)."""
-        from .voice_logger import _scrub as _vl_scrub
+        from phase6_pillar_b_voice.src.voice.voice_logger import _scrub as _vl_scrub
         return _vl_scrub(text)
 
     def _get_greeting(self) -> str:

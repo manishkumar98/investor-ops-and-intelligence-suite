@@ -1,7 +1,7 @@
-from .safety_filter import is_safe
-from .query_router import route
-from .retriever import retrieve
-from .llm_fusion import fuse, FaqResponse
+from phase5_pillar_a_faq.safety_filter import is_safe
+from phase5_pillar_a_faq.query_router import route
+from phase5_pillar_a_faq.retriever import retrieve
+from phase5_pillar_a_faq.llm_fusion import fuse, FaqResponse
 
 
 def query(user_input: str, session: dict) -> FaqResponse:
@@ -12,7 +12,7 @@ def query(user_input: str, session: dict) -> FaqResponse:
     # Safety gate — runs before any LLM call
     safe, refusal_msg = is_safe(user_input)
     if not safe:
-        from .llm_fusion import FaqResponse
+        from phase5_pillar_a_faq.llm_fusion import FaqResponse
         from datetime import date
         response = FaqResponse(
             refused=True,

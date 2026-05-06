@@ -29,8 +29,8 @@ from typing import Optional
 
 import pytz
 
-from .slot_resolver import CalendarSlot
-from .waitlist_handler import WaitlistEntry
+from phase6_pillar_b_voice.src.booking.slot_resolver import CalendarSlot
+from phase6_pillar_b_voice.src.booking.waitlist_handler import WaitlistEntry
 
 logger = logging.getLogger(__name__)
 

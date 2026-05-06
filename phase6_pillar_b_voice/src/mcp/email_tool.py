@@ -13,8 +13,8 @@ import time
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 
-from .config import config
-from .models import MCPPayload, ToolResult
+from phase6_pillar_b_voice.src.mcp.config import config
+from phase6_pillar_b_voice.src.mcp.models import MCPPayload, ToolResult
 
 _IMAP_HOST = "imap.gmail.com"
 

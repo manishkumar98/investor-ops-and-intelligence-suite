@@ -17,12 +17,12 @@ from datetime import datetime, timedelta
 
 import pytz
 
-from .calendar_tool import cancel_calendar_event, create_calendar_hold, update_calendar_event
-from .config import config
-from .email_tool import draft_approval_email
-from .mcp_logger import MCPLogger
-from .models import MCPPayload, MCPResults, ToolResult
-from .sheets_tool import (append_booking_notes, get_event_id_for_booking,
+from phase6_pillar_b_voice.src.mcp.calendar_tool import cancel_calendar_event, create_calendar_hold, update_calendar_event
+from phase6_pillar_b_voice.src.mcp.config import config
+from phase6_pillar_b_voice.src.mcp.email_tool import draft_approval_email
+from phase6_pillar_b_voice.src.mcp.mcp_logger import MCPLogger
+from phase6_pillar_b_voice.src.mcp.models import MCPPayload, MCPResults, ToolResult
+from phase6_pillar_b_voice.src.mcp.sheets_tool import (append_booking_notes, get_event_id_for_booking,
                            reschedule_booking_in_sheets, update_booking_status)
 
 IST = pytz.timezone("Asia/Kolkata")
@@ -213,7 +213,7 @@ async def cancel_booking_mcp(booking_code: str) -> MCPResults:
         total_duration_ms = (time.monotonic() - t0) * 1000,
     )
     # Re-use MCPLogger so cancel results appear in the same ops log
-    from .models import MCPPayload as _MP
+    from phase6_pillar_b_voice.src.mcp.models import MCPPayload as _MP
     from datetime import datetime as _dt
     _cancel_payload = _MP(
         booking_code=booking_code, call_id="cancel", topic_key="cancel",
@@ -291,7 +291,7 @@ async def reschedule_booking_mcp(
         total_duration_ms=(time.monotonic() - t0) * 1000,
     )
 
-    from .models import MCPPayload as _MP
+    from phase6_pillar_b_voice.src.mcp.models import MCPPayload as _MP
     from datetime import datetime as _dt
     _reschedule_payload = _MP(
         booking_code=booking_code, call_id="reschedule", topic_key="reschedule",

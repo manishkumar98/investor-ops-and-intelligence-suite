@@ -5,11 +5,11 @@ from pathlib import Path
 import chromadb
 
 from config import CHROMA_PERSIST_DIR
-from .url_loader import fetch_url
-from .chunker import chunk_text, make_structured_chunk
-from .embedder import get_embeddings
-from .structured_extractor import extract as extract_fields, to_summary_text, fund_name_from_filename
-from .mfapi_loader import fetch_all_sbi_funds
+from phase2_corpus_pillar_a.url_loader import fetch_url
+from phase2_corpus_pillar_a.chunker import chunk_text, make_structured_chunk
+from phase2_corpus_pillar_a.embedder import get_embeddings
+from phase2_corpus_pillar_a.structured_extractor import extract as extract_fields, to_summary_text, fund_name_from_filename
+from phase2_corpus_pillar_a.mfapi_loader import fetch_all_sbi_funds
 
 ROOT = Path(__file__).resolve().parents[1]
 _INDEX_HASH_FILE  = ROOT / "data" / ".index_hash"

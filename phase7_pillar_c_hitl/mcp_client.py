@@ -99,7 +99,7 @@ class MCPClient:
 
         elif action["type"] == "notes_append":
             try:
-                from .mcp.docs_tool import append_notes_sync
+                from phase7_pillar_c_hitl.mcp.docs_tool import append_notes_sync
                 append_notes_sync(action["payload"])
             except Exception as exc:
                 action["error_msg"] = str(exc)
@@ -108,8 +108,8 @@ class MCPClient:
         elif action["type"] == "calendar_hold":
             try:
                 import asyncio
-                from .mcp.models import MCPPayload
-                from .mcp.calendar_tool import create_calendar_hold
+                from phase7_pillar_c_hitl.mcp.models import MCPPayload
+                from phase7_pillar_c_hitl.mcp.calendar_tool import create_calendar_hold
                 p = action["payload"]
                 mcp_payload = MCPPayload(
                     booking_code=p.get("booking_code", ""),
@@ -130,8 +130,8 @@ class MCPClient:
 
         elif action["type"] == "sheet_entry":
             try:
-                from .mcp.models import MCPPayload
-                from .mcp.sheets_tool import _append_row_sync
+                from phase7_pillar_c_hitl.mcp.models import MCPPayload
+                from phase7_pillar_c_hitl.mcp.sheets_tool import _append_row_sync
                 p = action["payload"]
                 mcp_payload = MCPPayload(
                     booking_code=p.get("booking_code", ""),

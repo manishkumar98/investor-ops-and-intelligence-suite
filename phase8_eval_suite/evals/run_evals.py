@@ -8,10 +8,10 @@ sys.path.insert(0, str(ROOT))
 from config import load_env
 load_env()
 
-from .safety_eval import run_safety_eval
-from .ux_eval import run_ux_eval
-from .rag_eval import run_rag_eval
-from .report_generator import generate_report
+from phase8_eval_suite.evals.safety_eval import run_safety_eval
+from phase8_eval_suite.evals.ux_eval import run_ux_eval
+from phase8_eval_suite.evals.rag_eval import run_rag_eval
+from phase8_eval_suite.evals.report_generator import generate_report
 
 from session_init import init_session_state
 from phase3_review_pillar_b.pipeline_orchestrator import run_pipeline
