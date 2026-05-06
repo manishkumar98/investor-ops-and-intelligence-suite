@@ -233,7 +233,7 @@ The tools exist in isolation. Each milestone solves one problem but cannot commu
 | Evals Report | EVALS_REPORT.md Markdown table | ✅ Done |
 | Source Manifest | SOURCE_MANIFEST.md | ✅ Done |
 | Deployed App Link | Streamlit / HuggingFace | ⏳ Pending |
-| Demo Video | 5-minute MP4 | ⏳ Pending |
+| Demo Video | [Watch on Google Drive](https://drive.google.com/file/d/1DGWTwK4h0EVvbnfaNS6LueW3tdlug2Rl/view?usp=sharing) | ✅ Done |
 
 ### Demo Video Must Show:
 1. Review CSV processed into a Weekly Pulse (M2 pipeline)

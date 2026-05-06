@@ -9,7 +9,18 @@ A unified three-pillar dashboard that merges a RAG FAQ chatbot (M1), a review in
 
 ## Demo
 
-![Demo](assets/demo.gif)
+🎥 **Full walkthrough:** [Watch on Google Drive](https://drive.google.com/file/d/1DGWTwK4h0EVvbnfaNS6LueW3tdlug2Rl/view?usp=sharing)
+
+| Pillar | Preview |
+|---|---|
+| **Smart-Sync FAQ** — per-fund priority URL chain (Groww → INDMoney → SBI MF) → mfapi.in fallback | ![Smart-Sync FAQ](assets/gifs/smart_sync_faq.gif) |
+| **Insight-Driven Optimization** — weekly review pipeline → themes, pulse, fee explainer | ![Insight Pipeline](assets/gifs/insight_pipeline.gif) |
+| **Voice Booking Agent** — book / reschedule / cancel; PII scrub; compliance gate | ![Voice Agent](assets/gifs/voice_agent.gif) |
+| **Super-Agent MCP Workflow** — Claude enqueues 4 actions; HITL approval | ![MCP Workflow](assets/gifs/mcp_workflow.gif) |
+
+> GIFs are sliced from the demo video by [`scripts/make_demo_gifs.py`](scripts/make_demo_gifs.py).
+> Edit the `SCENES` list in that script (start time + duration per scene), download the demo
+> as `assets/demo.mp4`, then `python scripts/make_demo_gifs.py`. Requires `ffmpeg`.
 
 ---
 
@@ -19,7 +30,7 @@ A unified three-pillar dashboard that merges a RAG FAQ chatbot (M1), a review in
 |---|---|
 | Live Deployment | [investor-ops-and-intelligence-suite-production.up.railway.app](https://investor-ops-and-intelligence-suite-production.up.railway.app/) |
 | GitHub Repository | https://github.com/manishkumar98/investor-ops-and-intelligence-suit |
-| Demo Video (5 min) | *(to be added)* |
+| Demo Video | [Watch on Google Drive](https://drive.google.com/file/d/1DGWTwK4h0EVvbnfaNS6LueW3tdlug2Rl/view?usp=sharing) |
 | Evals Report | [EVALS_REPORT.md](EVALS_REPORT.md) |
 | Source Manifest (42 URLs) | [SOURCE_MANIFEST.md](SOURCE_MANIFEST.md) |
 | Sample Q&A (10 queries) | [SAMPLE_QA.md](SAMPLE_QA.md) |
