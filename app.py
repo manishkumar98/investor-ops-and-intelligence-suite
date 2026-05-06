@@ -1577,7 +1577,7 @@ st.markdown("""
 
 # Reload MCP queue from disk if session is fresh (handles page reloads)
 if not st.session_state["mcp_queue"]:
-    state_file = Path("data/mcp_state.json")
+    state_file = Path(__file__).parent / "data" / "mcp_state.json"
     if state_file.exists():
         try:
             st.session_state["mcp_queue"] = json.loads(state_file.read_text())
@@ -1586,8 +1586,8 @@ if not st.session_state["mcp_queue"]:
 
 # Auto-load pulse + fee data from disk so voice agent is ready without re-running pipeline
 if not st.session_state.get("pulse_generated"):
-    _pulse_file = Path("data/pulse_latest.json")
-    _fee_file   = Path("data/fee_latest.json")
+    _pulse_file = Path(__file__).parent / "data" / "pulse_latest.json"
+    _fee_file   = Path(__file__).parent / "data" / "fee_latest.json"
     if _pulse_file.exists():
         try:
             _pd = json.loads(_pulse_file.read_text())
@@ -2556,7 +2556,7 @@ with tab2:
 
     # ── Full Analytics Dashboard (collapsed — available for deep review) ─────
     st.markdown("---")
-    _dashboard = Path("data/dashboard.html")
+    _dashboard = Path(__file__).parent / "data" / "dashboard.html"
     _DASHBOARD_LIGHT_CSS = """<style>
 body{background:linear-gradient(135deg,#e8f0fe 0%,#dce8fb 50%,#e4eaf5 100%)!important;color:#1a2340!important;}
 body *{color:#1a2340!important;}
@@ -2637,7 +2637,7 @@ header p,header a{color:rgba(26,35,64,0.6)!important;}
         with _dash_refresh:
             if st.button("🔄 Refresh", key="refresh_dashboard", use_container_width=True,
                          help="Manually rebake the dashboard from the latest pipeline JSON files"):
-                _pulse_src = Path("data/pulse_latest.json")
+                _pulse_src = Path(__file__).parent / "data" / "pulse_latest.json"
                 if _pulse_src.exists():
                     try:
                         from scripts.update_dashboard import run as _update_dashboard
@@ -2673,7 +2673,7 @@ header p,header a{color:rgba(26,35,64,0.6)!important;}
         with _draft_refresh:
             if st.button("🔄 Refresh", key="refresh_draft_dashboard", use_container_width=True,
                          help="Manually rebake the dashboard from the latest pipeline JSON files"):
-                _pulse_src = Path("data/pulse_latest.json")
+                _pulse_src = Path(__file__).parent / "data" / "pulse_latest.json"
                 if _pulse_src.exists():
                     try:
                         from scripts.update_dashboard import run as _update_dashboard
