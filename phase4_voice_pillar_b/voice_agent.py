@@ -54,7 +54,9 @@ def _slot_display(slot: dict) -> str:
         if not slot_date:
             slot_date = dt.strftime("%Y-%m-%d")
     date_part = f", {slot_date}" if slot_date else ""
-    return f"{day.title()}{date_part} at {_to_12h(time_str)} IST".strip()
+    # Strip any embedded IST/timezone suffix before appending " IST"
+    time_clean = time_str.replace(" IST", "").replace(" UTC", "").strip()
+    return f"{day.title()}{date_part} at {_to_12h(time_clean)} IST".strip()
 
 
 def _tts(text: str) -> bytes | None:
