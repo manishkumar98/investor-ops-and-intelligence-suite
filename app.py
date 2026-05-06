@@ -1751,6 +1751,7 @@ if st.session_state.get("_sync_active"):
                 text     = format_fund_as_text(fund_name, meta, nav_data)
                 safe     = fund_name.lower().replace(" ", "_")
                 out      = _MFAPI_RAW_DIR / f"{safe}_(mfapi).txt"
+                out.parent.mkdir(parents=True, exist_ok=True)
                 out.write_text(text, encoding="utf-8")
                 nav_val  = nav_data[0].get("nav", "") if nav_data else ""
                 result.update({"status": "ok", "chunks": len(nav_data), "nav": f"₹{nav_val}"})
