@@ -26,10 +26,10 @@ from pathlib import Path
 # Each tuple: (gif_name, start_time, duration_seconds)
 # start_time accepts numbers (seconds) or "MM:SS" / "HH:MM:SS" strings.
 SCENES: list[tuple[str, str | float, str | float]] = [
-    ("smart_sync_faq",   "00:15",  10),   # Smart-Sync FAQ — per-fund scrape progress
-    ("insight_pipeline", "01:00",  12),   # Weekly Pulse generation
-    ("voice_agent",      "02:00",  15),   # Voice booking conversation
-    ("mcp_workflow",     "03:30",  10),   # Action Centre approve flow
+    ("smart_sync_faq",   "00:37",  15),   # Smart-Sync FAQ — per-fund scrape progress
+    ("insight_pipeline", "02:42",  15),   # Weekly Pulse generation
+    ("voice_agent",      "06:26",  15),   # Voice booking conversation
+    ("mcp_workflow",     "09:39",  15),   # Action Centre approve flow
 ]
 
 # GIF output settings
