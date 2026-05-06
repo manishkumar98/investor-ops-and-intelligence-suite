@@ -2457,7 +2457,75 @@ with tab2:
 
     # ── Voice Agent section ──────────────────────────────────────────────────
     st.markdown("---")
-    st.markdown("#### Voice Appointment Booking")
+    st.markdown("""
+    <style>
+    .va-header { display: flex; align-items: center; gap: 10px; margin-bottom: 4px; }
+    .va-title   { font-size: 1.05rem; font-weight: 800; color: var(--text-1); margin: 0; }
+    .va-info-wrap { position: relative; display: inline-flex; align-items: center; }
+    .va-info-icon {
+        width: 20px; height: 20px; border-radius: 50%;
+        background: var(--gold-glow); border: 1.5px solid var(--gold-dim);
+        color: var(--gold-1); font-size: 0.7rem; font-weight: 800;
+        display: flex; align-items: center; justify-content: center;
+        cursor: default; flex-shrink: 0; line-height: 1;
+    }
+    .va-tooltip {
+        visibility: hidden; opacity: 0;
+        position: absolute; left: 28px; top: -8px;
+        width: 360px; z-index: 9999;
+        background: var(--bg-card); border: 1px solid var(--border);
+        border-radius: 12px; padding: 16px 18px;
+        box-shadow: 0 8px 32px rgba(0,0,0,0.35);
+        transition: opacity 0.18s;
+        font-size: 0.82rem; color: var(--text-2); line-height: 1.6;
+        pointer-events: none;
+    }
+    .va-info-wrap:hover .va-tooltip { visibility: visible; opacity: 1; }
+    .va-tooltip-title { font-weight: 700; color: var(--text-1); margin-bottom: 6px; font-size: 0.88rem; }
+    .va-transcript {
+        margin-top: 10px; background: var(--bg-glass);
+        border-radius: 8px; padding: 10px 12px;
+        font-size: 0.76rem; line-height: 1.6;
+    }
+    .va-transcript-title { color: var(--gold-dim); font-weight: 700; font-size: 0.72rem;
+        text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 8px; }
+    .va-line-agent { color: var(--gold-1); margin-bottom: 3px; }
+    .va-line-user  { color: var(--text-2); margin-bottom: 3px; }
+    </style>
+    <div class="va-header">
+      <span class="va-title">🎙️ Voice Appointment Booking</span>
+      <div class="va-info-wrap">
+        <div class="va-info-icon">i</div>
+        <div class="va-tooltip">
+          <div class="va-tooltip-title">What is the Voice Agent?</div>
+          <div>
+            An <strong>AI-powered voice booking assistant</strong> that simulates a phone call to
+            schedule advisor appointments. It is briefed with the latest weekly pulse — so it
+            greets the caller with the <em>current top customer theme</em> (e.g. fee transparency).
+          </div>
+          <div style="margin-top:6px;">
+            The agent walks you through <strong>topic → date → time → confirmation</strong> and
+            queues a calendar hold, call notes, and advisor email into the
+            <strong>Super-Agent MCP Workflow</strong> for human approval.
+          </div>
+          <div class="va-transcript">
+            <div class="va-transcript-title">📋 Sample Call Transcript</div>
+            <div class="va-line-agent"><strong>Agent:</strong> Hello! I'm calling from INDMoney. Our top concern this week is <em>fee transparency</em>. How can I help you today?</div>
+            <div class="va-line-user"><strong>You:</strong> I want to book an appointment.</div>
+            <div class="va-line-agent"><strong>Agent:</strong> Sure! What topic would you like to discuss? For example — SIP, expense ratio, or exit load?</div>
+            <div class="va-line-user"><strong>You:</strong> SIP.</div>
+            <div class="va-line-agent"><strong>Agent:</strong> Got it. What day works for you — next Monday or Tuesday?</div>
+            <div class="va-line-user"><strong>You:</strong> Next Monday.</div>
+            <div class="va-line-agent"><strong>Agent:</strong> Available at 10 AM or 2 PM — which do you prefer?</div>
+            <div class="va-line-user"><strong>You:</strong> 2 PM.</div>
+            <div class="va-line-agent"><strong>Agent:</strong> Confirm Monday at 2 PM for a SIP discussion?</div>
+            <div class="va-line-user"><strong>You:</strong> Yes.</div>
+            <div class="va-line-agent"><strong>Agent:</strong> ✅ Booked! Code: <em>NL-XXXX</em>. Head to the Action Centre to approve the calendar hold and email draft.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    """, unsafe_allow_html=True)
 
     # Init session keys
     for _k2, _v2 in {
