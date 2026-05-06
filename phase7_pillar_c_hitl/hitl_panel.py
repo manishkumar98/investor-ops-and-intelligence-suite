@@ -372,8 +372,14 @@ def _render_single_action(action: dict, session: dict, mcp_client: MCPClient) ->
                     st.rerun()
 
         elif status == "approved":
-            ref = action.get("ref_id", "")
-            st.success(f"✓ Approved — ref: {ref}")
+            ref = action.get("ref_id", "") or "—"
+            extras = []
+            if action.get("smtp_status"):
+                extras.append(f"📧 {action['smtp_status']}")
+            if action.get("event_id"):
+                extras.append(f"📅 event {action['event_id'][:10]}…")
+            tail = "  ·  " + "  ·  ".join(extras) if extras else ""
+            st.success(f"✓ Approved — ref: {ref}{tail}")
 
         elif status == "rejected":
             st.error("✗ Rejected")

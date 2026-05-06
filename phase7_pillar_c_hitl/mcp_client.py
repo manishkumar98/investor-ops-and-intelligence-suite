@@ -70,10 +70,22 @@ def _coerce_slot_iso(date_str: str, time_str: str) -> tuple[str, str]:
     return start_aware.isoformat(), end_aware.isoformat()
 
 
-def _send_advisor_email_live(payload: dict) -> None:
-    """Send the rich advisor pre-booking email (HTML + plain fallback) via Gmail SMTP."""
+def _send_advisor_email_live(payload: dict) -> str:
+    """Send the rich advisor pre-booking email (HTML + plain fallback) via Gmail SMTP.
+
+    Returns a short status string ("delivered to <addr>") on success.
+    Raises with a clear message on any misconfiguration so the HITL UI
+    surfaces it instead of silently showing 'Approved' with no email.
+    """
     from .mcp.config import config  # noqa: PLC0415
     from .mcp.email_tool import _advisor_html  # noqa: PLC0415
+
+    if not config.gmail_address:
+        raise RuntimeError("GMAIL_ADDRESS env var not set")
+    if not config.gmail_app_password:
+        raise RuntimeError("GMAIL_APP_PASSWORD env var not set")
+    if not config.advisor_email:
+        raise RuntimeError("ADVISOR_EMAIL env var not set (and GMAIL_ADDRESS empty)")
 
     subject = payload.get("subject", "Advisor Pre-Booking")
     body    = payload.get("body", "")
@@ -86,11 +98,17 @@ def _send_advisor_email_live(payload: dict) -> None:
     msg.attach(MIMEText(body, "plain"))
     msg.attach(MIMEText(_advisor_html(payload), "html"))
 
-    with smtplib.SMTP(config.gmail_smtp_host, config.gmail_smtp_port) as smtp:
+    with smtplib.SMTP(config.gmail_smtp_host, config.gmail_smtp_port, timeout=20) as smtp:
         smtp.ehlo()
         smtp.starttls()
         smtp.login(config.gmail_address, config.gmail_app_password)
-        smtp.sendmail(config.gmail_address, config.advisor_email, msg.as_bytes())
+        # sendmail returns dict of refused recipients; empty == fully delivered.
+        refused = smtp.sendmail(
+            config.gmail_address, [config.advisor_email], msg.as_bytes()
+        )
+    if refused:
+        raise RuntimeError(f"recipient(s) refused by SMTP: {refused}")
+    return f"delivered to {config.advisor_email}"
 
 
 @dataclass
@@ -132,6 +150,9 @@ class MCPClient:
     def __init__(self, mode: str = "mock"):
         self.mode = mode
         self._mock_store: dict = {}
+        # booking_code → calendar_event_id, populated by calendar_hold success,
+        # consumed by sheet_entry so the sheet row stores the real event id.
+        self._event_ids: dict[str, str] = {}
 
     def execute(self, action: dict) -> MCPResult:
         """Execute an approved action.
@@ -152,9 +173,12 @@ class MCPClient:
         # Live mode
         if action["type"] == "email_draft":
             try:
-                _send_advisor_email_live(action["payload"])
+                smtp_result = _send_advisor_email_live(action["payload"])
+                # Surface the SMTP server's response to the UI so the user can
+                # tell at a glance whether the message was actually accepted.
+                action["smtp_status"] = smtp_result or "accepted"
             except Exception as exc:
-                action["error_msg"] = str(exc)
+                action["error_msg"] = f"SMTP send failed: {exc}"
                 return MCPResult(success=False, ref_id="", mode="live")
 
         elif action["type"] == "notes_append":
@@ -191,7 +215,37 @@ class MCPClient:
                     created_at_ist=datetime.now(IST).isoformat(),
                     status="booked",
                 )
-                asyncio.run(create_calendar_hold(mcp_payload))
+                cal_result = asyncio.run(create_calendar_hold(mcp_payload))
+                # Capture the calendar event_id so a later sheet_entry execution
+                # for the same booking_code can persist it.
+                event_id = ""
+                if getattr(cal_result, "data", None):
+                    event_id = cal_result.data.get("event_id", "") or ""
+                if event_id and mcp_payload.booking_code:
+                    self._event_ids[mcp_payload.booking_code] = event_id
+                    action["event_id"] = event_id
+                # If a sheet row already exists for this booking, back-fill the
+                # event_id column now (sheet_entry may have run first).
+                if event_id and mcp_payload.booking_code:
+                    try:
+                        from phase7_pillar_c_hitl.mcp.sheets_tool import (
+                            _get_booking_row_sync,
+                        )
+                        import gspread  # noqa: F401  (lazy import for Sheets API)
+                        row_idx, existing_evt = _get_booking_row_sync(
+                            mcp_payload.booking_code
+                        )
+                        if row_idx and not existing_evt:
+                            from phase7_pillar_c_hitl.mcp.sheets_tool import _build_client
+                            from phase7_pillar_c_hitl.mcp.config import config
+                            client = _build_client()
+                            ws = client.open_by_key(config.sheet_id).worksheet(
+                                config.sheet_tab
+                            )
+                            # calendar_event_id is the 8th column (index 8 → col 8)
+                            ws.update_cell(row_idx, 8, event_id)
+                    except Exception:
+                        pass  # back-fill is best-effort
             except Exception as exc:
                 action["error_msg"] = str(exc)
                 return MCPResult(success=False, ref_id="", mode="live")
@@ -201,25 +255,33 @@ class MCPClient:
                 from phase7_pillar_c_hitl.mcp.models import MCPPayload
                 from phase7_pillar_c_hitl.mcp.sheets_tool import _append_row_sync
                 p = action["payload"]
-                # slot_start_ist payload may be human-readable; derive ISO from date + slot/time
+                booking_code = p.get("booking_code", "")
+                # slot_start_ist from Claude may be just "2:00 PM IST" — derive
+                # full ISO from any date/slot field we can find, then pass the
+                # ISO form as slot_start_ist so the sheet column is unambiguous.
                 _slot_human = p.get("slot_start_ist", "") or p.get("slot", "")
                 slot_start_iso, _ = _coerce_slot_iso(
                     p.get("date", "") or _slot_human,
                     _slot_human,
                 )
+                # If we got a clean ISO, use it for the sheet column too — it
+                # contains date+time and sorts correctly. Fall back to the
+                # human string only if parsing failed.
+                slot_for_sheet = slot_start_iso or _slot_human
+                event_id = self._event_ids.get(booking_code, "") or p.get("event_id", "")
                 mcp_payload = MCPPayload(
-                    booking_code=p.get("booking_code", ""),
+                    booking_code=booking_code,
                     call_id=p.get("call_id", ""),
                     topic_key=p.get("topic_key", ""),
                     topic_label=p.get("topic_label", ""),
                     slot_start_iso=slot_start_iso or _slot_human,
-                    slot_start_ist=_slot_human or slot_start_iso,
+                    slot_start_ist=slot_for_sheet,
                     slot_end_iso="",
                     advisor_id=p.get("advisor_id", ""),
                     created_at_ist=datetime.now(IST).isoformat(),
                     status=p.get("status", "booked"),
                 )
-                _append_row_sync(mcp_payload, event_id=None)
+                _append_row_sync(mcp_payload, event_id=event_id or None)
             except Exception as exc:
                 action["error_msg"] = str(exc)
                 return MCPResult(success=False, ref_id="", mode="live")
