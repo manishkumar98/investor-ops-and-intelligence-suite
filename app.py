@@ -2949,6 +2949,24 @@ with tab3:
     st.markdown("---")
 
     mcp_client = MCPClient(mode=MCP_MODE)
+
+    # Diagnostic banner — surfaces config issues that would otherwise look
+    # like "Approved but no email sent". Only shown when something is off.
+    _missing = []
+    if MCP_MODE != "live":
+        _missing.append(f"MCP_MODE={MCP_MODE!r} (must be 'live' to actually send)")
+    import os as _os
+    if not _os.environ.get("GMAIL_ADDRESS"):
+        _missing.append("GMAIL_ADDRESS not set")
+    if not _os.environ.get("GMAIL_APP_PASSWORD"):
+        _missing.append("GMAIL_APP_PASSWORD not set")
+    if _missing:
+        st.warning(
+            "⚠ Action Centre will not deliver emails until the following are "
+            "fixed: " + " · ".join(_missing) +
+            ". Set them in Railway env vars and redeploy."
+        )
+
     render_hitl(session=st.session_state, mcp_client=mcp_client)
 
 # ── Footer ────────────────────────────────────────────────────────────────────

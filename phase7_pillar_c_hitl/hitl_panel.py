@@ -381,11 +381,54 @@ def _render_single_action(action: dict, session: dict, mcp_client: MCPClient) ->
             tail = "  ·  " + "  ·  ".join(extras) if extras else ""
             st.success(f"✓ Approved — ref: {ref}{tail}")
 
+            # If an email_draft was approved but no smtp_status was recorded,
+            # the SMTP send didn't actually happen (legacy action, MCP_MODE
+            # was 'mock', or an old code path that didn't capture status).
+            # Show a Retry button so the user can re-execute and actually send.
+            if action["type"] == "email_draft" and not action.get("smtp_status"):
+                st.warning(
+                    "⚠ This email was marked Approved but no SMTP delivery was "
+                    "recorded. The advisor may not have received it. "
+                    "Click Retry to send it now."
+                )
+                key_base = action["action_id"][:8]
+                if st.button("🔁 Retry SMTP send", key=f"retry_{key_base}",
+                             type="secondary"):
+                    result = mcp_client.execute(action)
+                    if result.success:
+                        action["ref_id"] = result.ref_id
+                        st.success(
+                            f"✓ Re-sent — ref: {result.ref_id} "
+                            f"({action.get('smtp_status', 'sent')})"
+                        )
+                    else:
+                        action["status"] = "error"
+                        st.error(f"Retry failed: {action.get('error_msg', 'unknown')}")
+                    _persist(session)
+                    st.rerun()
+
         elif status == "rejected":
             st.error("✗ Rejected")
 
         elif status == "error":
             st.error(f"⚠ Error: {action.get('error_msg', 'unknown')}")
+            # Allow the user to retry once they've fixed the underlying
+            # config (e.g. set GMAIL_APP_PASSWORD on Railway, redeployed).
+            if action["type"] in ("email_draft", "calendar_hold",
+                                  "sheet_entry", "notes_append"):
+                key_base = action["action_id"][:8]
+                if st.button("🔁 Retry", key=f"retry_err_{key_base}",
+                             type="secondary"):
+                    action.pop("error_msg", None)
+                    result = mcp_client.execute(action)
+                    if result.success:
+                        action["status"] = "approved"
+                        action["ref_id"] = result.ref_id
+                        st.success(f"✓ Retried — ref: {result.ref_id}")
+                    else:
+                        st.error(f"Still failing: {action.get('error_msg', 'unknown')}")
+                    _persist(session)
+                    st.rerun()
 
 
 def _send_client_email(action: dict, name: str, email: str, phone: str) -> None:
