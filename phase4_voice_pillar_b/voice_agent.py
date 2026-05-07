@@ -808,12 +808,14 @@ class VoiceAgent:
             from phase7_pillar_c_hitl.mcp.sheets_tool import _get_booking_details_sync
             row = _get_booking_details_sync(code)
             if row:
-                return row.get("topic_key") or row.get("topic_label") or ""
-        except Exception:
+                topic = row.get("topic_key") or row.get("topic_label")
+                return topic or "General"
+        except Exception as e:
+            logger.error(f"Sheet lookup failed for {code}: {e}")
             pass
         # Fallback: accept any NL-XXXX pattern (demo mode)
         if _CODE_RE.match(code):
-            return ""  # empty string = valid but topic unknown
+            return "General"
         return None
 
     # ── What-to-prepare ───────────────────────────────────────────────────────

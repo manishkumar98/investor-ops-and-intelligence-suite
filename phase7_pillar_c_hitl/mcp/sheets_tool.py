@@ -112,9 +112,11 @@ def _get_booking_details_sync(booking_code: str) -> dict | None:
     except ValueError:
         return None
 
-    for row_idx, row in enumerate(all_values[1:], start=2):
+    # Search from the bottom to get the most recent entry for this code
+    for row_idx, row in enumerate(reversed(all_values[1:]), start=0):
+        actual_row_idx = len(all_values) - row_idx
         if len(row) > code_col and row[code_col].strip() == booking_code:
-            record = {"row_index": row_idx}
+            record = {"row_index": actual_row_idx}
             for col_idx, header in enumerate(headers):
                 record[header] = row[col_idx] if col_idx < len(row) else ""
             return record
