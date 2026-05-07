@@ -1,3 +1,4 @@
+import asyncio
 import json
 import os
 import re
@@ -11,6 +12,22 @@ from pathlib import Path
 
 import pytz
 import requests
+
+def _safe_run(coro):
+    """Run an async coroutine from a sync context, handling Streamlit thread loop issues."""
+    try:
+        return asyncio.run(coro)
+    except RuntimeError:
+        try:
+            loop = asyncio.get_event_loop()
+            return loop.run_until_complete(coro)
+        except Exception:
+            new_loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(new_loop)
+            try:
+                return new_loop.run_until_complete(coro)
+            finally:
+                new_loop.close()
 
 MCP_STATE_PATH = Path(__file__).resolve().parents[1] / "data" / "mcp_state.json"
 IST = pytz.timezone("Asia/Kolkata")
@@ -374,21 +391,13 @@ class MCPClient:
                     event_id = self._event_ids.get(booking_code) or p.get("event_id", "")
                     if not event_id and booking_code:
                         # Try to find the event from Google Calendar by booking code
-                        event_id = asyncio.get_event_loop().run_until_complete(
-                            asyncio.get_event_loop().run_in_executor(
+                        def _find_coro():
+                            return asyncio.get_event_loop().run_in_executor(
                                 None, _find_event_by_booking_code_sync, booking_code
                             )
-                        ) if hasattr(asyncio, "get_event_loop") else None
-                        if not event_id:
-                            try:
-                                event_id = asyncio.run(
-                                    asyncio.get_event_loop().run_in_executor(
-                                        None, _find_event_by_booking_code_sync, booking_code
-                                    )
-                                )
-                            except Exception:
-                                event_id = None
-                    cal_result = asyncio.run(
+                        event_id = _safe_run(_find_coro())
+
+                    cal_result = _safe_run(
                         cancel_calendar_event(event_id or None, booking_code or None)
                     )
                     if not cal_result.success:
@@ -410,11 +419,11 @@ class MCPClient:
                     event_id = self._event_ids.get(booking_code) or p.get("event_id", "")
                     if not event_id and booking_code:
                         try:
-                            event_id = asyncio.run(
-                                asyncio.get_event_loop().run_in_executor(
+                            def _find_coro():
+                                return asyncio.get_event_loop().run_in_executor(
                                     None, _find_event_by_booking_code_sync, booking_code
                                 )
-                            )
+                            event_id = _safe_run(_find_coro())
                         except Exception:
                             event_id = None
                     if event_id:
@@ -422,7 +431,7 @@ class MCPClient:
                         new_title = p.get("title") or f"Advisor Q&A — {p.get('topic_label', 'General')} — {booking_code}"
                         new_desc  = f"Pre-booking via Voice Agent\nBooking Code : {booking_code}\nTopic        : {p.get('topic_label', 'General')}"
                         
-                        cal_result = asyncio.get_event_loop().run_until_complete(
+                        cal_result = _safe_run(
                             update_calendar_event(
                                 event_id, slot_start_iso, slot_end_iso,
                                 summary=new_title, description=new_desc
@@ -439,9 +448,8 @@ class MCPClient:
                         # Fallback: create a fresh event if original can't be found
                         # Try to delete by code first to prevent duplicates
                         if booking_code:
-                            asyncio.get_event_loop().run_until_complete(
-                                cancel_calendar_event(None, booking_code)
-                            )
+                            _safe_run(cancel_calendar_event(None, booking_code))
+
                         mcp_payload = MCPPayload(
                             booking_code=booking_code,
                             call_id=p.get("call_id", ""),
@@ -454,7 +462,7 @@ class MCPClient:
                             created_at_ist=datetime.now(IST).isoformat(),
                             status="rescheduled",
                         )
-                        cal_result = asyncio.run(create_calendar_hold(mcp_payload))
+                        cal_result = _safe_run(create_calendar_hold(mcp_payload))
                         event_id = ""
                         if getattr(cal_result, "data", None):
                             event_id = cal_result.data.get("event_id", "") or ""
@@ -483,7 +491,7 @@ class MCPClient:
                         created_at_ist=datetime.now(IST).isoformat(),
                         status="booked",
                     )
-                    cal_result = asyncio.run(create_calendar_hold(mcp_payload))
+                    cal_result = _safe_run(create_calendar_hold(mcp_payload))
                     event_id = ""
                     if getattr(cal_result, "data", None):
                         event_id = cal_result.data.get("event_id", "") or ""
