@@ -372,10 +372,11 @@ class VoiceAgent:
         slot_lines = [f"Option {i}: {_slot_display(s)}" for i, s in enumerate(batch, 1)]
         has_more = len(self._all_available) > start + 2
         more_hint = " Say 'other' to see more options." if has_more else ""
+        options_hint = "(say '1')" if len(batch) == 1 else "(say '1' or '2')"
         return (
             "Here are available slots:\n"
             + "\n".join(slot_lines)
-            + f"\nWhich option works for you? (say '1' or '2'){more_hint}"
+            + f"\nWhich option works for you? {options_hint}{more_hint}"
         )
 
     # ── Public API ────────────────────────────────────────────────────────────
@@ -1030,6 +1031,13 @@ class VoiceAgent:
                 if specific_hour is not None:
                     hour_filtered = [s for s in pool if abs(self._slot_hour(s) - specific_hour) <= 1]
                     if hour_filtered:
+                        # If we have only 1 slot in the ±1h window, but more exist on the same day,
+                        # add the next closest slot so the user has two options.
+                        if len(hour_filtered) < 2 and len(pool) > len(hour_filtered):
+                            others = [s for s in pool if s not in hour_filtered]
+                            # Sort others by proximity to the specific hour
+                            others.sort(key=lambda s: abs(self._slot_hour(s) - specific_hour))
+                            hour_filtered.extend(others[:2 - len(hour_filtered)])
                         pool = hour_filtered
 
                 # Chronological sort
