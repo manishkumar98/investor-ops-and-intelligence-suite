@@ -604,16 +604,17 @@ class MCPClient:
                     )
                     _append_row_sync(mcp_payload, event_id=event_id or None)
 
-                elif action["type"] == "waitlist_entry":
-                    # ── Save Waitlist Entry to Google Sheets ──────────────────────
-                    from phase7_pillar_c_hitl.mcp.sheets_tool import _append_waitlist_sync
-                    try:
-                        _append_waitlist_sync(p)
-                    except Exception as exc:
-                        action["error_msg"] = f"Waitlist Sheet Error: {exc}"
-
             except Exception as exc:
                 action["error_msg"] = str(exc)
+                return MCPResult(success=False, ref_id="", mode="live")
+
+        elif action["type"] == "waitlist_entry":
+            # ── Save Waitlist Entry to Google Sheets ──────────────────────
+            from phase7_pillar_c_hitl.mcp.sheets_tool import _append_waitlist_sync
+            try:
+                _append_waitlist_sync(action["payload"])
+            except Exception as exc:
+                action["error_msg"] = f"Waitlist Sheet Error: {exc}"
                 return MCPResult(success=False, ref_id="", mode="live")
 
         return MCPResult(success=True, ref_id=ref_id, mode="live")
