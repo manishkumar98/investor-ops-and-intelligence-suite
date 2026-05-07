@@ -82,16 +82,43 @@ def _advisor_html(payload: dict, event_id: str | None = None) -> str:
     topic       = payload.get("topic_label", payload.get("topic", "—"))
     date        = payload.get("date", "—")
     slot        = payload.get("slot_start_ist", payload.get("time", payload.get("slot", "—")))
-    market_ctx  = payload.get("body", "")
     call_id     = payload.get("call_id", "—")
-    # Optional client email — when set, advisor's calendar link will pre-add
-    # them as a guest so saving the event invites the user automatically.
     client_email = payload.get("client_email", "")
+
+    # ── Structured context (preferred) — set explicitly by voice_agent ────────
+    top_themes   = payload.get("top_themes", [])
+    market_ctx   = payload.get("market_context", "")
+    fee_bullets  = payload.get("fee_bullets", [])
+    fee_sources  = payload.get("fee_sources", [])
+
+    # ── Fallback: parse from plain-text body if structured fields absent ───────
+    if not market_ctx:
+        body = payload.get("body", "")
+        if body:
+            lines      = body.splitlines()
+            in_mc      = False
+            past_header = False
+            mc_lines   = []
+            for line in lines:
+                stripped = line.strip()
+                if "MARKET CONTEXT" in stripped.upper() or "TOP THEMES" in stripped.upper():
+                    in_mc = True
+                    continue
+                if in_mc:
+                    if stripped.startswith("─"):
+                        if past_header:
+                            break   # end of section
+                        past_header = True
+                        continue    # skip the divider line right after header
+                    past_header = True
+                    if stripped:
+                        mc_lines.append(stripped)
+            market_ctx = " ".join(mc_lines)
 
     # Build Google Calendar link
     gcal_href = _gcal_url(
         title=f"Advisor Q&A — {topic} [{code}]",
-        date_iso=date,
+        date_iso=date if date != "—" else "2026-01-01",
         time_str=slot,
         description=f"INDMoney Advisor pre-booking.\nBooking code: {code}\nTopic: {topic}",
         guests=[client_email] if client_email else None,
@@ -103,26 +130,46 @@ def _advisor_html(payload: dict, event_id: str | None = None) -> str:
         if event_id else ""
     )
 
-    # Extract market context section from body text if present
+    # ── Market context section ─────────────────────────────────────────────────
     mc_section = ""
-    if market_ctx:
-        mc_lines = []
-        in_mc = False
-        for line in market_ctx.splitlines():
-            if "MARKET CONTEXT" in line.upper() or "TOP THEMES" in line.upper():
-                in_mc = True
-            if in_mc:
-                if line.strip().startswith("─") and mc_lines:
-                    break
-                if line.strip():
-                    mc_lines.append(line.strip())
-        if mc_lines:
-            mc_text = "<br>".join(mc_lines[1:]) if len(mc_lines) > 1 else ""
-            mc_section = f"""
-            <div style="background:#f8f9fa;border-left:4px solid #4285f4;padding:14px 18px;border-radius:0 8px 8px 0;margin:20px 0">
-              <p style="margin:0 0 8px;font-weight:700;color:#4285f4;font-size:0.95em">MARKET CONTEXT — This Week's Customer Pulse</p>
-              <p style="margin:0;color:#444;font-size:0.9em;line-height:1.6">{mc_text}</p>
-            </div>"""
+    if market_ctx or top_themes:
+        themes_html = ""
+        if top_themes:
+            items = "".join(
+                f"<li style='margin:4px 0'><strong>#{i+1}</strong> {t}</li>"
+                for i, t in enumerate(top_themes[:3])
+            )
+            themes_html = f"<ul style='margin:8px 0 12px;padding-left:18px;color:#444;font-size:0.9em'>{items}</ul>"
+
+        ctx_html = ""
+        if market_ctx:
+            ctx_html = (
+                f"<p style='margin:0;color:#444;font-size:0.9em;line-height:1.6'>{market_ctx}</p>"
+            )
+
+        mc_section = f"""
+        <div style="background:#f8f9fa;border-left:4px solid #4285f4;padding:14px 18px;border-radius:0 8px 8px 0;margin:20px 0">
+          <p style="margin:0 0 8px;font-weight:700;color:#4285f4;font-size:0.95em">MARKET CONTEXT — This Week's Customer Pulse</p>
+          {themes_html}{ctx_html}
+        </div>"""
+
+    # ── Fee context section ────────────────────────────────────────────────────
+    fee_section = ""
+    if fee_bullets:
+        items = "".join(f"<li style='margin:4px 0;color:#444;font-size:0.88em'>{b}</li>" for b in fee_bullets)
+        src_html = ""
+        if fee_sources:
+            links = " · ".join(
+                f"<a href='{s}' style='color:#1a73e8'>{s.split('/')[2] if '/' in s else s}</a>"
+                for s in fee_sources[:3]
+            )
+            src_html = f"<p style='margin:8px 0 0;font-size:0.8em;color:#888'>Sources: {links}</p>"
+        fee_section = f"""
+        <div style="background:#fafafa;border-left:4px solid #fbbc04;padding:14px 18px;border-radius:0 8px 8px 0;margin:16px 0">
+          <p style="margin:0 0 8px;font-weight:700;color:#b45309;font-size:0.9em">FEE CONTEXT</p>
+          <ul style="margin:0;padding-left:18px">{items}</ul>
+          {src_html}
+        </div>"""
 
     return f"""<!DOCTYPE html>
 <html>
@@ -178,6 +225,8 @@ def _advisor_html(payload: dict, event_id: str | None = None) -> str:
 
   {mc_section}
 
+  {fee_section}
+
   <p style="color:#888;font-size:0.82em;border-top:1px solid #eee;padding-top:14px;margin-top:8px">
     Automated pre-booking notification from INDMoney Advisor Suite. No PII was shared on the voice call.
     No investment advice implied.
@@ -185,6 +234,7 @@ def _advisor_html(payload: dict, event_id: str | None = None) -> str:
 </div>
 </body>
 </html>"""
+
 
 
 # ── User confirmation HTML email ──────────────────────────────────────────────

@@ -1293,6 +1293,12 @@ class VoiceAgent:
                 "date":           detail["date"],
                 "slot_start_ist": detail.get("slot", ""),
                 "call_id":        self._ctx.call_id,
+                # Structured context fields — used directly by _advisor_html
+                "top_themes":     top_3,
+                "market_context": market_ctx,
+                "fee_bullets":    fee_bullets,
+                "fee_sources":    fee_sources,
+                # Plain-text body for the HITL preview panel
                 "body": (
                     f"Dear Advisor,\n\nA new appointment has been pre-booked.\n\n"
                     f"{div}\n MEETING DETAILS\n{div}\n"
@@ -1302,7 +1308,7 @@ class VoiceAgent:
                     + (f"  {themes_line}\n\n" if themes_line else "")
                     + f"  {market_ctx}\n\n"
                     f"{div}\n FEE CONTEXT\n{div}\n{fee_section}{fee_src_line}\n\n"
-                    f"⚠  No investment advice implied.\n\nBest regards,\nINDMoney Advisor Suite"
+                    f"\u26a0  No investment advice implied.\n\nBest regards,\nINDMoney Advisor Suite"
                 ),
             })
             enqueue_action(self.session, type="sheet_entry", source="m3_voice", payload={
