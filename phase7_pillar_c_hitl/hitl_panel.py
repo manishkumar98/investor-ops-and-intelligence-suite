@@ -29,17 +29,34 @@ def _render_action_card(action: dict) -> None:
     atype   = action.get("type", "")
 
     if atype == "calendar_hold":
-        title   = payload.get("title", "—")
-        date_v  = payload.get("date", "—")
-        time_v  = payload.get("time", "—")
-        tz      = payload.get("tz", "IST")
-        topic   = payload.get("topic", "—")
-        code    = payload.get("booking_code", "—")
+        title       = payload.get("title", "—")
+        date_v      = payload.get("date", "—")
+        time_v      = payload.get("time", "—")
+        tz          = payload.get("tz", "IST")
+        topic       = payload.get("topic", "—")
+        code        = payload.get("booking_code", "—")
+        cal_action  = payload.get("action", "create")  # create | cancel | reschedule
+
+        # Visual theme by action type
+        if cal_action == "cancel":
+            icon        = "🗑️"
+            header_txt  = f"Cancel Calendar Event — {code}"
+            action_badge = '<span style="background:#fee2e2;color:#dc2626;padding:2px 10px;border-radius:6px;font-size:0.82rem;font-weight:700">🗑 CANCEL EVENT</span>'
+        elif cal_action == "reschedule":
+            icon        = "🔄"
+            header_txt  = f"Reschedule Calendar Event — {code}"
+            action_badge = '<span style="background:#fef3c7;color:#d97706;padding:2px 10px;border-radius:6px;font-size:0.82rem;font-weight:700">🔄 RESCHEDULE</span>'
+        else:
+            icon        = "📅"
+            header_txt  = title
+            action_badge = ''
+
         html = f"""
 <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:16px 20px;margin:10px 0;">
   <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;border-bottom:1px solid var(--border);padding-bottom:10px;">
-    <span style="font-size:1.4rem;">📅</span>
-    <span style="font-weight:700;color:var(--text-1);font-size:1rem;">{title}</span>
+    <span style="font-size:1.4rem;">{icon}</span>
+    <span style="font-weight:700;color:var(--text-1);font-size:1rem;">{header_txt}</span>
+    {action_badge}
   </div>
   <div style="display:grid;grid-template-columns:130px 1fr;gap:8px 16px;font-size:0.875rem;">
     <span style="color:var(--text-3);">Date</span>
@@ -188,6 +205,14 @@ def _render_action_card(action: dict) -> None:
         date_v   = payload.get("date",          "—")
         status_v = payload.get("status",        "—")
         call_v   = payload.get("call_id",       "—")
+        # Status color: green = confirmed, red = cancelled, orange = rescheduled
+        _status_up = str(status_v).upper()
+        if _status_up == "CANCELLED":
+            status_color = "#dc2626"
+        elif _status_up in ("RESCHEDULED",):
+            status_color = "#d97706"
+        else:
+            status_color = "#22C55E"
         html = f"""
 <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:16px 20px;margin:10px 0;">
   <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;border-bottom:1px solid var(--border);padding-bottom:10px;">
@@ -204,7 +229,7 @@ def _render_action_card(action: dict) -> None:
     <span style="color:var(--text-3);">Time Slot</span>
     <span style="color:var(--text-1);">{slot_v} IST</span>
     <span style="color:var(--text-3);">Status</span>
-    <span style="color:#22C55E;font-weight:600;">{status_v}</span>
+    <span style="color:{status_color};font-weight:600;">{status_v}</span>
     <span style="color:var(--text-3);">Call ID</span>
     <span style="color:var(--text-1);font-family:monospace;font-size:0.8rem;">{call_v}</span>
   </div>
@@ -331,9 +356,20 @@ def _render_single_action(action: dict, session: dict, mcp_client: MCPClient) ->
             client_phone = ""
 
             if action["type"] == "email_draft" and action.get("source") == "m3_voice":
+                _subj = action["payload"].get("subject", "")
+                _is_cancel = "Cancellation" in _subj or "cancel" in _subj.lower()
+                _is_reschedule = "Reschedule" in _subj or "reschedule" in _subj.lower()
+
                 st.markdown("---")
-                st.markdown("**Send Confirmation Email to Client**")
-                st.caption("Name and Email are required. Phone is optional.")
+                if _is_cancel:
+                    st.markdown("**📧 Send Cancellation Confirmation to Investor**")
+                    st.caption("Enter investor's name and email to send a cancellation notice.")
+                elif _is_reschedule:
+                    st.markdown("**📧 Send Reschedule Confirmation to Investor**")
+                    st.caption("Enter investor's name and email to send a reschedule notice.")
+                else:
+                    st.markdown("**Send Confirmation Email to Client**")
+                    st.caption("Name and Email are required. Phone is optional.")
 
                 c1, c2 = st.columns(2)
                 with c1:
@@ -491,33 +527,48 @@ def _render_single_action(action: dict, session: dict, mcp_client: MCPClient) ->
 
 
 def _send_client_email(action: dict, name: str, email: str, phone: str) -> None:
-    """Send a confirmation email to the client and show inline status.
+    """Send a confirmation/cancellation email to the client and show inline status.
 
-    Marks action['client_email_sent']=True on success so the Retry UI
-    knows not to ask again. Re-raises on failure so callers can decide
-    whether to retry; the inline error toast is still shown here.
+    Detects the flow type from the action subject and calls the right sender:
+    - Cancellation flow → send_user_cancellation_email (red theme)
+    - Booking/reschedule flow → send_user_confirmation (purple theme)
+
+    Marks action['client_email_sent']=True on success.
     """
     payload      = action.get("payload", {})
     booking_code = payload.get("booking_code") or session_booking_code(action)
     topic_label  = payload.get("topic_label", "Advisor Appointment")
     slot_ist     = payload.get("slot_start_ist", "TBD")
     date_str     = payload.get("date", "")
+    subject      = payload.get("subject", "")
 
     phone_line = f"\nPhone: {phone.strip()}" if phone.strip() else ""
 
+    _is_cancel = "Cancellation" in subject or "cancel" in subject.lower()
+
     try:
-        from phase7_pillar_c_hitl.mcp.email_tool import send_user_confirmation
-        send_user_confirmation(
-            to_name      = name.strip(),
-            to_email     = email.strip(),
-            booking_code = booking_code,
-            topic_label  = topic_label,
-            slot_ist     = slot_ist + phone_line,
-            date_str     = date_str,
-        )
+        if _is_cancel:
+            from phase7_pillar_c_hitl.mcp.email_tool import send_user_cancellation_email
+            send_user_cancellation_email(
+                to_name      = name.strip(),
+                to_email     = email.strip(),
+                booking_code = booking_code,
+                topic_label  = topic_label,
+            )
+        else:
+            from phase7_pillar_c_hitl.mcp.email_tool import send_user_confirmation
+            send_user_confirmation(
+                to_name      = name.strip(),
+                to_email     = email.strip(),
+                booking_code = booking_code,
+                topic_label  = topic_label,
+                slot_ist     = slot_ist + phone_line,
+                date_str     = date_str,
+            )
         action["client_email_sent"] = True
-        st.success(f"📧 Confirmation email sent to {email.strip()}!")
-        if phone.strip():
+        _label = "Cancellation notice" if _is_cancel else "Confirmation email"
+        st.success(f"📧 {_label} sent to {email.strip()}!")
+        if phone.strip() and not _is_cancel:
             st.caption(f"Phone {phone.strip()} noted in the email.")
     except Exception as exc:
         st.error(f"Failed to send client email: {exc}")

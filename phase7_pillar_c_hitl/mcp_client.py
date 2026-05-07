@@ -176,6 +176,101 @@ def _send_advisor_email_live(payload: dict) -> str:
     )
 
 
+
+def _send_cancellation_email_live(payload: dict) -> str:
+    """Send a cancellation notification email to the advisor.
+
+    Uses the same Brevo/SMTP routing as _send_advisor_email_live,
+    but uses the red-themed cancellation HTML template.
+    """
+    from .mcp.config import config  # noqa: PLC0415
+    from .mcp.email_tool import _advisor_cancellation_html  # noqa: PLC0415
+
+    if not config.gmail_address:
+        raise RuntimeError("GMAIL_ADDRESS env var not set")
+    if not config.advisor_email:
+        raise RuntimeError("ADVISOR_EMAIL env var not set")
+
+    subject = payload.get("subject", f"Booking Cancelled — {payload.get('booking_code', '')}")
+    body    = payload.get("body", "")
+    html    = _advisor_cancellation_html(payload)
+
+    if os.environ.get("BREVO_API_KEY", "").strip():
+        return _send_via_brevo(
+            sender=config.gmail_address,
+            sender_name="AdvisorBot",
+            to_email=config.advisor_email,
+            to_name=config.advisor_email,
+            subject=subject,
+            html_body=html,
+            plain_body=body,
+        )
+
+    if not config.gmail_app_password:
+        raise RuntimeError(
+            "Neither BREVO_API_KEY nor GMAIL_APP_PASSWORD is set."
+        )
+    msg = MIMEMultipart("alternative")
+    msg["From"]    = f"AdvisorBot <{config.gmail_address}>"
+    msg["To"]      = config.advisor_email
+    msg["Subject"] = subject
+    msg.attach(MIMEText(body, "plain"))
+    msg.attach(MIMEText(html, "html"))
+    return _send_via_smtp(
+        sender=config.gmail_address,
+        password=config.gmail_app_password,
+        smtp_host=config.gmail_smtp_host,
+        smtp_port=config.gmail_smtp_port,
+        to_email=config.advisor_email,
+        msg_bytes=msg.as_bytes(),
+    )
+
+
+def _send_reschedule_email_live(payload: dict) -> str:
+    """Send a reschedule notification email to the advisor."""
+    from .mcp.config import config  # noqa: PLC0415
+    from .mcp.email_tool import _advisor_reschedule_html  # noqa: PLC0415
+
+    if not config.gmail_address:
+        raise RuntimeError("GMAIL_ADDRESS env var not set")
+    if not config.advisor_email:
+        raise RuntimeError("ADVISOR_EMAIL env var not set")
+
+    subject = payload.get("subject", f"Booking Rescheduled — {payload.get('booking_code', '')}")
+    body    = payload.get("body", "")
+    html    = _advisor_reschedule_html(payload)
+
+    if os.environ.get("BREVO_API_KEY", "").strip():
+        return _send_via_brevo(
+            sender=config.gmail_address,
+            sender_name="AdvisorBot",
+            to_email=config.advisor_email,
+            to_name=config.advisor_email,
+            subject=subject,
+            html_body=html,
+            plain_body=body,
+        )
+
+    if not config.gmail_app_password:
+        raise RuntimeError(
+            "Neither BREVO_API_KEY nor GMAIL_APP_PASSWORD is set."
+        )
+    msg = MIMEMultipart("alternative")
+    msg["From"]    = f"AdvisorBot <{config.gmail_address}>"
+    msg["To"]      = config.advisor_email
+    msg["Subject"] = subject
+    msg.attach(MIMEText(body, "plain"))
+    msg.attach(MIMEText(html, "html"))
+    return _send_via_smtp(
+        sender=config.gmail_address,
+        password=config.gmail_app_password,
+        smtp_host=config.gmail_smtp_host,
+        smtp_port=config.gmail_smtp_port,
+        to_email=config.advisor_email,
+        msg_bytes=msg.as_bytes(),
+    )
+
+
 @dataclass
 class MCPResult:
     success: bool
@@ -238,15 +333,17 @@ class MCPClient:
         # Live mode
         if action["type"] == "email_draft":
             try:
-                # Propagate the captured client_email onto the payload so the
-                # advisor email's "Add to Google Calendar" link pre-adds the
-                # user as a guest (Google sends invite on save).
                 _payload_for_send = dict(action["payload"])
                 if action.get("client_email"):
                     _payload_for_send["client_email"] = action["client_email"]
-                smtp_result = _send_advisor_email_live(_payload_for_send)
-                # Surface the SMTP server's response to the UI so the user can
-                # tell at a glance whether the message was actually accepted.
+                subject = _payload_for_send.get("subject", "")
+                # Route to the right email template based on flow type
+                if "Cancellation" in subject or "cancel" in subject.lower():
+                    smtp_result = _send_cancellation_email_live(_payload_for_send)
+                elif "Reschedule" in subject or "reschedule" in subject.lower():
+                    smtp_result = _send_reschedule_email_live(_payload_for_send)
+                else:
+                    smtp_result = _send_advisor_email_live(_payload_for_send)
                 action["smtp_status"] = smtp_result or "accepted"
             except Exception as exc:
                 action["error_msg"] = f"SMTP send failed: {exc}"
@@ -264,59 +361,142 @@ class MCPClient:
             try:
                 import asyncio
                 from phase7_pillar_c_hitl.mcp.models import MCPPayload
-                from phase7_pillar_c_hitl.mcp.calendar_tool import create_calendar_hold
+                from phase7_pillar_c_hitl.mcp.calendar_tool import (
+                    create_calendar_hold, cancel_calendar_event, update_calendar_event,
+                    _find_event_by_booking_code_sync,
+                )
                 p = action["payload"]
-                slot_start_iso, slot_end_iso = _coerce_slot_iso(
-                    p.get("date", ""), p.get("time", "")
-                )
-                if not slot_start_iso:
-                    raise ValueError(
-                        f"calendar_hold: could not parse slot from "
-                        f"date={p.get('date')!r} time={p.get('time')!r}"
-                    )
-                mcp_payload = MCPPayload(
-                    booking_code=p.get("booking_code", ""),
-                    call_id=p.get("call_id", ""),
-                    topic_key=p.get("topic", ""),
-                    topic_label=p.get("title", ""),
-                    slot_start_iso=slot_start_iso,
-                    slot_start_ist=slot_start_iso,
-                    slot_end_iso=slot_end_iso,
-                    advisor_id="",
-                    created_at_ist=datetime.now(IST).isoformat(),
-                    status="booked",
-                )
-                cal_result = asyncio.run(create_calendar_hold(mcp_payload))
-                # Capture the calendar event_id so a later sheet_entry execution
-                # for the same booking_code can persist it.
-                event_id = ""
-                if getattr(cal_result, "data", None):
-                    event_id = cal_result.data.get("event_id", "") or ""
-                if event_id and mcp_payload.booking_code:
-                    self._event_ids[mcp_payload.booking_code] = event_id
-                    action["event_id"] = event_id
-                # If a sheet row already exists for this booking, back-fill the
-                # event_id column now (sheet_entry may have run first).
-                if event_id and mcp_payload.booking_code:
-                    try:
-                        from phase7_pillar_c_hitl.mcp.sheets_tool import (
-                            _get_booking_row_sync,
-                        )
-                        import gspread  # noqa: F401  (lazy import for Sheets API)
-                        row_idx, existing_evt = _get_booking_row_sync(
-                            mcp_payload.booking_code
-                        )
-                        if row_idx and not existing_evt:
-                            from phase7_pillar_c_hitl.mcp.sheets_tool import _build_client
-                            from phase7_pillar_c_hitl.mcp.config import config
-                            client = _build_client()
-                            ws = client.open_by_key(config.sheet_id).worksheet(
-                                config.sheet_tab
+                cal_action = p.get("action", "create")  # "create" | "cancel" | "reschedule"
+
+                if cal_action == "cancel":
+                    # ── Delete the Google Calendar event ───────────────────────────
+                    booking_code = p.get("booking_code", "")
+                    event_id = self._event_ids.get(booking_code) or p.get("event_id", "")
+                    if not event_id and booking_code:
+                        # Try to find the event from Google Calendar by booking code
+                        event_id = asyncio.get_event_loop().run_until_complete(
+                            asyncio.get_event_loop().run_in_executor(
+                                None, _find_event_by_booking_code_sync, booking_code
                             )
-                            # calendar_event_id is the 8th column (index 8 → col 8)
-                            ws.update_cell(row_idx, 8, event_id)
-                    except Exception:
-                        pass  # back-fill is best-effort
+                        ) if hasattr(asyncio, "get_event_loop") else None
+                        if not event_id:
+                            try:
+                                event_id = asyncio.run(
+                                    asyncio.get_event_loop().run_in_executor(
+                                        None, _find_event_by_booking_code_sync, booking_code
+                                    )
+                                )
+                            except Exception:
+                                event_id = None
+                    cal_result = asyncio.run(
+                        cancel_calendar_event(event_id or None, booking_code or None)
+                    )
+                    if not cal_result.success:
+                        action["error_msg"] = cal_result.error or "Calendar cancel failed"
+                        return MCPResult(success=False, ref_id="", mode="live")
+                    action["event_id"] = (cal_result.data or {}).get("event_id", "")
+
+                elif cal_action == "reschedule":
+                    # ── Update existing event to new time ─────────────────────────
+                    booking_code = p.get("booking_code", "")
+                    slot_start_iso, slot_end_iso = _coerce_slot_iso(
+                        p.get("date", ""), p.get("time", "")
+                    )
+                    if not slot_start_iso:
+                        raise ValueError(
+                            f"calendar_hold(reschedule): could not parse new slot from "
+                            f"date={p.get('date')!r} time={p.get('time')!r}"
+                        )
+                    event_id = self._event_ids.get(booking_code) or p.get("event_id", "")
+                    if not event_id and booking_code:
+                        try:
+                            event_id = asyncio.run(
+                                asyncio.get_event_loop().run_in_executor(
+                                    None, _find_event_by_booking_code_sync, booking_code
+                                )
+                            )
+                        except Exception:
+                            event_id = None
+                    if event_id:
+                        cal_result = asyncio.run(
+                            update_calendar_event(event_id, slot_start_iso, slot_end_iso)
+                        )
+                        if not cal_result.success:
+                            action["error_msg"] = cal_result.error or "Calendar reschedule failed"
+                            return MCPResult(success=False, ref_id="", mode="live")
+                        new_event_id = (cal_result.data or {}).get("event_id", event_id)
+                        if new_event_id and booking_code:
+                            self._event_ids[booking_code] = new_event_id
+                            action["event_id"] = new_event_id
+                    else:
+                        # Fallback: create a fresh event if original can't be found
+                        mcp_payload = MCPPayload(
+                            booking_code=booking_code,
+                            call_id=p.get("call_id", ""),
+                            topic_key=p.get("topic", ""),
+                            topic_label=p.get("title", p.get("topic_label", "")),
+                            slot_start_iso=slot_start_iso,
+                            slot_start_ist=slot_start_iso,
+                            slot_end_iso=slot_end_iso,
+                            advisor_id="",
+                            created_at_ist=datetime.now(IST).isoformat(),
+                            status="rescheduled",
+                        )
+                        cal_result = asyncio.run(create_calendar_hold(mcp_payload))
+                        event_id = ""
+                        if getattr(cal_result, "data", None):
+                            event_id = cal_result.data.get("event_id", "") or ""
+                        if event_id and booking_code:
+                            self._event_ids[booking_code] = event_id
+                            action["event_id"] = event_id
+
+                else:  # "create" — default, original logic
+                    slot_start_iso, slot_end_iso = _coerce_slot_iso(
+                        p.get("date", ""), p.get("time", "")
+                    )
+                    if not slot_start_iso:
+                        raise ValueError(
+                            f"calendar_hold: could not parse slot from "
+                            f"date={p.get('date')!r} time={p.get('time')!r}"
+                        )
+                    mcp_payload = MCPPayload(
+                        booking_code=p.get("booking_code", ""),
+                        call_id=p.get("call_id", ""),
+                        topic_key=p.get("topic", ""),
+                        topic_label=p.get("title", ""),
+                        slot_start_iso=slot_start_iso,
+                        slot_start_ist=slot_start_iso,
+                        slot_end_iso=slot_end_iso,
+                        advisor_id="",
+                        created_at_ist=datetime.now(IST).isoformat(),
+                        status="booked",
+                    )
+                    cal_result = asyncio.run(create_calendar_hold(mcp_payload))
+                    event_id = ""
+                    if getattr(cal_result, "data", None):
+                        event_id = cal_result.data.get("event_id", "") or ""
+                    if event_id and mcp_payload.booking_code:
+                        self._event_ids[mcp_payload.booking_code] = event_id
+                        action["event_id"] = event_id
+                    if event_id and mcp_payload.booking_code:
+                        try:
+                            from phase7_pillar_c_hitl.mcp.sheets_tool import (
+                                _get_booking_row_sync,
+                            )
+                            import gspread  # noqa: F401
+                            row_idx, existing_evt = _get_booking_row_sync(
+                                mcp_payload.booking_code
+                            )
+                            if row_idx and not existing_evt:
+                                from phase7_pillar_c_hitl.mcp.sheets_tool import _build_client
+                                from phase7_pillar_c_hitl.mcp.config import config
+                                client = _build_client()
+                                ws = client.open_by_key(config.sheet_id).worksheet(
+                                    config.sheet_tab
+                                )
+                                ws.update_cell(row_idx, 8, event_id)
+                        except Exception:
+                            pass  # back-fill is best-effort
             except Exception as exc:
                 action["error_msg"] = str(exc)
                 return MCPResult(success=False, ref_id="", mode="live")
@@ -327,32 +507,88 @@ class MCPClient:
                 from phase7_pillar_c_hitl.mcp.sheets_tool import _append_row_sync
                 p = action["payload"]
                 booking_code = p.get("booking_code", "")
-                # slot_start_ist from Claude may be just "2:00 PM IST" — derive
-                # full ISO from any date/slot field we can find, then pass the
-                # ISO form as slot_start_ist so the sheet column is unambiguous.
-                _slot_human = p.get("slot_start_ist", "") or p.get("slot", "")
-                slot_start_iso, _ = _coerce_slot_iso(
-                    p.get("date", "") or _slot_human,
-                    _slot_human,
-                )
-                # If we got a clean ISO, use it for the sheet column too — it
-                # contains date+time and sorts correctly. Fall back to the
-                # human string only if parsing failed.
-                slot_for_sheet = slot_start_iso or _slot_human
-                event_id = self._event_ids.get(booking_code, "") or p.get("event_id", "")
-                mcp_payload = MCPPayload(
-                    booking_code=booking_code,
-                    call_id=p.get("call_id", ""),
-                    topic_key=p.get("topic_key", ""),
-                    topic_label=p.get("topic_label", ""),
-                    slot_start_iso=slot_start_iso or _slot_human,
-                    slot_start_ist=slot_for_sheet,
-                    slot_end_iso="",
-                    advisor_id=p.get("advisor_id", ""),
-                    created_at_ist=datetime.now(IST).isoformat(),
-                    status=p.get("status", "booked"),
-                )
-                _append_row_sync(mcp_payload, event_id=event_id or None)
+                new_status = p.get("status", "booked")
+
+                if new_status.upper() == "CANCELLED":
+                    # ── Update existing row status to CANCELLED ──────────────────
+                    from phase7_pillar_c_hitl.mcp.sheets_tool import _update_status_sync
+                    try:
+                        result_data = _update_status_sync(booking_code, "CANCELLED")
+                    except RuntimeError:
+                        # Row not found (e.g. demo mode) — fall through to append
+                        _slot_human = p.get("slot_start_ist", "") or p.get("slot", "")
+                        slot_start_iso, _ = _coerce_slot_iso(
+                            p.get("date", "") or _slot_human, _slot_human
+                        )
+                        slot_for_sheet = slot_start_iso or _slot_human
+                        event_id = self._event_ids.get(booking_code, "") or p.get("event_id", "")
+                        mcp_payload = MCPPayload(
+                            booking_code=booking_code,
+                            call_id=p.get("call_id", ""),
+                            topic_key=p.get("topic_key", ""),
+                            topic_label=p.get("topic_label", ""),
+                            slot_start_iso=slot_start_iso or _slot_human,
+                            slot_start_ist=slot_for_sheet,
+                            slot_end_iso="",
+                            advisor_id=p.get("advisor_id", ""),
+                            created_at_ist=datetime.now(IST).isoformat(),
+                            status="CANCELLED",
+                        )
+                        _append_row_sync(mcp_payload, event_id=event_id or None)
+
+                elif new_status.upper() == "RESCHEDULED":
+                    # ── Update existing row slot + status to RESCHEDULED ─────────
+                    from phase7_pillar_c_hitl.mcp.sheets_tool import _reschedule_row_sync
+                    _slot_human = p.get("slot_start_ist", "") or p.get("slot", "")
+                    slot_start_iso, slot_end_iso = _coerce_slot_iso(
+                        p.get("date", "") or _slot_human, _slot_human
+                    )
+                    new_event_id = self._event_ids.get(booking_code, "") or p.get("event_id", "")
+                    try:
+                        _reschedule_row_sync(
+                            booking_code,
+                            slot_start_iso or _slot_human,
+                            slot_end_iso or "",
+                            new_event_id or None,
+                        )
+                    except RuntimeError:
+                        # Row not found — fall through to append with new status
+                        mcp_payload = MCPPayload(
+                            booking_code=booking_code,
+                            call_id=p.get("call_id", ""),
+                            topic_key=p.get("topic_key", ""),
+                            topic_label=p.get("topic_label", ""),
+                            slot_start_iso=slot_start_iso or _slot_human,
+                            slot_start_ist=slot_start_iso or _slot_human,
+                            slot_end_iso=slot_end_iso or "",
+                            advisor_id=p.get("advisor_id", ""),
+                            created_at_ist=datetime.now(IST).isoformat(),
+                            status="RESCHEDULED",
+                        )
+                        _append_row_sync(mcp_payload, event_id=new_event_id or None)
+
+                else:
+                    # ── Default: append a new booking row ──────────────────────────
+                    _slot_human = p.get("slot_start_ist", "") or p.get("slot", "")
+                    slot_start_iso, _ = _coerce_slot_iso(
+                        p.get("date", "") or _slot_human,
+                        _slot_human,
+                    )
+                    slot_for_sheet = slot_start_iso or _slot_human
+                    event_id = self._event_ids.get(booking_code, "") or p.get("event_id", "")
+                    mcp_payload = MCPPayload(
+                        booking_code=booking_code,
+                        call_id=p.get("call_id", ""),
+                        topic_key=p.get("topic_key", ""),
+                        topic_label=p.get("topic_label", ""),
+                        slot_start_iso=slot_start_iso or _slot_human,
+                        slot_start_ist=slot_for_sheet,
+                        slot_end_iso="",
+                        advisor_id=p.get("advisor_id", ""),
+                        created_at_ist=datetime.now(IST).isoformat(),
+                        status=new_status,
+                    )
+                    _append_row_sync(mcp_payload, event_id=event_id or None)
             except Exception as exc:
                 action["error_msg"] = str(exc)
                 return MCPResult(success=False, ref_id="", mode="live")

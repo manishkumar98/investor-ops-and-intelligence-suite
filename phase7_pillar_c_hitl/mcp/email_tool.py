@@ -236,8 +236,264 @@ def _advisor_html(payload: dict, event_id: str | None = None) -> str:
 </html>"""
 
 
+# ── Advisor Cancellation HTML email ──────────────────────────────────────────
 
-# ── User confirmation HTML email ──────────────────────────────────────────────
+def _advisor_cancellation_html(payload: dict) -> str:
+    """Red-themed advisor email for booking cancellations."""
+    code         = payload.get("booking_code", "—")
+    topic        = payload.get("topic_label", payload.get("topic", "—"))
+    date         = payload.get("date", "—")
+    slot         = payload.get("slot_start_ist", payload.get("time", payload.get("slot", "—")))
+
+    from phase7_pillar_c_hitl.mcp.config import config  # noqa: PLC0415
+
+    return f"""<!DOCTYPE html>
+<html>
+<body style="font-family:Arial,sans-serif;color:#333;max-width:680px;margin:auto;padding:16px">
+
+<div style="background:linear-gradient(135deg,#dc2626,#991b1b);padding:28px 32px;border-radius:12px 12px 0 0">
+  <h2 style="color:white;margin:0;font-size:1.4em">&#128683; Booking Cancelled</h2>
+  <p style="color:#fecaca;margin:6px 0 0;font-size:0.92em">INDMoney Voice Scheduling Agent</p>
+</div>
+
+<div style="background:#ffffff;border:1px solid #fecaca;border-top:none;border-radius:0 0 12px 12px;padding:28px 32px">
+
+  <p style="margin:0 0 16px">Dear <strong>{config.advisor_name}</strong>,</p>
+  <p style="margin:0 0 20px;color:#555">The following appointment has been <strong style="color:#dc2626">cancelled</strong> by the investor via the voice agent.</p>
+
+  <table style="border-collapse:collapse;width:100%;margin:0 0 20px">
+    <tr style="background:#fee2e2">
+      <td style="padding:11px 14px;border:1px solid #fca5a5;font-weight:700;width:38%">Booking Code</td>
+      <td style="padding:11px 14px;border:1px solid #fca5a5">
+        <span style="background:#fee2e2;color:#dc2626;padding:3px 12px;border-radius:6px;font-weight:700;font-size:1.05em;letter-spacing:1px">{code}</span>
+      </td>
+    </tr>
+    <tr>
+      <td style="padding:11px 14px;border:1px solid #fecaca;font-weight:700">Topic</td>
+      <td style="padding:11px 14px;border:1px solid #fecaca">{topic}</td>
+    </tr>
+    <tr style="background:#fee2e2">
+      <td style="padding:11px 14px;border:1px solid #fca5a5;font-weight:700">Date</td>
+      <td style="padding:11px 14px;border:1px solid #fca5a5"><strong>{date}</strong></td>
+    </tr>
+    <tr>
+      <td style="padding:11px 14px;border:1px solid #fecaca;font-weight:700">Time (IST)</td>
+      <td style="padding:11px 14px;border:1px solid #fecaca">{slot}</td>
+    </tr>
+    <tr style="background:#fee2e2">
+      <td style="padding:11px 14px;border:1px solid #fca5a5;font-weight:700">Status</td>
+      <td style="padding:11px 14px;border:1px solid #fca5a5">
+        <span style="background:#fee2e2;color:#dc2626;padding:3px 12px;border-radius:6px;font-weight:700">&#10007; CANCELLED</span>
+      </td>
+    </tr>
+  </table>
+
+  <div style="background:#fff7ed;border-left:4px solid #f97316;padding:14px 18px;border-radius:0 8px 8px 0;margin:20px 0">
+    <p style="margin:0;font-weight:700;color:#c2410c;font-size:0.95em">Action Required</p>
+    <p style="margin:8px 0 0;color:#555;font-size:0.9em">
+      Please free up this slot in the shared calendar and notify any waitlisted users.
+      The Action Centre has been updated automatically.
+    </p>
+  </div>
+
+  <p style="color:#888;font-size:0.82em;border-top:1px solid #fecaca;padding-top:14px;margin-top:8px">
+    Automated cancellation notification from INDMoney Advisor Suite.
+    No investment advice implied.
+  </p>
+</div>
+</body>
+</html>"""
+
+
+# ── Advisor Reschedule HTML email ─────────────────────────────────────────────
+
+def _advisor_reschedule_html(payload: dict) -> str:
+    """Orange-themed advisor email for booking reschedules."""
+    code         = payload.get("booking_code", "—")
+    topic        = payload.get("topic_label", payload.get("topic", "—"))
+    date         = payload.get("date", "—")
+    slot         = payload.get("slot_start_ist", payload.get("time", payload.get("slot", "—")))
+
+    from phase7_pillar_c_hitl.mcp.config import config  # noqa: PLC0415
+
+    gcal_href = _gcal_url(
+        title=f"Advisor Q&A — {topic} [{code}]",
+        date_iso=date if date != "—" else "2026-01-01",
+        time_str=slot,
+        description=f"INDMoney Advisor pre-booking (rescheduled).\\nBooking code: {code}\\nTopic: {topic}",
+    )
+
+    return f"""<!DOCTYPE html>
+<html>
+<body style="font-family:Arial,sans-serif;color:#333;max-width:680px;margin:auto;padding:16px">
+
+<div style="background:linear-gradient(135deg,#d97706,#b45309);padding:28px 32px;border-radius:12px 12px 0 0">
+  <h2 style="color:white;margin:0;font-size:1.4em">&#128260; Booking Rescheduled</h2>
+  <p style="color:#fef3c7;margin:6px 0 0;font-size:0.92em">INDMoney Voice Scheduling Agent</p>
+</div>
+
+<div style="background:#ffffff;border:1px solid #fde68a;border-top:none;border-radius:0 0 12px 12px;padding:28px 32px">
+
+  <p style="margin:0 0 16px">Dear <strong>{config.advisor_name}</strong>,</p>
+  <p style="margin:0 0 20px;color:#555">The following appointment has been <strong style="color:#d97706">rescheduled</strong> by the investor via the voice agent.</p>
+
+  <table style="border-collapse:collapse;width:100%;margin:0 0 20px">
+    <tr style="background:#fef3c7">
+      <td style="padding:11px 14px;border:1px solid #fde68a;font-weight:700;width:38%">Booking Code</td>
+      <td style="padding:11px 14px;border:1px solid #fde68a">
+        <span style="background:#fef3c7;color:#d97706;padding:3px 12px;border-radius:6px;font-weight:700;font-size:1.05em;letter-spacing:1px">{code}</span>
+      </td>
+    </tr>
+    <tr>
+      <td style="padding:11px 14px;border:1px solid #fde68a;font-weight:700">Topic</td>
+      <td style="padding:11px 14px;border:1px solid #fde68a">{topic}</td>
+    </tr>
+    <tr style="background:#fef3c7">
+      <td style="padding:11px 14px;border:1px solid #fde68a;font-weight:700">New Date</td>
+      <td style="padding:11px 14px;border:1px solid #fde68a"><strong>{date}</strong></td>
+    </tr>
+    <tr>
+      <td style="padding:11px 14px;border:1px solid #fde68a;font-weight:700">New Time (IST)</td>
+      <td style="padding:11px 14px;border:1px solid #fde68a">{slot}</td>
+    </tr>
+    <tr style="background:#fef3c7">
+      <td style="padding:11px 14px;border:1px solid #fde68a;font-weight:700">Status</td>
+      <td style="padding:11px 14px;border:1px solid #fde68a">
+        <span style="background:#fef3c7;color:#d97706;padding:3px 12px;border-radius:6px;font-weight:700">&#8635; RESCHEDULED</span>
+      </td>
+    </tr>
+  </table>
+
+  <a href="{gcal_href}" target="_blank"
+     style="display:inline-block;background:#d97706;color:white;padding:11px 22px;
+            border-radius:8px;text-decoration:none;font-weight:600;font-size:0.95em;margin-bottom:20px">
+    &#128197; Update Google Calendar
+  </a>
+
+  <p style="color:#888;font-size:0.82em;border-top:1px solid #fde68a;padding-top:14px;margin-top:8px">
+    Automated reschedule notification from INDMoney Advisor Suite.
+    No investment advice implied.
+  </p>
+</div>
+</body>
+</html>"""
+
+
+# ── User Cancellation Confirmation HTML email ─────────────────────────────────
+
+def _user_cancellation_html(name: str, booking_code: str, topic_label: str) -> str:
+    """Red-themed cancellation confirmation email for the investor."""
+    return f"""<!DOCTYPE html>
+<html>
+<body style="font-family:Arial,sans-serif;color:#333;max-width:600px;margin:auto;padding:16px">
+
+<div style="background:linear-gradient(135deg,#dc2626,#991b1b);padding:28px 32px;border-radius:12px 12px 0 0">
+  <h2 style="color:white;margin:0">&#128683; Appointment Cancelled</h2>
+  <p style="color:#fecaca;margin:6px 0 0;font-size:0.92em">INDMoney Advisor Scheduling</p>
+</div>
+
+<div style="background:#ffffff;border:1px solid #fecaca;border-top:none;border-radius:0 0 12px 12px;padding:28px 32px">
+
+  <p style="margin:0 0 16px">Dear <strong>{name}</strong>,</p>
+  <p style="margin:0 0 20px;color:#555">Your advisor appointment has been successfully cancelled. Here are the details:</p>
+
+  <table style="border-collapse:collapse;width:100%;margin:0 0 20px">
+    <tr style="background:#fee2e2">
+      <td style="padding:10px 14px;border:1px solid #fecaca;font-weight:600">Booking Code</td>
+      <td style="padding:10px 14px;border:1px solid #fecaca">
+        <span style="background:#fee2e2;color:#dc2626;padding:3px 12px;border-radius:6px;font-weight:700;font-size:1.05em;letter-spacing:1px">{booking_code}</span>
+      </td>
+    </tr>
+    <tr>
+      <td style="padding:10px 14px;border:1px solid #fecaca;font-weight:600">Topic</td>
+      <td style="padding:10px 14px;border:1px solid #fecaca">{topic_label}</td>
+    </tr>
+    <tr style="background:#fee2e2">
+      <td style="padding:10px 14px;border:1px solid #fecaca;font-weight:600">Status</td>
+      <td style="padding:10px 14px;border:1px solid #fecaca">
+        <span style="background:#fee2e2;color:#dc2626;padding:3px 12px;border-radius:6px;font-weight:700">&#10007; Cancelled</span>
+      </td>
+    </tr>
+  </table>
+
+  <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;padding:12px 16px;font-size:0.9em;margin-top:4px">
+    &#8505;&#65039; If you'd like to rebook, simply call us again and we'll find you a new slot.
+  </div>
+
+  <p style="color:#6b7280;font-size:0.82em;margin-top:20px;border-top:1px solid #fecaca;padding-top:14px">
+    If you did not request this cancellation, please contact us immediately.<br>
+    Quote your booking code: <strong>{booking_code}</strong>
+  </p>
+</div>
+</body>
+</html>"""
+
+
+def send_user_cancellation_email(
+    to_name: str,
+    to_email: str,
+    booking_code: str,
+    topic_label: str,
+) -> dict:
+    """Send a cancellation confirmation email to the investor.
+
+    Uses Brevo HTTPS API when BREVO_API_KEY is set, otherwise falls back to SMTP.
+    """
+    import os as _os
+    import requests as _requests
+
+    subject = f"Appointment Cancelled — {booking_code} | {topic_label}"
+    plain = (
+        f"Dear {to_name},\n\n"
+        f"Your advisor appointment has been cancelled.\n\n"
+        f"Booking Code : {booking_code}\n"
+        f"Topic        : {topic_label}\n\n"
+        f"If you'd like to rebook, please call us again.\n"
+        f"If you did not request this cancellation, please contact us.\n"
+    )
+    html = _user_cancellation_html(to_name, booking_code, topic_label)
+
+    brevo_key = _os.environ.get("BREVO_API_KEY", "").strip()
+    if brevo_key:
+        resp = _requests.post(
+            "https://api.brevo.com/v3/smtp/email",
+            headers={
+                "accept": "application/json",
+                "api-key": brevo_key,
+                "content-type": "application/json",
+            },
+            json={
+                "sender":      {"name": "AdvisorBot", "email": config.gmail_address},
+                "to":          [{"email": to_email, "name": to_name or to_email}],
+                "subject":     subject,
+                "htmlContent": html,
+                "textContent": plain,
+            },
+            timeout=20,
+        )
+        if not resp.ok:
+            raise RuntimeError(f"brevo API {resp.status_code}: {resp.text[:200]}")
+        return {"to": to_email, "booking_code": booking_code, "provider": "brevo"}
+
+    if not config.gmail_app_password:
+        raise RuntimeError(
+            "Neither BREVO_API_KEY nor GMAIL_APP_PASSWORD is set."
+        )
+    msg = MIMEMultipart("alternative")
+    msg["From"]    = f"AdvisorBot <{config.gmail_address}>"
+    msg["To"]      = to_email
+    msg["Subject"] = subject
+    msg.attach(MIMEText(plain, "plain"))
+    msg.attach(MIMEText(html, "html"))
+    with smtplib.SMTP(config.gmail_smtp_host, config.gmail_smtp_port, timeout=20) as smtp:
+        smtp.ehlo()
+        smtp.starttls()
+        smtp.login(config.gmail_address, config.gmail_app_password)
+        smtp.sendmail(config.gmail_address, to_email, msg.as_bytes())
+    return {"to": to_email, "booking_code": booking_code, "provider": "smtp"}
+
+
+
 
 def _user_confirmation_html(name: str, booking_code: str, topic_label: str, slot_ist: str, date_str: str = "") -> str:
     # Parse date and time for Google Calendar button

@@ -434,10 +434,16 @@ class VoiceAgent:
                                "RESCHEDULE_CODE", "CANCEL_CODE", "CANCEL_CONFIRM")
                 and not _mid_reschedule_slot):
             _switch_keywords = {
-                "cancel":     ("cancel my", "cancel the booking", "want to cancel",
-                               "cancel my appointment", "cancel my booking"),
-                "reschedule": ("reschedule", "change my appointment",
-                               "move my booking", "different day instead"),
+                "cancel":           ("cancel my", "cancel the booking", "want to cancel",
+                                     "cancel my appointment", "cancel my booking",
+                                     "cancel this", "please cancel"),
+                "reschedule":       ("reschedule", "change my appointment",
+                                     "move my booking", "different day instead",
+                                     "rebook", "change the slot"),
+                "what_to_prepare":  ("what to bring", "what to prepare", "documents needed",
+                                     "what should i", "checklist", "what do i need"),
+                "check_availability": ("check availability", "when are you free",
+                                       "available slots", "free slots"),
             }
             for _new_intent, _kws in _switch_keywords.items():
                 if any(k in _low for k in _kws):
@@ -663,10 +669,28 @@ class VoiceAgent:
     def _handle_cancel_confirm(self, utterance: str) -> str:
         lower = utterance.lower()
 
-        if any(w in lower for w in ("yes", "confirm", "ok", "sure", "go ahead", "yeah", "yep")):
+        # If user re-states their booking code (e.g. said "NLCZS7" instead of "yes"),
+        # treat it as implicit confirmation — this is the most common stuck-state cause.
+        restated_code = self._extract_code(utterance)
+        if restated_code and restated_code == self._pending_code:
             return self._complete_cancellation()
 
-        if any(w in lower for w in ("no", "keep", "don't", "cancel that", "never mind", "nevermind")):
+        # Also accept a raw alphanumeric match that looks like a code fragment
+        _stripped = utterance.strip().upper().replace("-", "").replace(" ", "")
+        if (
+            self._pending_code
+            and _stripped
+            and _stripped in self._pending_code.replace("-", "")
+            and len(_stripped) >= 4
+        ):
+            return self._complete_cancellation()
+
+        if any(w in lower for w in ("yes", "confirm", "ok", "sure", "go ahead", "yeah", "yep",
+                                     "proceed", "cancel it", "do it", "please cancel")):
+            return self._complete_cancellation()
+
+        if any(w in lower for w in ("no", "keep", "don't", "cancel that", "never mind",
+                                     "nevermind", "keep it", "don't cancel")):
             self.state = "INTENT"
             self._pending_code = ""
             return (
