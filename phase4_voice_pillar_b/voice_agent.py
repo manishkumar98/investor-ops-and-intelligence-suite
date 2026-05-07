@@ -343,8 +343,12 @@ class VoiceAgent:
                     pool = period_filtered
                 else:
                     # ── Strategy 3: period not available on that day → same day any time ──
-                    # pool already has day-filtered results; keep them, drop period restriction
-                    pass  # pool stays as day-filtered
+                    # (Only fallback if it was a broad period, not a specific hour)
+                    is_specific = any(c.isdigit() for c in (period or ""))
+                    if not is_specific:
+                        pass # pool stays as day-filtered
+                    else:
+                        pool = []
 
         # ── Strategy 4: still empty → broadest available ─────────────────────
         # Only fallback to all future slots if the user didn't specify any constraints.
@@ -1027,6 +1031,19 @@ class VoiceAgent:
         idx = 0
         if "2" in lower or "second" in lower or "two" in lower:
             idx = 1
+        
+        # If user restated the specific hour, pick that one
+        if specific_hour is not None:
+            for i, slot in enumerate(self._offered_slots):
+                if self._slot_hour(slot) == specific_hour:
+                    idx = i
+                    break
+
+        if not self._offered_slots:
+            # Fallback if session lost offered slots
+            self.state = "TIMEPREF"
+            return "I'm sorry, I lost track of those options. Which day and time would you like me to look for again?"
+
         if idx >= len(self._offered_slots):
             idx = 0
 
