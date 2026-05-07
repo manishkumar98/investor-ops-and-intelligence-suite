@@ -64,7 +64,7 @@ def _create_hold_sync(payload: MCPPayload) -> dict:
 async def create_calendar_hold(payload: MCPPayload) -> ToolResult:
     t0 = time.monotonic()
     try:
-        data = await asyncio.get_event_loop().run_in_executor(None, _create_hold_sync, payload)
+        data = await asyncio.get_running_loop().run_in_executor(None, _create_hold_sync, payload)
         return ToolResult(success=True, data=data, duration_ms=(time.monotonic() - t0) * 1000)
     except HttpError as exc:
         return ToolResult(
@@ -152,7 +152,7 @@ async def update_calendar_event(
     """Update an existing calendar event in-place."""
     t0 = time.monotonic()
     try:
-        data = await asyncio.get_event_loop().run_in_executor(
+        data = await asyncio.get_running_loop().run_in_executor(
             None, _update_event_sync, event_id, new_start_iso, new_end_iso, summary, description
         )
         return ToolResult(success=True, data=data, duration_ms=(time.monotonic() - t0) * 1000)
@@ -171,13 +171,13 @@ async def cancel_calendar_event(event_id: str | None, booking_code: str | None =
     try:
         _eid = event_id
         if not _eid and booking_code:
-            _eid = await asyncio.get_event_loop().run_in_executor(
+            _eid = await asyncio.get_running_loop().run_in_executor(
                 None, _find_event_by_booking_code_sync, booking_code
             )
         if not _eid:
             return ToolResult(success=False, error="Event ID not found",
                               duration_ms=(time.monotonic() - t0) * 1000)
-        data = await asyncio.get_event_loop().run_in_executor(None, _cancel_event_sync, _eid)
+        data = await asyncio.get_running_loop().run_in_executor(None, _cancel_event_sync, _eid)
         return ToolResult(success=True, data=data, duration_ms=(time.monotonic() - t0) * 1000)
     except HttpError as exc:
         return ToolResult(success=False, error=f"Calendar API {exc.status_code}: {exc.reason}",

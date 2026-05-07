@@ -390,12 +390,8 @@ class MCPClient:
                     booking_code = p.get("booking_code", "")
                     event_id = self._event_ids.get(booking_code) or p.get("event_id", "")
                     if not event_id and booking_code:
-                        # Try to find the event from Google Calendar by booking code
-                        def _find_coro():
-                            return asyncio.get_event_loop().run_in_executor(
-                                None, _find_event_by_booking_code_sync, booking_code
-                            )
-                        event_id = _safe_run(_find_coro())
+                        # Call sync search directly since we are already in a safe_run or sync context
+                        event_id = _find_event_by_booking_code_sync(booking_code)
 
                     cal_result = _safe_run(
                         cancel_calendar_event(event_id or None, booking_code or None)
@@ -418,14 +414,7 @@ class MCPClient:
                         )
                     event_id = self._event_ids.get(booking_code) or p.get("event_id", "")
                     if not event_id and booking_code:
-                        try:
-                            def _find_coro():
-                                return asyncio.get_event_loop().run_in_executor(
-                                    None, _find_event_by_booking_code_sync, booking_code
-                                )
-                            event_id = _safe_run(_find_coro())
-                        except Exception:
-                            event_id = None
+                        event_id = _find_event_by_booking_code_sync(booking_code)
                     if event_id:
                         # Construct new title and description for the update
                         new_title = p.get("title") or f"Advisor Q&A — {p.get('topic_label', 'General')} — {booking_code}"

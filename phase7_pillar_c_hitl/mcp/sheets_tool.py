@@ -210,7 +210,7 @@ async def reschedule_booking_in_sheets(booking_code: str, new_slot_start_ist: st
     """Update the existing row for a rescheduled booking."""
     t0 = time.monotonic()
     try:
-        data = await asyncio.get_event_loop().run_in_executor(
+        data = await asyncio.get_running_loop().run_in_executor(
             None, _reschedule_row_sync, booking_code, new_slot_start_ist, new_slot_end_ist, new_event_id
         )
         return ToolResult(success=True, data=data, duration_ms=(time.monotonic() - t0) * 1000)
@@ -222,7 +222,7 @@ async def update_booking_status(booking_code: str, new_status: str) -> ToolResul
     """Update the status column for a booking code row."""
     t0 = time.monotonic()
     try:
-        data = await asyncio.get_event_loop().run_in_executor(
+        data = await asyncio.get_running_loop().run_in_executor(
             None, _update_status_sync, booking_code, new_status
         )
         return ToolResult(success=True, data=data, duration_ms=(time.monotonic() - t0) * 1000)
@@ -232,7 +232,7 @@ async def update_booking_status(booking_code: str, new_status: str) -> ToolResul
 
 async def get_event_id_for_booking(booking_code: str) -> str | None:
     """Return the calendar_event_id stored for the booking, or None."""
-    row_idx, event_id = await asyncio.get_event_loop().run_in_executor(
+    row_idx, event_id = await asyncio.get_running_loop().run_in_executor(
         None, _get_booking_row_sync, booking_code
     )
     return event_id
@@ -241,7 +241,7 @@ async def get_event_id_for_booking(booking_code: str) -> str | None:
 async def append_booking_notes(payload: MCPPayload, event_id: str | None = None) -> ToolResult:
     t0 = time.monotonic()
     try:
-        data = await asyncio.get_event_loop().run_in_executor(
+        data = await asyncio.get_running_loop().run_in_executor(
             None, _append_row_sync, payload, event_id
         )
         return ToolResult(success=True, data=data, duration_ms=(time.monotonic() - t0) * 1000)
