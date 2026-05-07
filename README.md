@@ -9,7 +9,7 @@ A unified three-pillar dashboard that merges a RAG FAQ chatbot (M1), a review in
 
 ## Demo
 
-🎥 **Full walkthrough:** [Watch on Google Drive](https://drive.google.com/file/d/1DGWTwK4h0EVvbnfaNS6LueW3tdlug2Rl/view?usp=sharing)
+🎥 **Full walkthrough:** [Watch on Google Drive](https://drive.google.com/file/d/1vTIdE5VQbvHkL6Jqe0blD97z8PjRzT5g/view?usp=sharing)
 
 | Pillar | Preview |
 |---|---|
@@ -30,7 +30,7 @@ A unified three-pillar dashboard that merges a RAG FAQ chatbot (M1), a review in
 |---|---|
 | Live Deployment | [investor-ops-and-intelligence-suite-production.up.railway.app](https://investor-ops-and-intelligence-suite-production.up.railway.app/) |
 | GitHub Repository | https://github.com/manishkumar98/investor-ops-and-intelligence-suit |
-| Demo Video | [Watch on Google Drive](https://drive.google.com/file/d/1DGWTwK4h0EVvbnfaNS6LueW3tdlug2Rl/view?usp=sharing) |
+| Demo Video | [Watch on Google Drive](https://drive.google.com/file/d/1vTIdE5VQbvHkL6Jqe0blD97z8PjRzT5g/view?usp=sharing) |
 | Evals Report | [EVALS_REPORT.md](EVALS_REPORT.md) |
 | Source Manifest (42 URLs) | [SOURCE_MANIFEST.md](SOURCE_MANIFEST.md) |
 | Sample Q&A (10 queries) | [SAMPLE_QA.md](SAMPLE_QA.md) |
