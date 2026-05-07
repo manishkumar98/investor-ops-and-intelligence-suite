@@ -889,13 +889,16 @@ class VoiceAgent:
             return self._handle_intent(utterance)
 
         self._time_pref = extract_time_pref(utterance)
-        day    = self._ctx.day_preference or self._time_pref.get("day")
-        period = self._ctx.time_preference or self._time_pref.get("period")
+        new_day = self._time_pref.get("day")
+        new_period = self._time_pref.get("period")
 
-        if day:
-            self._ctx.day_preference = day
-        if period:
-            self._ctx.time_preference = period
+        if new_day:
+            self._ctx.day_preference = new_day
+        if new_period:
+            self._ctx.time_preference = new_period
+
+        day = self._ctx.day_preference
+        period = self._ctx.time_preference
 
         self._load_all_available(day, period)
 
@@ -950,6 +953,10 @@ class VoiceAgent:
                     self._ctx.day_preference = new_day
                 if new_period:
                     self._ctx.time_preference = new_period
+                
+                # Clear any previously chosen slot to ensure we search fresh
+                self._chosen_slot = None
+                self._ctx.resolved_slot = None
 
                 from phase4_voice_pillar_b.booking_engine import (
                     _slot_available, _slot_start_dt, _slot_day_name,
@@ -1000,18 +1007,6 @@ class VoiceAgent:
                     hour_filtered = [s for s in pool if abs(self._slot_hour(s) - specific_hour) <= 1]
                     if hour_filtered:
                         pool = hour_filtered
-
-                # User gave both day AND specific time → skip options, direct to confirm
-                if (ordinal_day is not None or new_day) and specific_hour is not None and pool:
-                    best = min(pool, key=lambda s: abs(self._slot_hour(s) - specific_hour))
-                    self._chosen_slot = best
-                    self._ctx.resolved_slot = best
-                    self.state = "CONFIRM"
-                    return (
-                        f"Got it! To confirm: booking for {self._get_topic_label()} "
-                        f"on {_slot_display(best)}. "
-                        "Does that sound right? (say 'yes' to confirm)"
-                    )
 
                 self._all_available = pool
                 self._slot_page = 0
