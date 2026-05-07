@@ -20,7 +20,7 @@ VALID_TOPICS = {
 VALID_INTENTS = {
     "book_new", "reschedule", "cancel", "what_to_prepare",
     "check_availability", "refuse_advice", "refuse_pii",
-    "timezone_query", "out_of_scope", "end_call",
+    "timezone_query", "general_query", "out_of_scope", "end_call",
 }
 
 # Keyword → topic mapping (from M3 intent_router._TOPIC_KEYWORDS)
@@ -65,7 +65,7 @@ _LLM_SYSTEM = """You are an intent-extraction engine for a voice-based advisor a
 Classify the user's intent and extract slot values. NEVER give investment advice.
 
 VALID INTENTS: book_new, reschedule, cancel, what_to_prepare, check_availability,
-  refuse_advice, refuse_pii, timezone_query, out_of_scope, end_call
+  refuse_advice, refuse_pii, timezone_query, general_query, out_of_scope, end_call
 
 VALID TOPICS: kyc_onboarding, sip_mandates, statements_tax, withdrawals, account_changes
 

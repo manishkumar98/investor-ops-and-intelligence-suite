@@ -562,6 +562,14 @@ class VoiceAgent:
                 "(for example: NL-AB23)."
             )
 
+        if intent == "general_query":
+            topic = self._ctx.topic or self._topic
+            rag_context = get_rag_context(query=utterance, topic=topic or "kyc_onboarding")
+            return (
+                f"{rag_context}\n\n"
+                "I'm here to help with your booking as well. Shall we continue?"
+            )
+
         if intent == "what_to_prepare":
             return self._handle_what_to_prepare(utterance)
 
@@ -797,8 +805,8 @@ class VoiceAgent:
         (NL-XXXX pattern) so demo works without live Sheets integration.
         """
         try:
-            from phase7_pillar_c_hitl.mcp.sheets_tool import _get_booking_row_sync
-            row = _get_booking_row_sync(code)
+            from phase7_pillar_c_hitl.mcp.sheets_tool import _get_booking_details_sync
+            row = _get_booking_details_sync(code)
             if row:
                 return row.get("topic_key") or row.get("topic_label") or ""
         except Exception:
@@ -1184,6 +1192,13 @@ class VoiceAgent:
         topic       = self._topic or self._ctx.topic or "General"
         topic_label = self._get_topic_label(topic)
 
+        # Extract precise date/time from the chosen slot (handles ISO 'start' or 'date'/'time' keys)
+        from phase4_voice_pillar_b.booking_engine import _slot_start_dt
+        dt = _slot_start_dt(self._chosen_slot)
+        s_date = self._chosen_slot.get("date") or (dt.strftime("%Y-%m-%d") if dt else "")
+        s_time = self._chosen_slot.get("time") or (dt.strftime("%H:%M") if dt else "")
+        slot_str = _slot_display(self._chosen_slot)
+
         from phase7_pillar_c_hitl.mcp_client import enqueue_action
         from datetime import date
 
@@ -1193,10 +1208,11 @@ class VoiceAgent:
                 "action":       "reschedule",
                 "booking_code": old_code,
                 "title":        f"Advisor Q&A — {topic_label} — {old_code}",
-                "date":         self._chosen_slot.get("date", ""),
-                "time":         self._chosen_slot.get("time", ""),
+                "date":         s_date,
+                "time":         s_time,
                 "tz":           "IST",
                 "topic":        topic,
+                "topic_label":  topic_label,
             },
             source="m3_voice",
         )
@@ -1207,7 +1223,7 @@ class VoiceAgent:
                 "entry": {
                     "date":         str(date.today()),
                     "topic":        topic_label,
-                    "slot":         _slot_display(self._chosen_slot),
+                    "slot":         slot_str,
                     "booking_code": old_code,
                     "status":       "RESCHEDULED",
                 },
@@ -1219,9 +1235,15 @@ class VoiceAgent:
             payload={
                 "subject":        f"Reschedule Alert: {topic_label} — {old_code}",
                 "booking_code":   old_code,
+                "topic":          topic,
+                "topic_label":    topic_label,
+                "date":           s_date,
+                "slot_start_ist": slot_str,
                 "body": (
-                    f"Booking {old_code} ({topic_label}) has been rescheduled.\n"
-                    f"New slot: {_slot_display(self._chosen_slot)}\n"
+                    f"Dear Advisor,\n\nA booking has been rescheduled.\n\n"
+                    f"Booking Code: {old_code}\n"
+                    f"Topic:        {topic_label}\n"
+                    f"New Slot:     {slot_str}\n\n"
                     "Please update the calendar event accordingly."
                 ),
             },
@@ -1230,12 +1252,12 @@ class VoiceAgent:
         enqueue_action(
             self.session, type="sheet_entry",
             payload={
-                "booking_code":  old_code,
-                "topic_key":     topic,
-                "topic_label":   topic_label,
-                "slot_start_ist": _slot_display(self._chosen_slot),
-                "date":          self._chosen_slot.get("date", ""),
-                "status":        "RESCHEDULED",
+                "booking_code":   old_code,
+                "topic_key":      topic,
+                "topic_label":    topic_label,
+                "slot_start_ist": slot_str,
+                "date":           s_date,
+                "status":         "RESCHEDULED",
             },
             source="m3_voice",
         )
@@ -1245,7 +1267,7 @@ class VoiceAgent:
         self._is_reschedule = False
 
         return (
-            f"Done! Booking {old_code} has been rescheduled to {_slot_display(self._chosen_slot)}. "
+            f"Done! Booking {old_code} has been rescheduled to {slot_str}. "
             "The reschedule actions are queued for team review. "
             "Thank you for calling — have a great day!"
         )
