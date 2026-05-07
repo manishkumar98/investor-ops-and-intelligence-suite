@@ -957,15 +957,26 @@ class VoiceAgent:
 
         has_new_day    = bool(new_day and new_day != self._ctx.day_preference) or _md_day is not None
         has_new_period = new_period and new_period != self._ctx.time_preference
+        
+        is_matching_offer = False
+        if specific_hour is not None:
+            for s in (self._offered_slots or []):
+                if self._slot_hour(s) == specific_hour:
+                    is_matching_offer = True
+                    break
+        has_new_hour = specific_hour is not None and not is_matching_offer
 
-        if wants_change or has_new_day or has_new_period:
+        if wants_change or has_new_day or has_new_period or has_new_hour:
             ordinal_day = _md_day if _md_day is not None else (self._parse_ordinal_day(new_day) if new_day else None)
 
-            if has_new_day or has_new_period:
+            if has_new_day or has_new_period or has_new_hour:
                 if new_day:
                     self._ctx.day_preference = new_day
                 if new_period:
                     self._ctx.time_preference = new_period
+                if specific_hour is not None:
+                    # Update period to the specific hour if it's a new request
+                    self._ctx.time_preference = f"{specific_hour}:00"
                 
                 # Clear any previously chosen slot to ensure we search fresh
                 self._chosen_slot = None
