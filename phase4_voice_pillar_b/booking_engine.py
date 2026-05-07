@@ -216,9 +216,10 @@ def parse_datetime_summary(
     # Time summary
     if band and time_confident:
         start_h, end_h = band
-        mid = (start_h + end_h) // 2
-        ampm = "AM" if mid < 12 else "PM"
-        disp = mid if mid <= 12 else mid - 12
+        ampm = "AM" if start_h < 12 else "PM"
+        disp = start_h
+        if start_h == 0: disp = 12
+        elif start_h > 12: disp = start_h - 12
         time_str = f"{disp}:00 {ampm} IST"
     elif band:
         for name, rng in _TIME_BAND_MAP.items():
