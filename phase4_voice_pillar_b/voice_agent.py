@@ -616,7 +616,7 @@ class VoiceAgent:
         # Code valid — restore topic and move to time preference
         self._code_retry = 0
         self._pending_code = code
-        if original_topic and not self._topic:
+        if original_topic:
             self._topic = original_topic
             self._ctx.topic = original_topic
         self._is_reschedule = True
@@ -661,7 +661,10 @@ class VoiceAgent:
 
         self._code_retry = 0
         self._pending_code = code
-        topic_label = self._get_topic_label(original_topic) if original_topic else "your appointment"
+        if original_topic:
+            self._topic = original_topic
+            self._ctx.topic = original_topic
+        topic_label = self._get_topic_label()
         self.state = "CANCEL_CONFIRM"
         return (
             f"I found booking {code} — {topic_label}. "
