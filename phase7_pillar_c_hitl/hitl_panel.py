@@ -395,7 +395,7 @@ def _render_single_action(action: dict, session: dict, mcp_client: MCPClient) ->
                         action["client_email"] = client_email.strip()
                         action["client_phone"] = client_phone.strip()
                     action["status"] = "approved"
-                    result = mcp_client.execute(action)
+                    result = mcp_client.execute(action, session=st.session_state)
                     if result.success:
                         action["ref_id"] = result.ref_id
                         st.success(f"✓ Executed — ref: {result.ref_id} (mode: {result.mode})")
@@ -473,7 +473,7 @@ def _render_single_action(action: dict, session: dict, mcp_client: MCPClient) ->
                                  type="secondary"):
                         # Step 1: re-execute advisor email if needed
                         if _missing_smtp:
-                            result = mcp_client.execute(action)
+                            result = mcp_client.execute(action, session=st.session_state)
                             if result.success:
                                 action["ref_id"] = result.ref_id
                                 st.success(
@@ -515,7 +515,7 @@ def _render_single_action(action: dict, session: dict, mcp_client: MCPClient) ->
                 if st.button("🔁 Retry", key=f"retry_err_{key_base}",
                              type="secondary"):
                     action.pop("error_msg", None)
-                    result = mcp_client.execute(action)
+                    result = mcp_client.execute(action, session=st.session_state)
                     if result.success:
                         action["status"] = "approved"
                         action["ref_id"] = result.ref_id

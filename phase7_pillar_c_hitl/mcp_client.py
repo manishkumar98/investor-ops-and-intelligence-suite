@@ -331,7 +331,7 @@ class MCPClient:
         # consumed by sheet_entry so the sheet row stores the real event id.
         self._event_ids: dict[str, str] = {}
 
-    def execute(self, action: dict) -> MCPResult:
+    def execute(self, action: dict, session: dict | None = None) -> MCPResult:
         """Execute an approved action.
 
         mock mode  — records in memory, no external calls.
@@ -404,7 +404,7 @@ class MCPClient:
                     # ── Waitlist Auto-Trigger ──────────────────────────────────────
                     # If a slot is freed, check if anyone on the waitlist is interested
                     if cal_result.success:
-                        self._trigger_waitlist_notifications(session, p)
+                        self._trigger_waitlist_notifications(session or {}, p)
 
                 elif cal_action == "reschedule":
                     # ── Update existing event to new time ─────────────────────────
