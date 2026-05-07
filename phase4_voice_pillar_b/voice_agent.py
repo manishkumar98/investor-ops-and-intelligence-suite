@@ -1083,20 +1083,42 @@ class VoiceAgent:
 
     def _handle_confirm(self, utterance: str) -> str:
         lower = utterance.lower()
-        if any(w in lower for w in ("yes", "confirm", "ok", "sure", "correct", "yep", "yeah")):
+        
+        # ── 1. Positive Confirmations ─────────────────────────────────────────
+        yes_words = ("yes", "confirm", "ok", "sure", "correct", "yep", "yeah", "sound right")
+        is_yes = any(w in lower for w in yes_words)
+        
+        # If user repeats their choice (e.g. "First one", "Option 1")
+        # treat as confirmation of the currently selected slot
+        if self._chosen_slot:
+            is_first  = "1" in lower or "first" in lower or "one" in lower
+            is_second = "2" in lower or "second" in lower or "two" in lower
+            
+            # Check if they are restating the index of the slot we are confirming
+            # (Note: we only show 2 slots at a time, so we check _offered_slots)
+            for i, s in enumerate(self._offered_slots or []):
+                if s == self._chosen_slot:
+                    if (i == 0 and is_first and not is_second) or (i == 1 and is_second and not is_first):
+                        is_yes = True
+                        break
+
+        if is_yes:
             if self._is_reschedule:
                 return self._complete_reschedule()
             return self._complete_booking()
+
+        # ── 2. Rejections / Changes ───────────────────────────────────────────
         if any(w in lower for w in ("no", "change", "different", "other")):
             self.state = "OFFERSLOTS"
             return "No problem. " + self._handle_offerslots(utterance)
-        # User said a new date/time (e.g. "9th May 10am") instead of yes/no
-        # — treat as wanting a different slot
+
+        # ── 3. New specific preference ────────────────────────────────────────
         new_pref = extract_time_pref(utterance)
         specific_hour = self._parse_specific_hour(utterance)
         if new_pref.get("day") or new_pref.get("period") or specific_hour is not None:
             self.state = "OFFERSLOTS"
             return "No problem — let me find that slot. " + self._handle_offerslots(utterance)
+            
         return "Please say 'yes' to confirm or 'no' to choose a different slot."
 
     # ── Booked / terminal ─────────────────────────────────────────────────────
