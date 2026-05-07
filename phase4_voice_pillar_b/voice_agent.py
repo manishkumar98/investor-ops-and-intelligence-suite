@@ -1132,6 +1132,19 @@ class VoiceAgent:
         from datetime import date
 
         enqueue_action(
+            self.session, type="waitlist_entry",
+            payload={
+                "waitlist_code":   code,
+                "date_pref":       day_pref,
+                "time_pref":       time_pref,
+                "topic_label":     topic,
+                "status":          "ACTIVE",
+                "created_at_ist":  datetime.now(IST).isoformat(),
+                "call_id":         self._ctx.call_id,
+            },
+            source="m3_voice",
+        )
+        enqueue_action(
             self.session, type="notes_append",
             payload={
                 "doc_title": "Advisor Pre-Bookings",

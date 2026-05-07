@@ -400,6 +400,11 @@ class MCPClient:
                         action["error_msg"] = cal_result.error or "Calendar cancel failed"
                         return MCPResult(success=False, ref_id="", mode="live")
                     action["event_id"] = (cal_result.data or {}).get("event_id", "")
+                    
+                    # ── Waitlist Auto-Trigger ──────────────────────────────────────
+                    # If a slot is freed, check if anyone on the waitlist is interested
+                    if cal_result.success:
+                        self._trigger_waitlist_notifications(session, p)
 
                 elif cal_action == "reschedule":
                     # ── Update existing event to new time ─────────────────────────
@@ -598,6 +603,15 @@ class MCPClient:
                         status=new_status,
                     )
                     _append_row_sync(mcp_payload, event_id=event_id or None)
+
+                elif action["type"] == "waitlist_entry":
+                    # ── Save Waitlist Entry to Google Sheets ──────────────────────
+                    from phase7_pillar_c_hitl.mcp.sheets_tool import _append_waitlist_sync
+                    try:
+                        _append_waitlist_sync(p)
+                    except Exception as exc:
+                        action["error_msg"] = f"Waitlist Sheet Error: {exc}"
+
             except Exception as exc:
                 action["error_msg"] = str(exc)
                 return MCPResult(success=False, ref_id="", mode="live")
@@ -609,3 +623,45 @@ class MCPClient:
         MCP_STATE_PATH.write_text(
             json.dumps(session.get("mcp_queue", []), indent=2)
         )
+
+    def _trigger_waitlist_notifications(self, session: dict, cancelled_payload: dict) -> None:
+        """Search waitlist for matches and enqueue notification emails."""
+        try:
+            from phase7_pillar_c_hitl.mcp.sheets_tool import _find_waitlist_matches_sync
+            
+            # Extract day/time from cancelled payload
+            # Format: "Friday, 2026-05-08 at 10:00 AM IST"
+            date_str = cancelled_payload.get("date", "")
+            day_name = date_str.split(",")[0].strip() if "," in date_str else ""
+            
+            if not day_name:
+                return
+
+            matches = _find_waitlist_matches_sync(day_name)
+            for match in matches:
+                # Enqueue a 'waitlist_notification' email draft
+                waitlist_code = match.get("waitlist_code", "N/A")
+                email = match.get("email") or "customer@example.com"
+                
+                notification_action = {
+                    "id": str(uuid.uuid4()),
+                    "type": "email_draft",
+                    "source": "waitlist_trigger",
+                    "status": "pending",
+                    "created_at": datetime.now(IST).isoformat(),
+                    "payload": {
+                        "subject": f"Good News! A slot has opened up — {day_name}",
+                        "body": (
+                            f"Hi,\n\nYou were on our waitlist for a {day_name} appointment.\n"
+                            f"A slot has just become available! If you'd like to grab it, "
+                            f"please call our advisor line and mention waitlist code: {waitlist_code}.\n\n"
+                            f"Topic: {match.get('topic_label')}\n"
+                            f"Thank you!"
+                        )
+                    }
+                }
+                if "mcp_queue" not in session:
+                    session["mcp_queue"] = []
+                session["mcp_queue"].append(notification_action)
+        except Exception as exc:
+            logger.error(f"Waitlist trigger error: {exc}")

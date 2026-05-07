@@ -26,6 +26,11 @@ SHEET_HEADERS = [
     "created_at_ist", "call_id",
 ]
 
+WAITLIST_HEADERS = [
+    "waitlist_code", "date_pref", "time_pref", "topic_label",
+    "status", "created_at_ist", "call_id", "email", "name"
+]
+
 
 def _build_client() -> gspread.Client:
     creds = service_account.Credentials.from_service_account_info(
@@ -248,3 +253,57 @@ async def append_booking_notes(payload: MCPPayload, event_id: str | None = None)
     except Exception as exc:
         err_msg = str(exc) or repr(exc)
         return ToolResult(success=False, error=err_msg, duration_ms=(time.monotonic() - t0) * 1000)
+
+
+def _append_waitlist_sync(payload: dict) -> dict:
+    """Append a row to the Waitlist tab."""
+    client = _build_client()
+    spreadsheet = client.open_by_key(config.sheet_id)
+
+    try:
+        ws = spreadsheet.worksheet(config.waitlist_tab)
+    except gspread.WorksheetNotFound:
+        ws = spreadsheet.add_worksheet(title=config.waitlist_tab, rows=1000, cols=10)
+
+    # Ensure headers for waitlist
+    existing = ws.row_values(1)
+    if not existing or existing[0] != "waitlist_code":
+        ws.insert_row(WAITLIST_HEADERS, index=1)
+
+    row = [
+        payload.get("waitlist_code", ""),
+        payload.get("date_pref", ""),
+        payload.get("time_pref", ""),
+        payload.get("topic_label", ""),
+        payload.get("status", "ACTIVE"),
+        payload.get("created_at_ist", ""),
+        payload.get("call_id", ""),
+        payload.get("email", ""),
+        payload.get("name", ""),
+    ]
+    ws.append_row(row, value_input_option="USER_ENTERED")
+    return {"status": "waitlisted", "code": payload.get("waitlist_code")}
+
+
+def _find_waitlist_matches_sync(day_name: str, hour: int | None = None) -> list[dict]:
+    """Find ACTIVE waitlist entries that might fit a newly freed slot."""
+    client = _build_client()
+    spreadsheet = client.open_by_key(config.sheet_id)
+    try:
+        ws = spreadsheet.worksheet(config.waitlist_tab)
+    except gspread.WorksheetNotFound:
+        return []
+
+    all_rows = ws.get_all_records()
+    matches = []
+    for row in all_rows:
+        if row.get("status") != "ACTIVE":
+            continue
+        
+        # Simple match: if waitlist day_pref matches day_name (e.g. "Monday")
+        # and time_pref band contains 'hour'.
+        d_pref = str(row.get("date_pref", "")).lower()
+        if day_name.lower() in d_pref or d_pref in ("any", "flexible", ""):
+            matches.append(row)
+            
+    return matches

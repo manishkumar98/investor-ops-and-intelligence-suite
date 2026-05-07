@@ -86,6 +86,10 @@ class MCPConfig:
         return os.environ.get("GOOGLE_SHEET_TAB_NAME", "Advisor Pre-Bookings")
 
     @property
+    def waitlist_tab(self) -> str:
+        return os.environ.get("GOOGLE_WAITLIST_TAB_NAME", "Waitlist")
+
+    @property
     def gmail_address(self) -> str:
         return os.environ.get("GMAIL_ADDRESS", "")
 
