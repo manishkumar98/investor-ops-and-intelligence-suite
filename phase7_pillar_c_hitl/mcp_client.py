@@ -418,8 +418,15 @@ class MCPClient:
                         except Exception:
                             event_id = None
                     if event_id:
-                        cal_result = asyncio.run(
-                            update_calendar_event(event_id, slot_start_iso, slot_end_iso)
+                        # Construct new title and description for the update
+                        new_title = p.get("title") or f"Advisor Q&A — {p.get('topic_label', 'General')} — {booking_code}"
+                        new_desc  = f"Pre-booking via Voice Agent\nBooking Code : {booking_code}\nTopic        : {p.get('topic_label', 'General')}"
+                        
+                        cal_result = asyncio.get_event_loop().run_until_complete(
+                            update_calendar_event(
+                                event_id, slot_start_iso, slot_end_iso,
+                                summary=new_title, description=new_desc
+                            )
                         )
                         if not cal_result.success:
                             action["error_msg"] = cal_result.error or "Calendar reschedule failed"

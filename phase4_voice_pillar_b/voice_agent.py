@@ -801,13 +801,14 @@ class VoiceAgent:
             row = _get_booking_details_sync(code)
             if row:
                 # Prioritize topic_label for cancellation/reschedule displays
-                return row.get("topic_label") or row.get("topic_key") or "General"
+                raw_label = row.get("topic_label") or row.get("topic_key") or "General"
+                # Clean up: strip "Advisor Q&A — " and the booking code suffix if present
+                clean = re.sub(r'^Advisor Q&A\s*—\s*', '', raw_label)
+                clean = re.sub(r'\s*—\s*NL-[A-Z0-9]{4}$', '', clean)
+                return clean or "General"
         except Exception as e:
             logger.error(f"Sheet lookup failed for {code}: {e}")
             pass
-        # Fallback: accept any NL-XXXX pattern (demo mode)
-        if _CODE_RE.match(code):
-            return "General"
         return None
 
     # ── What-to-prepare ───────────────────────────────────────────────────────

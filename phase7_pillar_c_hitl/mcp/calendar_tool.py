@@ -112,15 +112,27 @@ def _find_event_by_booking_code_sync(booking_code: str) -> str | None:
     return None
 
 
-def _update_event_sync(event_id: str, new_start_iso: str, new_end_iso: str) -> dict:
-    """PATCH an existing calendar event with new start/end times."""
+def _update_event_sync(
+    event_id: str,
+    new_start_iso: str,
+    new_end_iso: str,
+    summary: str | None = None,
+    description: str | None = None,
+) -> dict:
+    """PATCH an existing calendar event with new start/end times (and optional summary/desc)."""
     service = _build_service()
     start_dt = datetime.fromisoformat(new_start_iso)
     end_dt   = datetime.fromisoformat(new_end_iso)
+
     patch_body = {
         "start": {"dateTime": start_dt.isoformat(), "timeZone": "Asia/Kolkata"},
         "end":   {"dateTime": end_dt.isoformat(),   "timeZone": "Asia/Kolkata"},
     }
+    if summary:
+        patch_body["summary"] = summary
+    if description:
+        patch_body["description"] = description
+
     updated = (
         service.events()
         .patch(calendarId=config.calendar_id, eventId=event_id,
@@ -130,12 +142,18 @@ def _update_event_sync(event_id: str, new_start_iso: str, new_end_iso: str) -> d
     return {"event_id": updated["id"], "status": updated.get("status", "confirmed")}
 
 
-async def update_calendar_event(event_id: str, new_start_iso: str, new_end_iso: str) -> ToolResult:
-    """Update an existing calendar event's time in-place."""
+async def update_calendar_event(
+    event_id: str,
+    new_start_iso: str,
+    new_end_iso: str,
+    summary: str | None = None,
+    description: str | None = None,
+) -> ToolResult:
+    """Update an existing calendar event in-place."""
     t0 = time.monotonic()
     try:
         data = await asyncio.get_event_loop().run_in_executor(
-            None, _update_event_sync, event_id, new_start_iso, new_end_iso
+            None, _update_event_sync, event_id, new_start_iso, new_end_iso, summary, description
         )
         return ToolResult(success=True, data=data, duration_ms=(time.monotonic() - t0) * 1000)
     except HttpError as exc:
