@@ -25,7 +25,7 @@ VALID_TOPICS: set[str] = set(TOPIC_LABELS.keys())
 VALID_INTENTS: set[str] = {
     "book_new", "reschedule", "cancel", "what_to_prepare",
     "check_availability", "refuse_advice", "refuse_pii",
-    "timezone_query", "general_query", "out_of_scope", "end_call",
+    "timezone_query", "out_of_scope", "end_call",
 }
 COMPLIANCE_FLAGS: set[str | None] = {None, "refuse_advice", "refuse_pii", "out_of_scope"}
 

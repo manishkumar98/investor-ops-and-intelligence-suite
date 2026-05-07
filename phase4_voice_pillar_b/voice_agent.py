@@ -562,14 +562,6 @@ class VoiceAgent:
                 "(for example: NL-AB23)."
             )
 
-        if intent == "general_query":
-            topic = self._ctx.topic or self._topic
-            rag_context = get_rag_context(query=utterance, topic=topic or "kyc_onboarding")
-            return (
-                f"{rag_context}\n\n"
-                "I'm here to help with your booking as well. Shall we continue?"
-            )
-
         if intent == "what_to_prepare":
             return self._handle_what_to_prepare(utterance)
 
@@ -808,8 +800,8 @@ class VoiceAgent:
             from phase7_pillar_c_hitl.mcp.sheets_tool import _get_booking_details_sync
             row = _get_booking_details_sync(code)
             if row:
-                topic = row.get("topic_key") or row.get("topic_label")
-                return topic or "General"
+                # Prioritize topic_label for cancellation/reschedule displays
+                return row.get("topic_label") or row.get("topic_key") or "General"
         except Exception as e:
             logger.error(f"Sheet lookup failed for {code}: {e}")
             pass
