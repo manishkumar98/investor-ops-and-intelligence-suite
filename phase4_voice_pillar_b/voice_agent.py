@@ -1032,6 +1032,9 @@ class VoiceAgent:
                     if hour_filtered:
                         pool = hour_filtered
 
+                # Chronological sort
+                pool.sort(key=lambda s: _slot_start_dt(s) or datetime.max)
+                
                 self._all_available = pool
                 self._slot_page = 0
                 if not self._all_available:

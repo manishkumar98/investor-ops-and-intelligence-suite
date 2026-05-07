@@ -308,7 +308,7 @@ def load_calendar(calendar_path: str) -> list[dict]:
         for day_offset in range(1, 15):
             d = base + timedelta(days=day_offset)
             if d.weekday() < 5:  # Mon–Fri only
-                for hour in [10, 14, 16]:
+                for hour in [10, 11, 12, 14, 15, 16]:
                     start = d.replace(hour=hour)
                     slots.append({
                         "slot_id": f"S{day_offset}{hour}",
@@ -422,8 +422,11 @@ def match_slots(calendar: list[dict], day_pref: str | None, period: str | None) 
                 if slot_hour is not None and time_band[0] <= slot_hour < time_band[1]:
                     time_matched.append(s)
             # Empty = period specified but no slots match → triggers waitlist
+            # Empty = period specified but no slots match → triggers waitlist
             available = time_matched
 
+    # Chronological sort
+    available.sort(key=lambda x: _slot_start_dt(x) or datetime.max)
     return available[:2]
 
 
