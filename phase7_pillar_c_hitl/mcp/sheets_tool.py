@@ -20,7 +20,7 @@ _SCOPES = [
 ]
 
 SHEET_HEADERS = [
-    "booking_code", "topic_key", "topic_label",
+    "booking_code", "date", "topic_key", "topic_label",
     "slot_start_ist", "slot_end_ist", "advisor_id",
     "status", "calendar_event_id", "email_draft_id",
     "created_at_ist", "call_id",
@@ -54,14 +54,15 @@ def _append_row_sync(payload: MCPPayload, event_id: str | None) -> dict:
 
     row = [
         payload.booking_code,
+        payload.created_at_ist.split("T")[0] if "T" in payload.created_at_ist else "", # Default date
         payload.topic_key,
         payload.topic_label,
         payload.slot_start_ist,
-        "",                      # slot_end_ist — filled by calendar separately
+        "",                      # slot_end_ist
         payload.advisor_id,
         payload.status,
         event_id or "",
-        "",                      # email_draft_id — filled after email tool
+        "",                      # email_draft_id
         payload.created_at_ist,
         payload.call_id,
     ]
@@ -147,11 +148,12 @@ def _update_status_sync(booking_code: str, new_status: str) -> dict:
     except ValueError as e:
         raise RuntimeError(f"Missing column: {e}")
 
-    for row_idx, row in enumerate(all_values[1:], start=2):
+    # Search from bottom for most recent entry
+    for row_idx, row in enumerate(reversed(all_values[1:]), start=0):
+        actual_row_idx = len(all_values) - row_idx
         if len(row) > code_col and row[code_col].strip() == booking_code:
-            # status_col is 0-based in list → 1-based column letter in Sheets
-            ws.update_cell(row_idx, status_col + 1, new_status)
-            return {"row_index": row_idx, "booking_code": booking_code, "status": new_status}
+            ws.update_cell(actual_row_idx, status_col + 1, new_status)
+            return {"row_index": actual_row_idx, "booking_code": booking_code, "status": new_status}
 
     raise RuntimeError(f"Booking code {booking_code!r} not found in sheet")
 
@@ -183,14 +185,22 @@ def _reschedule_row_sync(booking_code: str, new_slot_start_ist: str,
     except ValueError as e:
         raise RuntimeError(f"Missing column: {e}")
 
-    for row_idx, row in enumerate(all_values[1:], start=2):
+    date_col = headers.index("date") if "date" in headers else -1
+
+    # Search from bottom for most recent entry
+    for row_idx, row in enumerate(reversed(all_values[1:]), start=0):
+        actual_row_idx = len(all_values) - row_idx
         if len(row) > code_col and row[code_col].strip() == booking_code:
-            ws.update_cell(row_idx, start_col  + 1, new_slot_start_ist)
-            ws.update_cell(row_idx, end_col    + 1, new_slot_end_ist)
-            ws.update_cell(row_idx, status_col + 1, "rescheduled")
+            ws.update_cell(actual_row_idx, start_col  + 1, new_slot_start_ist)
+            ws.update_cell(actual_row_idx, end_col    + 1, new_slot_end_ist)
+            ws.update_cell(actual_row_idx, status_col + 1, "rescheduled")
+            if date_col >= 0:
+                # Extract YYYY-MM-DD from ISO if possible
+                d_val = new_slot_start_ist.split(" ")[0] if " " in new_slot_start_ist else ""
+                if d_val: ws.update_cell(actual_row_idx, date_col + 1, d_val)
             if new_event_id:
-                ws.update_cell(row_idx, event_col + 1, new_event_id)
-            return {"row_index": row_idx, "booking_code": booking_code, "status": "rescheduled"}
+                ws.update_cell(actual_row_idx, event_col + 1, new_event_id)
+            return {"row_index": actual_row_idx, "booking_code": booking_code, "status": "rescheduled"}
 
     raise RuntimeError(f"Booking code {booking_code!r} not found in sheet")
 

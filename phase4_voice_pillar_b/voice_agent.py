@@ -296,8 +296,7 @@ class VoiceAgent:
                 try:
                     target_date = _date.fromisoformat(resolved_lower)
                     day_filtered = [s for s in pool if _slot_start_dt(s) and _slot_start_dt(s).date() == target_date]
-                    if day_filtered:
-                        pool = day_filtered
+                    pool = day_filtered if day_filtered else []
                 except ValueError:
                     pass
             else:
@@ -310,12 +309,17 @@ class VoiceAgent:
                         pool = day_filtered
                     else:
                         # ── Strategy 2: day not available → try next week same day ──
-                        next_week = [
-                            s for s in all_future
-                            if _slot_start_dt(s) and _slot_start_dt(s).date() >= today + timedelta(days=7)
-                            and _DAY_MAP.get(_slot_day_name(s)[:3]) == target_wd
-                        ]
-                        pool = next_week if next_week else all_future
+                        # (Only if not a specific/pinned date)
+                        is_pinned = len(resolved_lower) == 10 and resolved_lower[4] == "-"
+                        if not is_pinned:
+                            next_week = [
+                                s for s in all_future
+                                if _slot_start_dt(s) and _slot_start_dt(s).date() >= today + timedelta(days=7)
+                                and _DAY_MAP.get(_slot_day_name(s)[:3]) == target_wd
+                            ]
+                            pool = next_week if next_week else []
+                        else:
+                            pool = []
 
         if period and period.lower() not in ("any", "anytime", "flexible", "") and pool:
             time_band, _ = parse_time_preference(period)
@@ -343,7 +347,8 @@ class VoiceAgent:
                     pass  # pool stays as day-filtered
 
         # ── Strategy 4: still empty → broadest available ─────────────────────
-        if not pool:
+        # Only fallback to all future slots if the user didn't specify any constraints.
+        if not pool and not day and not period:
             pool = all_future
 
         self._all_available = pool

@@ -437,6 +437,11 @@ class MCPClient:
                             action["event_id"] = new_event_id
                     else:
                         # Fallback: create a fresh event if original can't be found
+                        # Try to delete by code first to prevent duplicates
+                        if booking_code:
+                            asyncio.get_event_loop().run_until_complete(
+                                cancel_calendar_event(None, booking_code)
+                            )
                         mcp_payload = MCPPayload(
                             booking_code=booking_code,
                             call_id=p.get("call_id", ""),
