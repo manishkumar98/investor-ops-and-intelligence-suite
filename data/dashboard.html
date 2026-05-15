@@ -658,44 +658,65 @@ header h1 {
         // ── Baked-in data (updated by pipeline each week) ──────────────────
         const EMAIL_DRAFT = `WEEKLY INDMONEY PRODUCT PULSE
 ============================================================
-Date    : May 6, 2026
+Date    : May 15, 2026
 ============================================================
 
 SECTION 1 — WEEKLY PULSE
 ──────────────────────────
-Top 3 Themes: Trading bugs and technical glitches, Brokerage charges transparency, Missing or incomplete trading features
+Top 3 Themes: Charting and position tracking issues, Missing or broken trading features, Brokerage charges and pricing discrepancies
 
 User Quotes:
-  "Every day at 9:15 AM when I place an order, it shows 'Execute the order after market open' even though the market is already open and LTP is changing. This major glitch has been happening for over a month."
+  "Sometimes the position vanished from the chart, TP/SL didn't work on mobile, from desktop browsers I can but that also depends on luck, if I use setup then it works sometime, and then position disappear from chart. So frustrating, and last day while zooming in/out the chart my position got executed in loss, just ridiculous."
+  "customized watch list is not visible under watchlist. user preferences is allowed to add to watchlist from option chain which is missing. specific chart trend should be highlighted even at chart as well."
   "Flash trading se ind mony f&o me 1 year tak 10 rup.. Brokerage btaya tha Phir bhi 20 rupee Brokerage lag raha hai"
-  "there is no LIMIT order sell...not for scalper..."
 
 Weekly Note:
-This week's INDMoney reviews across both batches point to three dominant pain points undermining user trust and retention. Trading bugs and technical glitches are the most urgent and wide-ranging concern: users report positions vanishing from charts, TP/SL orders failing on mobile, zoom-gesture-triggered accidental order executions, watchlists disappearing after updates, and a persistent month-long 9:15 AM market-open order rejection bug. Several of these issues directly cause financial losses, making them critical P0 priorities. Brokerage charges transparency is the second most prominent theme: multiple users explicitly report being charged ₹20 per order despite promotional Flash Trading plan promises of ₹10 or lower rates, with at least one user uninstalling the app over the discrepancy. This broken-promise dynamic is particularly damaging to trust. Missing or incomplete trading features round out the top three, with active and advanced traders requesting limit order sell functionality, a kill switch button, dual or triple chart view, commodity trading support, and automated chart pattern detection. On the positive side, users praised the flash scalping UI, fast order execution when working correctly, affordable MTF interest rates, and responsive customer support — signals that the core product proposition resonates strongly when it functions as intended. Overall sentiment skews negative due to reliability and pricing integrity issues, but loyalty potential is high among users who experience the product at its best.
+Across both review batches, three themes emerge as the most urgent and recurring. Charting and position tracking reliability is the top concern: users report positions disappearing mid-session, TP/SL orders failing silently on mobile, and accidental trade executions triggered by zoom gestures — all carrying direct financial risk. This is the single highest-priority engineering issue on the platform. Missing or broken trading features rank second: the absence of a kill switch, no limit order sell option blocking scalpers, watchlist customisations not persisting, and inconsistent feature parity between mobile and desktop all point to incomplete core trading workflows. Brokerage pricing discrepancies are the third dominant theme: users report being promised reduced F&O rates via Flash Trading but consistently being charged the standard rate, eroding trust among active traders and generating avoidable support escalations. Beyond the top three, dual/multi-chart view is the single most-requested new feature, explicitly called a must-have by multiple users for side-by-side index and options analysis. App performance on slow networks, order execution glitches at market open (a persistent month-long 9:15 AM bug), commodity trading access requests, and promotion fulfilment gaps round out the broader feedback landscape. Overall sentiment is mixed-to-positive — users are enthusiastic about the platform's potential but trading reliability and pricing transparency must be addressed before growth features.
 
 Action Ideas:
-1. Immediately escalate all confirmed trading bugs — including the 9:15 AM order rejection glitch, chart position disappearance, TP/SL mobile failures, and zoom-triggered executions — as P0 incidents; deploy hotfixes within 48–72 hours and communicate resolution status in-app to affected users.
-2. Audit the Flash Trading plan brokerage application logic end-to-end to ensure promotional rates are correctly applied at the order level for all eligible users; add a pre-trade brokerage estimate tooltip in the order ticket and send a proactive in-app clarification to users who may have been overcharged.
-3. Publish a transparent in-app feature roadmap covering limit order sell, kill switch, dual or triple chart view, commodity trading, and automated chart pattern detection — and introduce a demand-voting mechanism so active traders can prioritise features and feel acknowledged.
+1. Conduct an urgent engineering audit of the charting engine to fix position persistence bugs, ensure TP/SL orders execute reliably on mobile, add gesture-lock or a confirmation prompt during chart zoom to prevent accidental order triggers, and fix the persistent 9:15 AM market-open order execution error by tying market-status checks to a live exchange feed rather than a static timer.
+2. Prioritise shipping a kill switch, limit order sell functionality, and persistent watchlist and option chain preferences to close critical gaps in core trading workflows — then audit and enforce feature parity between mobile and desktop browser experiences across all trading surfaces.
+3. Audit the Flash Trading brokerage activation flow end-to-end to ensure promised rates are automatically applied at account level without manual support intervention, surface the active brokerage rate prominently on the order placement screen, and trigger proactive in-app confirmation when a promotional rate is successfully activated.
 
 SECTION 2 — FEE EXPLAINER
 ──────────────────────────
 exit_load
 
-• SBI Small Cap Fund carries an exit load of 1.0%, meaning investors are charged 1% of the redemption amount if units are redeemed before the applicable exit load period, as of 2026-05-05.
-• SBI ELSS Tax Saver Fund has an exit load of 0%, so no exit load fee is charged upon redemption; however, it enforces a mandatory 3-year lock-in period during which redemption is not permitted, as of 2026-04-24.
-• SBI Large Cap Fund (Bluechip) has a relatively lower exit load of 0.2%, making it the lowest exit load among the non-ELSS equity funds listed in this context, as of 2026-04-24.
-• SBI Focused Equity Fund charges an exit load of 1% if units are redeemed within 1 year from the date of allotment; redemptions made after 1 year are not subject to this exit load fee, as of 2026-05-05.
-• Among the four funds listed, exit loads range from 0% (SBI ELSS Tax Saver Fund) to 1.0% (SBI Small Cap Fund and SBI Focused Equity Fund), reflecting varying fee structures across fund categories.
-• Exit load fees are deducted from the redemption proceeds at the time of transaction and are separate from the expense ratio, which ranges from 0.79% to 0.99% across these funds.
+• SBI ELSS Tax Advantage Fund carries an exit load of 0%, meaning no exit load fee is charged upon redemption, as the mandatory 3-year lock-in period itself restricts early withdrawals.
+• The expense ratio for SBI Large Cap Fund Direct Plan typically ranges between 0.5% and 0.9% per annum, which is deducted from the fund's Net Asset Value (NAV).
+• Regular plans of SBI Mutual Fund schemes carry a higher expense ratio compared to direct plans, primarily due to the inclusion of distributor commission in the cost structure.
+• Securities Transaction Tax (STT) of 0.001% is applicable on equity mutual fund redemptions, which is a government-mandated tax collected at the time of redemption.
+• SEBI mandates that all mutual fund schemes disclose their Total Expense Ratio (TER), ensuring transparency in the fees charged to investors across all SBI Mutual Fund schemes.
+• Exit load structures and expense ratios may vary across different SBI Mutual Fund schemes, and investors should review the scheme information document (SID) for scheme-specific fee details.
 
-Sources: https://www.sbimf.com/sbimf-scheme-details/SBI-Focused-Equity-Fund-37
-Last checked: 2026-05-06
+Sources: https://www.sbimf.com/en-us/investor-service/exit-load, https://www.amfiindia.com/investor-corner/knowledge-center/expense-ratio.html
+Last checked: 2026-05-15
 
 ============================================================
 [DRAFT — Pending human review before sending]`;
 
-        const NOTES_MD = `## Week of May 6, 2026
+        const NOTES_MD = `## Week of May 15, 2026
+
+### Weekly Note
+Across both review batches, three themes emerge as the most urgent and recurring. Charting and position tracking reliability is the top concern: users report positions disappearing mid-session, TP/SL orders failing silently on mobile, and accidental trade executions triggered by zoom gestures — all carrying direct financial risk. This is the single highest-priority engineering issue on the platform. Missing or broken trading features rank second: the absence of a kill switch, no limit order sell option blocking scalpers, watchlist customisations not persisting, and inconsistent feature parity between mobile and desktop all point to incomplete core trading workflows. Brokerage pricing discrepancies are the third dominant theme: users report being promised reduced F&O rates via Flash Trading but consistently being charged the standard rate, eroding trust among active traders and generating avoidable support escalations. Beyond the top three, dual/multi-chart view is the single most-requested new feature, explicitly called a must-have by multiple users for side-by-side index and options analysis. App performance on slow networks, order execution glitches at market open (a persistent month-long 9:15 AM bug), commodity trading access requests, and promotion fulfilment gaps round out the broader feedback landscape. Overall sentiment is mixed-to-positive — users are enthusiastic about the platform's potential but trading reliability and pricing transparency must be addressed before growth features.
+
+### Top 3 Themes — Quotes — Actions
+
+**1. Charting and position tracking issues**
+> "Sometimes the position vanished from the chart, TP/SL didn't work on mobile, from desktop browsers I can but that also depends on luck, if I use setup then it works sometime, and then position disappear from chart. So frustrating, and last day while zooming in/out the chart my position got executed in loss, just ridiculous."
+→ Conduct an urgent engineering audit of the charting engine to fix position persistence bugs, ensure TP/SL orders execute reliably on mobile, add gesture-lock or a confirmation prompt during chart zoom to prevent accidental order triggers, and fix the persistent 9:15 AM market-open order execution error by tying market-status checks to a live exchange feed rather than a static timer.
+
+**2. Missing or broken trading features**
+> "customized watch list is not visible under watchlist. user preferences is allowed to add to watchlist from option chain which is missing. specific chart trend should be highlighted even at chart as well."
+→ Prioritise shipping a kill switch, limit order sell functionality, and persistent watchlist and option chain preferences to close critical gaps in core trading workflows — then audit and enforce feature parity between mobile and desktop browser experiences across all trading surfaces.
+
+**3. Brokerage charges and pricing discrepancies**
+> "Flash trading se ind mony f&o me 1 year tak 10 rup.. Brokerage btaya tha Phir bhi 20 rupee Brokerage lag raha hai"
+→ Audit the Flash Trading brokerage activation flow end-to-end to ensure promised rates are automatically applied at account level without manual support intervention, surface the active brokerage rate prominently on the order placement screen, and trigger proactive in-app confirmation when a promotional rate is successfully activated.
+
+---
+
+## Week of May 6, 2026
 
 ### Weekly Note
 This week's INDMoney reviews across both batches point to three dominant pain points undermining user trust and retention. Trading bugs and technical glitches are the most urgent and wide-ranging concern: users report positions vanishing from charts, TP/SL orders failing on mobile, zoom-gesture-triggered accidental order executions, watchlists disappearing after updates, and a persistent month-long 9:15 AM market-open order rejection bug. Several of these issues directly cause financial losses, making them critical P0 priorities. Brokerage charges transparency is the second most prominent theme: multiple users explicitly report being charged ₹20 per order despite promotional Flash Trading plan promises of ₹10 or lower rates, with at least one user uninstalling the app over the discrepancy. This broken-promise dynamic is particularly damaging to trust. Missing or incomplete trading features round out the top three, with active and advanced traders requesting limit order sell functionality, a kill switch button, dual or triple chart view, commodity trading support, and automated chart pattern detection. On the positive side, users praised the flash scalping UI, fast order execution when working correctly, affordable MTF interest rates, and responsive customer support — signals that the core product proposition resonates strongly when it functions as intended. Overall sentiment skews negative due to reliability and pricing integrity issues, but loyalty potential is high among users who experience the product at its best.
@@ -788,31 +809,31 @@ Reviews this week present a polarised but telling picture of INDmoney's trading 
 
         const PULSE_DATA = {
             "themes": [
-                        "Trading bugs and technical glitches",
-                        "Missing or incomplete trading features",
-                        "Brokerage charges transparency",
-                        "App performance and loading issues",
-                        "UI and charting features"
+                        "Charting and position tracking issues",
+                        "Missing or broken trading features",
+                        "App performance and slow loading",
+                        "Dual/multi-chart view feature request",
+                        "Brokerage charges and pricing discrepancies"
             ],
             "top_3_themes": [
-                        "Trading bugs and technical glitches",
-                        "Brokerage charges transparency",
-                        "Missing or incomplete trading features"
+                        "Charting and position tracking issues",
+                        "Missing or broken trading features",
+                        "Brokerage charges and pricing discrepancies"
             ],
             "quotes": [
-                        "Every day at 9:15 AM when I place an order, it shows 'Execute the order after market open' even though the market is already open and LTP is changing. This major glitch has been happening for over a month.",
-                        "Flash trading se ind mony f&o me 1 year tak 10 rup.. Brokerage btaya tha Phir bhi 20 rupee Brokerage lag raha hai",
-                        "there is no LIMIT order sell...not for scalper..."
+                        "Sometimes the position vanished from the chart, TP/SL didn't work on mobile, from desktop browsers I can but that also depends on luck, if I use setup then it works sometime, and then position disappear from chart. So frustrating, and last day while zooming in/out the chart my position got executed in loss, just ridiculous.",
+                        "customized watch list is not visible under watchlist. user preferences is allowed to add to watchlist from option chain which is missing. specific chart trend should be highlighted even at chart as well.",
+                        "Flash trading se ind mony f&o me 1 year tak 10 rup.. Brokerage btaya tha Phir bhi 20 rupee Brokerage lag raha hai"
             ],
-            "weekly_note": "This week's INDMoney reviews across both batches point to three dominant pain points undermining user trust and retention. Trading bugs and technical glitches are the most urgent and wide-ranging concern: users report positions vanishing from charts, TP/SL orders failing on mobile, zoom-gesture-triggered accidental order executions, watchlists disappearing after updates, and a persistent month-long 9:15 AM market-open order rejection bug. Several of these issues directly cause financial losses, making them critical P0 priorities. Brokerage charges transparency is the second most prominent theme: multiple users explicitly report being charged ₹20 per order despite promotional Flash Trading plan promises of ₹10 or lower rates, with at least one user uninstalling the app over the discrepancy. This broken-promise dynamic is particularly damaging to trust. Missing or incomplete trading features round out the top three, with active and advanced traders requesting limit order sell functionality, a kill switch button, dual or triple chart view, commodity trading support, and automated chart pattern detection. On the positive side, users praised the flash scalping UI, fast order execution when working correctly, affordable MTF interest rates, and responsive customer support — signals that the core product proposition resonates strongly when it functions as intended. Overall sentiment skews negative due to reliability and pricing integrity issues, but loyalty potential is high among users who experience the product at its best.",
+            "weekly_note": "Across both review batches, three themes emerge as the most urgent and recurring. Charting and position tracking reliability is the top concern: users report positions disappearing mid-session, TP/SL orders failing silently on mobile, and accidental trade executions triggered by zoom gestures — all carrying direct financial risk. This is the single highest-priority engineering issue on the platform. Missing or broken trading features rank second: the absence of a kill switch, no limit order sell option blocking scalpers, watchlist customisations not persisting, and inconsistent feature parity between mobile and desktop all point to incomplete core trading workflows. Brokerage pricing discrepancies are the third dominant theme: users report being promised reduced F&O rates via Flash Trading but consistently being charged the standard rate, eroding trust among active traders and generating avoidable support escalations. Beyond the top three, dual/multi-chart view is the single most-requested new feature, explicitly called a must-have by multiple users for side-by-side index and options analysis. App performance on slow networks, order execution glitches at market open (a persistent month-long 9:15 AM bug), commodity trading access requests, and promotion fulfilment gaps round out the broader feedback landscape. Overall sentiment is mixed-to-positive — users are enthusiastic about the platform's potential but trading reliability and pricing transparency must be addressed before growth features.",
             "action_ideas": [
-                        "Immediately escalate all confirmed trading bugs — including the 9:15 AM order rejection glitch, chart position disappearance, TP/SL mobile failures, and zoom-triggered executions — as P0 incidents; deploy hotfixes within 48–72 hours and communicate resolution status in-app to affected users.",
-                        "Audit the Flash Trading plan brokerage application logic end-to-end to ensure promotional rates are correctly applied at the order level for all eligible users; add a pre-trade brokerage estimate tooltip in the order ticket and send a proactive in-app clarification to users who may have been overcharged.",
-                        "Publish a transparent in-app feature roadmap covering limit order sell, kill switch, dual or triple chart view, commodity trading, and automated chart pattern detection — and introduce a demand-voting mechanism so active traders can prioritise features and feel acknowledged."
+                        "Conduct an urgent engineering audit of the charting engine to fix position persistence bugs, ensure TP/SL orders execute reliably on mobile, add gesture-lock or a confirmation prompt during chart zoom to prevent accidental order triggers, and fix the persistent 9:15 AM market-open order execution error by tying market-status checks to a live exchange feed rather than a static timer.",
+                        "Prioritise shipping a kill switch, limit order sell functionality, and persistent watchlist and option chain preferences to close critical gaps in core trading workflows — then audit and enforce feature parity between mobile and desktop browser experiences across all trading surfaces.",
+                        "Audit the Flash Trading brokerage activation flow end-to-end to ensure promised rates are automatically applied at account level without manual support intervention, surface the active brokerage rate prominently on the order placement screen, and trigger proactive in-app confirmation when a promotional rate is successfully activated."
             ]
 };
-        const ANALYTICS_META = {"review_count": 22, "sentiment": {"positive": 12, "neutral": 2, "negative": 8}, "rating_dist": {"4": 3, "1": 7, "3": 2, "5": 9, "2": 1}};
-        const FEE_DATA = {"scenario_name": "Exit Load", "explanation_bullets": ["• SBI Small Cap Fund carries an exit load of 1.0%, meaning investors are charged 1% of the redemption amount if units are redeemed before the applicable exit load period, as of 2026-05-05.", "• SBI ELSS Tax Saver Fund has an exit load of 0%, so no exit load fee is charged upon redemption; however, it enforces a mandatory 3-year lock-in period during which redemption is not permitted, as of 2026-04-24.", "• SBI Large Cap Fund (Bluechip) has a relatively lower exit load of 0.2%, making it the lowest exit load among the non-ELSS equity funds listed in this context, as of 2026-04-24.", "• SBI Focused Equity Fund charges an exit load of 1% if units are redeemed within 1 year from the date of allotment; redemptions made after 1 year are not subject to this exit load fee, as of 2026-05-05.", "• Among the four funds listed, exit loads range from 0% (SBI ELSS Tax Saver Fund) to 1.0% (SBI Small Cap Fund and SBI Focused Equity Fund), reflecting varying fee structures across fund categories.", "• Exit load fees are deducted from the redemption proceeds at the time of transaction and are separate from the expense ratio, which ranges from 0.79% to 0.99% across these funds."], "source_links": ["https://www.sbimf.com/sbimf-scheme-details/SBI-Focused-Equity-Fund-37"], "last_checked": "2026-05-06"};
+        const ANALYTICS_META = {"review_count": 22, "sentiment": {"positive": 11, "neutral": 2, "negative": 9}, "rating_dist": {"1": 8, "4": 4, "3": 2, "5": 7, "2": 1}};
+        const FEE_DATA = {"scenario_name": "Exit Load", "explanation_bullets": ["• SBI ELSS Tax Advantage Fund carries an exit load of 0%, meaning no exit load fee is charged upon redemption, as the mandatory 3-year lock-in period itself restricts early withdrawals.", "• The expense ratio for SBI Large Cap Fund Direct Plan typically ranges between 0.5% and 0.9% per annum, which is deducted from the fund's Net Asset Value (NAV).", "• Regular plans of SBI Mutual Fund schemes carry a higher expense ratio compared to direct plans, primarily due to the inclusion of distributor commission in the cost structure.", "• Securities Transaction Tax (STT) of 0.001% is applicable on equity mutual fund redemptions, which is a government-mandated tax collected at the time of redemption.", "• SEBI mandates that all mutual fund schemes disclose their Total Expense Ratio (TER), ensuring transparency in the fees charged to investors across all SBI Mutual Fund schemes.", "• Exit load structures and expense ratios may vary across different SBI Mutual Fund schemes, and investors should review the scheme information document (SID) for scheme-specific fee details."], "source_links": ["https://www.sbimf.com/en-us/investor-service/exit-load", "https://www.amfiindia.com/investor-corner/knowledge-center/expense-ratio.html"], "last_checked": "2026-05-15"};
         // ───────────────────────────────────────────────────────────────────
 
         // Chart color tokens — overridden to dark when body[data-theme="light"]
@@ -1067,7 +1088,7 @@ Reviews this week present a polarised but telling picture of INDmoney's trading 
         }
 
         // ── Word Cloud data ──────────────────────────────────────────────────
-        const KEYWORDS = [{"w": "chart", "n": 9, "c": "#4ade80"}, {"w": "order", "n": 8, "c": "#60a5fa"}, {"w": "trading", "n": 7, "c": "#f59e0b"}, {"w": "view", "n": 4, "c": "#c084fc"}, {"w": "redacted", "n": 4, "c": "#fb7185"}, {"w": "flash", "n": 4, "c": "#34d399"}, {"w": "brokerage", "n": 4, "c": "#818cf8"}, {"w": "offer", "n": 3, "c": "#facc15"}, {"w": "position", "n": 3, "c": "#f87171"}, {"w": "then", "n": 3, "c": "#2dd4bf"}, {"w": "star", "n": 3, "c": "#4ade80"}, {"w": "best", "n": 3, "c": "#60a5fa"}, {"w": "user", "n": 3, "c": "#f59e0b"}, {"w": "per", "n": 3, "c": "#c084fc"}, {"w": "ind", "n": 3, "c": "#fb7185"}, {"w": "option", "n": 3, "c": "#34d399"}, {"w": "pattern", "n": 3, "c": "#818cf8"}, {"w": "cannot", "n": 2, "c": "#facc15"}, {"w": "after", "n": 2, "c": "#f87171"}, {"w": "issue", "n": 2, "c": "#2dd4bf"}];
+        const KEYWORDS = [{"w": "chart", "n": 11, "c": "#4ade80"}, {"w": "order", "n": 7, "c": "#60a5fa"}, {"w": "best", "n": 6, "c": "#f59e0b"}, {"w": "trading", "n": 6, "c": "#c084fc"}, {"w": "option", "n": 5, "c": "#fb7185"}, {"w": "then", "n": 4, "c": "#34d399"}, {"w": "brokerage", "n": 4, "c": "#818cf8"}, {"w": "user", "n": 4, "c": "#facc15"}, {"w": "view", "n": 4, "c": "#f87171"}, {"w": "charts", "n": 3, "c": "#2dd4bf"}, {"w": "offer", "n": 3, "c": "#4ade80"}, {"w": "position", "n": 3, "c": "#60a5fa"}, {"w": "star", "n": 3, "c": "#f59e0b"}, {"w": "redacted", "n": 3, "c": "#c084fc"}, {"w": "pattern", "n": 3, "c": "#fb7185"}, {"w": "tak", "n": 2, "c": "#34d399"}, {"w": "ind", "n": 2, "c": "#818cf8"}, {"w": "please", "n": 2, "c": "#facc15"}, {"w": "slow", "n": 2, "c": "#f87171"}, {"w": "activate", "n": 2, "c": "#2dd4bf"}];
         const UPVOTED_REVIEWS = [
             {name:'Manish Mathur',date:'21 Apr 2026',stars:4,sentiment:'Neutral',text:'easy to use and understand UI DESIGN, FAST & RELIABLE',tags:['UI/UX','Performance'],upvotes:141},
             {name:'App User',date:'28 Mar 2026',stars:1,sentiment:'Negative',text:'On listing day the stock was not visible on the app for around 10 minutes after it went live on the exchange. Available on other brokerages during the same time.',tags:['Investment & Trading','Performance'],upvotes:828},
@@ -1075,7 +1096,7 @@ Reviews this week present a polarised but telling picture of INDmoney's trading 
         ];
 
         // ── Category data ─────────────────────────────────────────────────────
-        const CATEGORIES_DATA = [{"name": "Trading bugs and technical glitches", "count": 120, "pct": 59.4, "color": "#4ade80"}, {"name": "Missing or incomplete trading features", "count": 27, "pct": 13.4, "color": "#60a5fa"}, {"name": "Brokerage charges transparency", "count": 24, "pct": 11.9, "color": "#f59e0b"}, {"name": "App performance and loading issues", "count": 16, "pct": 7.9, "color": "#f472b6"}, {"name": "UI and charting features", "count": 15, "pct": 7.4, "color": "#a78bfa"}];
+        const CATEGORIES_DATA = [{"name": "Charting and position tracking issues", "count": 120, "pct": 59.4, "color": "#4ade80"}, {"name": "Missing or broken trading features", "count": 27, "pct": 13.4, "color": "#60a5fa"}, {"name": "App performance and slow loading", "count": 24, "pct": 11.9, "color": "#f59e0b"}, {"name": "Dual/multi-chart view feature request", "count": 16, "pct": 7.9, "color": "#f472b6"}, {"name": "Brokerage charges and pricing discrepancies", "count": 15, "pct": 7.4, "color": "#a78bfa"}];
 
         // ── Ideation data ─────────────────────────────────────────────────────
         const AI_IDEAS = [
@@ -1084,7 +1105,7 @@ Reviews this week present a polarised but telling picture of INDmoney's trading 
             {title:'Add Trailing Stop-Loss Feature',body:'Power traders explicitly request trailing stop-loss orders. This is a standard feature on competing platforms and would reduce churn.',impact:'Medium'},
             {title:'Mutual Funds SIP Reminders',body:'Users want push notifications for SIP execution dates and confirmation of investment. Easy win for engagement and trust.',impact:'Medium'},
         ];
-        const NEGATIVE_REVIEWS = [{"name": "App User", "stars": 1, "text": "why I am not getting ₹10 fno trade offer ?", "tags": ["Trading bugs and technical glitches"]}, {"name": "App User", "stars": 1, "text": "Sometimes the position vanished from the chart, TP/SL didn't work on mobile, from desktop browsers I can but that also depends on luck, if I use setup", "tags": ["Missing or incomplete trading features"]}, {"name": "App User", "stars": 1, "text": "there is no LIMIT order sell...not for scalper...", "tags": ["Missing or incomplete trading features"]}, {"name": "App User", "stars": 2, "text": "Not as user friendly as expected.", "tags": ["Trading bugs and technical glitches"]}, {"name": "App User", "stars": 1, "text": "Flash trading se ind mony f&o me 1 year tak 10 rup.. Brokerage btaya tha Phir bhi 20 rupee Brokerage lag raha hai", "tags": ["Trading bugs and technical glitches"]}];
+        const NEGATIVE_REVIEWS = [{"name": "App User", "stars": 1, "text": "abhi tak thick nahi huwa favourite option on toolgrow is very best then ind money", "tags": ["Charting and position tracking issues"]}, {"name": "App User", "stars": 1, "text": "customized watch list is not visible under watchlist. user preferences is allowed to add to watchlist from option chain which is missing. specific cha", "tags": ["Missing or broken trading features"]}, {"name": "App User", "stars": 1, "text": "why I am not getting ₹10 fno trade offer ?", "tags": ["Charting and position tracking issues"]}, {"name": "App User", "stars": 1, "text": "Sometimes the position vanished from the chart, TP/SL didn't work on mobile, from desktop browsers I can but that also depends on luck, if I use setup", "tags": ["Charting and position tracking issues"]}, {"name": "App User", "stars": 1, "text": "there is no LIMIT order sell...not for scalper...", "tags": ["Missing or broken trading features"]}];
 
         let _bugSelected = new Set();
 

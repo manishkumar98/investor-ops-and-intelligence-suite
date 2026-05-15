@@ -2,31 +2,31 @@
   "keywords": [
     {
       "word": "chart",
-      "count": 9,
+      "count": 11,
       "color": "#4ade80"
     },
     {
       "word": "order",
-      "count": 8,
+      "count": 7,
       "color": "#60a5fa"
     },
     {
-      "word": "trading",
-      "count": 7,
+      "word": "best",
+      "count": 6,
       "color": "#f59e0b"
     },
     {
-      "word": "view",
-      "count": 4,
+      "word": "trading",
+      "count": 6,
       "color": "#c084fc"
     },
     {
-      "word": "redacted",
-      "count": 4,
+      "word": "option",
+      "count": 5,
       "color": "#fb7185"
     },
     {
-      "word": "flash",
+      "word": "then",
       "count": 4,
       "color": "#34d399"
     },
@@ -36,84 +36,92 @@
       "color": "#818cf8"
     },
     {
-      "word": "offer",
-      "count": 3,
+      "word": "user",
+      "count": 4,
       "color": "#facc15"
     },
     {
-      "word": "position",
-      "count": 3,
+      "word": "view",
+      "count": 4,
       "color": "#f87171"
     },
     {
-      "word": "then",
+      "word": "charts",
       "count": 3,
       "color": "#2dd4bf"
     },
     {
-      "word": "star",
+      "word": "offer",
       "count": 3,
       "color": "#4ade80"
     },
     {
-      "word": "best",
+      "word": "position",
       "count": 3,
       "color": "#60a5fa"
     },
     {
-      "word": "user",
+      "word": "star",
       "count": 3,
       "color": "#f59e0b"
     },
     {
-      "word": "per",
+      "word": "redacted",
       "count": 3,
       "color": "#c084fc"
     },
     {
-      "word": "ind",
+      "word": "pattern",
       "count": 3,
       "color": "#fb7185"
     },
     {
-      "word": "option",
-      "count": 3,
+      "word": "tak",
+      "count": 2,
       "color": "#34d399"
     },
     {
-      "word": "pattern",
-      "count": 3,
+      "word": "ind",
+      "count": 2,
       "color": "#818cf8"
     },
     {
-      "word": "cannot",
+      "word": "please",
       "count": 2,
       "color": "#facc15"
     },
     {
-      "word": "after",
+      "word": "slow",
       "count": 2,
       "color": "#f87171"
     },
     {
-      "word": "issue",
+      "word": "activate",
       "count": 2,
       "color": "#2dd4bf"
     }
   ],
   "sentiment": {
-    "positive": 12,
+    "positive": 11,
     "neutral": 2,
-    "negative": 8
+    "negative": 9
   },
   "rating_dist": {
-    "4": 3,
-    "1": 7,
+    "1": 8,
+    "4": 4,
     "3": 2,
-    "5": 9,
+    "5": 7,
     "2": 1
   },
   "negative_reviews": [
+    {
+      "text": "abhi tak thick nahi huwa favourite option on toolgrow is very best then ind money",
+      "rating": 1
+    },
+    {
+      "text": "customized watch list is not visible under watchlist. user preferences is allowed to add to watchlist from option chain which is missing. specific cha",
+      "rating": 1
+    },
     {
       "text": "why I am not getting ₹10 fno trade offer ?",
       "rating": 1
@@ -125,17 +133,9 @@
     {
       "text": "there is no LIMIT order sell...not for scalper...",
       "rating": 1
-    },
-    {
-      "text": "Not as user friendly as expected.",
-      "rating": 2
-    },
-    {
-      "text": "Flash trading se ind mony f&o me 1 year tak 10 rup.. Brokerage btaya tha Phir bhi 20 rupee Brokerage lag raha hai",
-      "rating": 1
     }
   ],
   "total": 22,
-  "generated_at": "2026-05-06T17:53:32.157099",
+  "generated_at": "2026-05-15T19:39:05.229299",
   "review_count": 22
 }

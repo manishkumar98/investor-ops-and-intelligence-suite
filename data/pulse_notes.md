@@ -1,3 +1,24 @@
+## Week of May 15, 2026
+
+### Weekly Note
+Across both review batches, three themes emerge as the most urgent and recurring. Charting and position tracking reliability is the top concern: users report positions disappearing mid-session, TP/SL orders failing silently on mobile, and accidental trade executions triggered by zoom gestures — all carrying direct financial risk. This is the single highest-priority engineering issue on the platform. Missing or broken trading features rank second: the absence of a kill switch, no limit order sell option blocking scalpers, watchlist customisations not persisting, and inconsistent feature parity between mobile and desktop all point to incomplete core trading workflows. Brokerage pricing discrepancies are the third dominant theme: users report being promised reduced F&O rates via Flash Trading but consistently being charged the standard rate, eroding trust among active traders and generating avoidable support escalations. Beyond the top three, dual/multi-chart view is the single most-requested new feature, explicitly called a must-have by multiple users for side-by-side index and options analysis. App performance on slow networks, order execution glitches at market open (a persistent month-long 9:15 AM bug), commodity trading access requests, and promotion fulfilment gaps round out the broader feedback landscape. Overall sentiment is mixed-to-positive — users are enthusiastic about the platform's potential but trading reliability and pricing transparency must be addressed before growth features.
+
+### Top 3 Themes — Quotes — Actions
+
+**1. Charting and position tracking issues**
+> "Sometimes the position vanished from the chart, TP/SL didn't work on mobile, from desktop browsers I can but that also depends on luck, if I use setup then it works sometime, and then position disappear from chart. So frustrating, and last day while zooming in/out the chart my position got executed in loss, just ridiculous."
+→ Conduct an urgent engineering audit of the charting engine to fix position persistence bugs, ensure TP/SL orders execute reliably on mobile, add gesture-lock or a confirmation prompt during chart zoom to prevent accidental order triggers, and fix the persistent 9:15 AM market-open order execution error by tying market-status checks to a live exchange feed rather than a static timer.
+
+**2. Missing or broken trading features**
+> "customized watch list is not visible under watchlist. user preferences is allowed to add to watchlist from option chain which is missing. specific chart trend should be highlighted even at chart as well."
+→ Prioritise shipping a kill switch, limit order sell functionality, and persistent watchlist and option chain preferences to close critical gaps in core trading workflows — then audit and enforce feature parity between mobile and desktop browser experiences across all trading surfaces.
+
+**3. Brokerage charges and pricing discrepancies**
+> "Flash trading se ind mony f&o me 1 year tak 10 rup.. Brokerage btaya tha Phir bhi 20 rupee Brokerage lag raha hai"
+→ Audit the Flash Trading brokerage activation flow end-to-end to ensure promised rates are automatically applied at account level without manual support intervention, surface the active brokerage rate prominently on the order placement screen, and trigger proactive in-app confirmation when a promotional rate is successfully activated.
+
+---
+
 ## Week of May 6, 2026
 
 ### Weekly Note

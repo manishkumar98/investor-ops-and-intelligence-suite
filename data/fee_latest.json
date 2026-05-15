@@ -1,16 +1,17 @@
 {
   "scenario": "exit_load",
   "bullets": [
-    "• SBI Small Cap Fund carries an exit load of 1.0%, meaning investors are charged 1% of the redemption amount if units are redeemed before the applicable exit load period, as of 2026-05-05.",
-    "• SBI ELSS Tax Saver Fund has an exit load of 0%, so no exit load fee is charged upon redemption; however, it enforces a mandatory 3-year lock-in period during which redemption is not permitted, as of 2026-04-24.",
-    "• SBI Large Cap Fund (Bluechip) has a relatively lower exit load of 0.2%, making it the lowest exit load among the non-ELSS equity funds listed in this context, as of 2026-04-24.",
-    "• SBI Focused Equity Fund charges an exit load of 1% if units are redeemed within 1 year from the date of allotment; redemptions made after 1 year are not subject to this exit load fee, as of 2026-05-05.",
-    "• Among the four funds listed, exit loads range from 0% (SBI ELSS Tax Saver Fund) to 1.0% (SBI Small Cap Fund and SBI Focused Equity Fund), reflecting varying fee structures across fund categories.",
-    "• Exit load fees are deducted from the redemption proceeds at the time of transaction and are separate from the expense ratio, which ranges from 0.79% to 0.99% across these funds."
+    "• SBI ELSS Tax Advantage Fund carries an exit load of 0%, meaning no exit load fee is charged upon redemption, as the mandatory 3-year lock-in period itself restricts early withdrawals.",
+    "• The expense ratio for SBI Large Cap Fund Direct Plan typically ranges between 0.5% and 0.9% per annum, which is deducted from the fund's Net Asset Value (NAV).",
+    "• Regular plans of SBI Mutual Fund schemes carry a higher expense ratio compared to direct plans, primarily due to the inclusion of distributor commission in the cost structure.",
+    "• Securities Transaction Tax (STT) of 0.001% is applicable on equity mutual fund redemptions, which is a government-mandated tax collected at the time of redemption.",
+    "• SEBI mandates that all mutual fund schemes disclose their Total Expense Ratio (TER), ensuring transparency in the fees charged to investors across all SBI Mutual Fund schemes.",
+    "• Exit load structures and expense ratios may vary across different SBI Mutual Fund schemes, and investors should review the scheme information document (SID) for scheme-specific fee details."
   ],
   "sources": [
-    "https://www.sbimf.com/sbimf-scheme-details/SBI-Focused-Equity-Fund-37"
+    "https://www.sbimf.com/en-us/investor-service/exit-load",
+    "https://www.amfiindia.com/investor-corner/knowledge-center/expense-ratio.html"
   ],
-  "checked": "2026-05-06",
-  "generated_at": "2026-05-06T17:53:40.344509"
+  "checked": "2026-05-15",
+  "generated_at": "2026-05-15T19:39:05.229299"
 }
