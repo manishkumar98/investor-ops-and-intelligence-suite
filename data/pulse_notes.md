@@ -1,3 +1,24 @@
+## Week of May 22, 2026
+
+### Weekly Note
+Reviews from late April to mid-May 2026 converge on three dominant pain points. Charting and UI is the single most recurring frustration: buy/sell buttons obstruct the chart canvas in full-screen mode, positions disappear visually mid-session, tablet layouts break when the floating window is active, and users strongly request a dual or triple chart view to monitor index and options simultaneously. These are not isolated complaints — they span multiple ratings and dates, signalling a structural product gap. TP/SL and order execution reliability is the most trust-critical issue: Auto SL/TP fails intermittently on mobile, a pinch-to-zoom gesture accidentally triggered a real loss, and a recurring 9:15 AM bug incorrectly blocks order placement despite the market being live for over a month — none of these have been resolved, eroding user confidence sharply. Brokerage pricing transparency is the third prominent theme: users report being charged ₹20 per order despite promotional promises of ₹10 under Flash Trading plans, with no in-app visibility into active plan status. On the positive side, flash scalping UI, fast execution on stable connections, affordable MTF rates, and responsive customer support remain strong differentiators. Overall sentiment skews negative in the 1–3 star band, with execution safety and billing trust as the most urgent areas requiring immediate product and engineering attention.
+
+### Top 3 Themes — Quotes — Actions
+
+**1. Charting & UI Issues**
+> "The buy and sell buttons at the bottom significantly reduce the chart viewing area, which affects the full-screen chart experience. Kindly move these buttons elsewhere so the chart can remain fully visible in full-screen mode."
+→ Redesign the full-screen chart layout by relocating buy/sell buttons to a collapsible overlay or swipe-up panel, eliminating canvas obstruction; simultaneously prioritise and ship a dual-chart (index + options) view and fix the floating-window font-scaling bug on tablets.
+
+**2. TP/SL and Order Execution Bugs**
+> "Sometimes the position vanished from the chart, TP/SL didn't work on mobile, from desktop browsers I can but that also depends on luck... last day while zooming in/out the chart my position got executed in loss, just ridiculous."
+→ Treat mobile TP/SL execution failure and the 9:15 AM false market-open block as P1 bugs: audit the position-rendering and market-status check pipelines, add safeguards to prevent accidental order triggers during pinch-to-zoom gestures, and deploy fixes with full regression coverage.
+
+**3. Brokerage Pricing & Transparency**
+> "Flash trading se ind mony f&o me 1 year tak 10 rup.. Brokerage btaya tha Phir bhi 20 rupee Brokerage lag raha hai"
+→ Surface all active brokerage promotional plans (e.g. Flash Trading ₹10/order) directly inside the app on a dedicated brokerage/plan settings screen with real-time status, so users never rely on support to discover or verify their plan, eliminating billing confusion and trust erosion.
+
+---
+
 ## Week of May 15, 2026
 
 ### Weekly Note

@@ -1,17 +1,17 @@
 {
   "scenario": "exit_load",
   "bullets": [
-    "• SBI ELSS Tax Advantage Fund carries an exit load of 0%, meaning no exit load fee is charged upon redemption, as the mandatory 3-year lock-in period itself restricts early withdrawals.",
-    "• The expense ratio for SBI Large Cap Fund Direct Plan typically ranges between 0.5% and 0.9% per annum, which is deducted from the fund's Net Asset Value (NAV).",
-    "• Regular plans of SBI Mutual Fund schemes carry a higher expense ratio compared to direct plans, primarily due to the inclusion of distributor commission in the cost structure.",
-    "• Securities Transaction Tax (STT) of 0.001% is applicable on equity mutual fund redemptions, which is a government-mandated tax collected at the time of redemption.",
-    "• SEBI mandates that all mutual fund schemes disclose their Total Expense Ratio (TER), ensuring transparency in the fees charged to investors across all SBI Mutual Fund schemes.",
-    "• Exit load structures and expense ratios may vary across different SBI Mutual Fund schemes, and investors should review the scheme information document (SID) for scheme-specific fee details."
+    "• SBI ELSS Tax Advantage Fund carries an exit load of 0%, meaning no exit load fee is charged upon redemption, as the fund enforces a mandatory 3-year lock-in period instead.",
+    "• The lock-in period of 3 years for SBI ELSS Tax Advantage Fund means investors cannot redeem units before the lock-in ends, making the exit load structure effectively replaced by the statutory lock-in restriction.",
+    "• The expense ratio for SBI Large Cap Fund Direct Plan is typically in the range of 0.5–0.9% per annum, which is deducted from the fund's Net Asset Value (NAV) on an ongoing basis.",
+    "• Regular plans of SBI Mutual Fund schemes carry a higher expense ratio compared to direct plans, as the additional cost accounts for distributor commissions paid to intermediaries.",
+    "• Securities Transaction Tax (STT) of 0.001% is applicable on equity mutual fund redemptions, which is a government-mandated tax separate from the fund's exit load or expense ratio.",
+    "• SEBI mandates full disclosure of the Total Expense Ratio (TER) for all mutual fund schemes, ensuring transparency for investors regarding all costs associated with a fund."
   ],
   "sources": [
     "https://www.sbimf.com/en-us/investor-service/exit-load",
     "https://www.amfiindia.com/investor-corner/knowledge-center/expense-ratio.html"
   ],
-  "checked": "2026-05-15",
-  "generated_at": "2026-05-15T19:39:05.229299"
+  "checked": "2026-05-22",
+  "generated_at": "2026-05-22T17:19:59.429045"
 }

@@ -11,18 +11,18 @@
       "color": "#60a5fa"
     },
     {
-      "word": "best",
+      "word": "option",
       "count": 6,
       "color": "#f59e0b"
     },
     {
-      "word": "trading",
+      "word": "best",
       "count": 6,
       "color": "#c084fc"
     },
     {
-      "word": "option",
-      "count": 5,
+      "word": "trading",
+      "count": 6,
       "color": "#fb7185"
     },
     {
@@ -46,69 +46,69 @@
       "color": "#f87171"
     },
     {
-      "word": "charts",
+      "word": "experience",
       "count": 3,
       "color": "#2dd4bf"
     },
     {
-      "word": "offer",
+      "word": "please",
       "count": 3,
       "color": "#4ade80"
     },
     {
-      "word": "position",
+      "word": "which",
       "count": 3,
       "color": "#60a5fa"
     },
     {
-      "word": "star",
+      "word": "charts",
       "count": 3,
       "color": "#f59e0b"
     },
     {
-      "word": "redacted",
+      "word": "offer",
       "count": 3,
       "color": "#c084fc"
     },
     {
-      "word": "pattern",
+      "word": "position",
       "count": 3,
       "color": "#fb7185"
     },
     {
-      "word": "tak",
-      "count": 2,
+      "word": "star",
+      "count": 3,
       "color": "#34d399"
     },
     {
-      "word": "ind",
-      "count": 2,
+      "word": "redacted",
+      "count": 3,
       "color": "#818cf8"
     },
     {
-      "word": "please",
+      "word": "auto",
       "count": 2,
       "color": "#facc15"
     },
     {
-      "word": "slow",
+      "word": "feature",
       "count": 2,
       "color": "#f87171"
     },
     {
-      "word": "activate",
+      "word": "add",
       "count": 2,
       "color": "#2dd4bf"
     }
   ],
   "sentiment": {
-    "positive": 11,
+    "positive": 12,
     "neutral": 2,
-    "negative": 9
+    "negative": 8
   },
   "rating_dist": {
-    "1": 8,
-    "4": 4,
+    "4": 5,
+    "1": 7,
     "3": 2,
     "5": 7,
     "2": 1
@@ -136,6 +136,6 @@
     }
   ],
   "total": 22,
-  "generated_at": "2026-05-15T19:39:05.229299",
+  "generated_at": "2026-05-22T17:19:59.429045",
   "review_count": 22
 }
