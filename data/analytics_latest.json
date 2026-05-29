@@ -2,56 +2,56 @@
   "keywords": [
     {
       "word": "chart",
-      "count": 11,
+      "count": 9,
       "color": "#4ade80"
-    },
-    {
-      "word": "order",
-      "count": 7,
-      "color": "#60a5fa"
-    },
-    {
-      "word": "option",
-      "count": 6,
-      "color": "#f59e0b"
-    },
-    {
-      "word": "best",
-      "count": 6,
-      "color": "#c084fc"
     },
     {
       "word": "trading",
       "count": 6,
-      "color": "#fb7185"
+      "color": "#60a5fa"
     },
     {
-      "word": "then",
-      "count": 4,
-      "color": "#34d399"
+      "word": "best",
+      "count": 5,
+      "color": "#f59e0b"
+    },
+    {
+      "word": "order",
+      "count": 5,
+      "color": "#c084fc"
     },
     {
       "word": "brokerage",
       "count": 4,
-      "color": "#818cf8"
+      "color": "#fb7185"
+    },
+    {
+      "word": "option",
+      "count": 4,
+      "color": "#34d399"
     },
     {
       "word": "user",
       "count": 4,
+      "color": "#818cf8"
+    },
+    {
+      "word": "lag",
+      "count": 3,
       "color": "#facc15"
     },
     {
-      "word": "view",
-      "count": 4,
+      "word": "slow",
+      "count": 3,
       "color": "#f87171"
     },
     {
-      "word": "experience",
+      "word": "please",
       "count": 3,
       "color": "#2dd4bf"
     },
     {
-      "word": "please",
+      "word": "then",
       "count": 3,
       "color": "#4ade80"
     },
@@ -61,63 +61,59 @@
       "color": "#60a5fa"
     },
     {
-      "word": "charts",
+      "word": "offer",
       "count": 3,
       "color": "#f59e0b"
     },
     {
-      "word": "offer",
+      "word": "position",
       "count": 3,
       "color": "#c084fc"
     },
     {
-      "word": "position",
+      "word": "star",
       "count": 3,
       "color": "#fb7185"
     },
     {
-      "word": "star",
-      "count": 3,
+      "word": "application",
+      "count": 2,
       "color": "#34d399"
     },
     {
-      "word": "redacted",
-      "count": 3,
+      "word": "while",
+      "count": 2,
       "color": "#818cf8"
     },
     {
-      "word": "auto",
+      "word": "getting",
       "count": 2,
       "color": "#facc15"
     },
     {
-      "word": "feature",
+      "word": "little",
       "count": 2,
       "color": "#f87171"
     },
     {
-      "word": "add",
+      "word": "bit",
       "count": 2,
       "color": "#2dd4bf"
     }
   ],
   "sentiment": {
-    "positive": 12,
-    "neutral": 2,
-    "negative": 8
+    "positive": 11,
+    "neutral": 3,
+    "negative": 6
   },
   "rating_dist": {
-    "4": 5,
-    "1": 7,
-    "3": 2,
-    "5": 7,
+    "5": 8,
+    "3": 3,
+    "4": 3,
+    "1": 5,
     "2": 1
   },
   "negative_reviews": [
-    {
-      "text": "abhi tak thick nahi huwa favourite option on toolgrow is very best then ind money",
-      "rating": 1
-    },
     {
       "text": "customized watch list is not visible under watchlist. user preferences is allowed to add to watchlist from option chain which is missing. specific cha",
       "rating": 1
@@ -133,9 +129,13 @@
     {
       "text": "there is no LIMIT order sell...not for scalper...",
       "rating": 1
+    },
+    {
+      "text": "Not as user friendly as expected.",
+      "rating": 2
     }
   ],
-  "total": 22,
-  "generated_at": "2026-05-22T17:19:59.429045",
-  "review_count": 22
+  "total": 20,
+  "generated_at": "2026-05-29T18:17:49.478551",
+  "review_count": 20
 }

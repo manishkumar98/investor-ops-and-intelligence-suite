@@ -1,3 +1,24 @@
+## Week of May 29, 2026
+
+### Weekly Note
+Reviews spanning late April to late May 2026 reveal a broadly positive but friction-heavy experience for active F&O and Flash traders on INDMoney. Three themes dominate across both review sets. First, chart and UI issues are the most pervasive complaint: buy/sell buttons obstruct the full-screen chart, custom watchlists are absent or inaccessible from the option chain, and chart positions intermittently disappear — in one critical case causing an unintended loss during a zoom gesture, directly eroding trader trust and capital safety. Second, brokerage pricing and transparency is highly contentious: while one user unlocked a ₹10 Flash Trading brokerage and saved over ₹2500 monthly after contacting support, another reported being charged ₹20 despite a clearly communicated ₹10 promotional rate — signalling a systemic gap between advertised offers and actual billing. Third, TP/SL reliability remains a significant concern: Auto SL/TP executes inconsistently on mobile and unpredictably on desktop, and users are requesting a points-based absolute-value input to match competitor platforms. Secondary themes include app performance lag on charts and missing trading features such as a kill switch, limit-order sell for scalpers, and commodity trading. Positive signals include praise for the Flash Scalping interface's single-click call/put switching and low MTF interest rates. Immediate priorities should be fixing chart UI regressions and automating promotional brokerage activation to protect both trader capital and platform trust.
+
+### Top 3 Themes — Quotes — Actions
+
+**1. Chart & UI issues**
+> "Sometimes the position vanished from the chart, TP/SL didn't work on mobile, from desktop browsers I can but that also depends on luck, if I use setup then it works sometime, and then position disappear from chart. So frustrating, and last day while zooming in/out the chart my position got executed in loss, just ridiculous."
+→ Fix the full-screen chart experience by repositioning buy/sell buttons as a collapsible overlay, resolve the bug causing positions to vanish from charts mid-session, and enable watchlist customisation directly from the option chain to eliminate high-impact UI regressions affecting live traders.
+
+**2. Brokerage pricing and transparency**
+> "Flash trading se ind mony f&o me 1 year tak 10 rup.. Brokerage btaya tha Phir bhi 20 rupee Brokerage lag raha hai"
+→ Automate reduced brokerage offer activation for all eligible Flash Trading users so the correct rate applies without requiring a support call, and add a real-time itemised brokerage breakdown on the order confirmation screen to fully eliminate billing confusion and honour communicated promotions.
+
+**3. TP/SL functionality problems**
+> "The experience is very smooth, and the Auto SL/TP feature is also very good. Please add a points-based SL/TP option along with the percentage option in Auto SL/TP. Also, the buy and sell buttons at the bottom significantly reduce the chart viewing area, which affects the full-screen chart experience."
+→ Prioritise a hotfix for mobile Auto SL/TP execution reliability to prevent unintended losses, and add a points-based absolute-value input option alongside the existing percentage option in the Auto SL/TP feature to close the gap with competing platforms.
+
+---
+
 ## Week of May 22, 2026
 
 ### Weekly Note
