@@ -12,51 +12,51 @@
     },
     {
       "word": "best",
-      "count": 5,
-      "color": "#f59e0b"
-    },
-    {
-      "word": "order",
-      "count": 5,
-      "color": "#c084fc"
-    },
-    {
-      "word": "brokerage",
       "count": 4,
-      "color": "#fb7185"
+      "color": "#f59e0b"
     },
     {
       "word": "option",
       "count": 4,
-      "color": "#34d399"
+      "color": "#c084fc"
     },
     {
-      "word": "user",
+      "word": "order",
       "count": 4,
-      "color": "#818cf8"
+      "color": "#fb7185"
+    },
+    {
+      "word": "brokerage",
+      "count": 3,
+      "color": "#34d399"
     },
     {
       "word": "lag",
       "count": 3,
-      "color": "#facc15"
+      "color": "#818cf8"
     },
     {
       "word": "slow",
       "count": 3,
-      "color": "#f87171"
+      "color": "#facc15"
     },
     {
       "word": "please",
       "count": 3,
-      "color": "#2dd4bf"
+      "color": "#f87171"
     },
     {
       "word": "then",
       "count": 3,
-      "color": "#4ade80"
+      "color": "#2dd4bf"
     },
     {
       "word": "which",
+      "count": 3,
+      "color": "#4ade80"
+    },
+    {
+      "word": "user",
       "count": 3,
       "color": "#60a5fa"
     },
@@ -91,23 +91,23 @@
       "color": "#facc15"
     },
     {
-      "word": "little",
+      "word": "tak",
       "count": 2,
       "color": "#f87171"
     },
     {
-      "word": "bit",
+      "word": "ind",
       "count": 2,
       "color": "#2dd4bf"
     }
   ],
   "sentiment": {
-    "positive": 11,
+    "positive": 10,
     "neutral": 3,
     "negative": 6
   },
   "rating_dist": {
-    "5": 8,
+    "5": 7,
     "3": 3,
     "4": 3,
     "1": 5,
@@ -135,7 +135,7 @@
       "rating": 2
     }
   ],
-  "total": 20,
-  "generated_at": "2026-05-29T18:17:49.478551",
-  "review_count": 20
+  "total": 19,
+  "generated_at": "2026-06-05T17:25:47.763815",
+  "review_count": 19
 }

@@ -1,27 +1,27 @@
 {
   "themes": [
-    "Chart & UI issues",
-    "TP/SL functionality problems",
-    "Brokerage pricing and transparency",
-    "App performance and speed",
-    "Missing trading features"
+    "Chart Bugs & UI Improvements",
+    "Performance & Lag Issues",
+    "Missing Trading Features",
+    "Brokerage Fees & Pricing Transparency",
+    "Watchlist & Feature Gaps"
   ],
   "top_3_themes": [
-    "Chart & UI issues",
-    "Brokerage pricing and transparency",
-    "TP/SL functionality problems"
+    "Chart Bugs & UI Improvements",
+    "Performance & Lag Issues",
+    "Missing Trading Features"
   ],
   "quotes": [
     "Sometimes the position vanished from the chart, TP/SL didn't work on mobile, from desktop browsers I can but that also depends on luck, if I use setup then it works sometime, and then position disappear from chart. So frustrating, and last day while zooming in/out the chart my position got executed in loss, just ridiculous.",
-    "Flash trading se ind mony f&o me 1 year tak 10 rup.. Brokerage btaya tha Phir bhi 20 rupee Brokerage lag raha hai",
-    "The experience is very smooth, and the Auto SL/TP feature is also very good. Please add a points-based SL/TP option along with the percentage option in Auto SL/TP. Also, the buy and sell buttons at the bottom significantly reduce the chart viewing area, which affects the full-screen chart experience."
+    "recently while trading options it is getting little bit lag and slow can you check please",
+    "best app ...but dual chart view must needed"
   ],
-  "weekly_note": "Reviews spanning late April to late May 2026 reveal a broadly positive but friction-heavy experience for active F&O and Flash traders on INDMoney. Three themes dominate across both review sets. First, chart and UI issues are the most pervasive complaint: buy/sell buttons obstruct the full-screen chart, custom watchlists are absent or inaccessible from the option chain, and chart positions intermittently disappear — in one critical case causing an unintended loss during a zoom gesture, directly eroding trader trust and capital safety. Second, brokerage pricing and transparency is highly contentious: while one user unlocked a ₹10 Flash Trading brokerage and saved over ₹2500 monthly after contacting support, another reported being charged ₹20 despite a clearly communicated ₹10 promotional rate — signalling a systemic gap between advertised offers and actual billing. Third, TP/SL reliability remains a significant concern: Auto SL/TP executes inconsistently on mobile and unpredictably on desktop, and users are requesting a points-based absolute-value input to match competitor platforms. Secondary themes include app performance lag on charts and missing trading features such as a kill switch, limit-order sell for scalpers, and commodity trading. Positive signals include praise for the Flash Scalping interface's single-click call/put switching and low MTF interest rates. Immediate priorities should be fixing chart UI regressions and automating promotional brokerage activation to protect both trader capital and platform trust.",
+  "weekly_note": "Across both review batches this week, three themes dominate user feedback for INDMoney. Chart Bugs and UI Improvements is the most critical and recurring concern: users report positions vanishing from charts mid-session, TP/SL orders failing silently on mobile while working inconsistently on desktop, accidental trade executions triggered by zoom gestures causing real financial losses, and buy/sell buttons obstructing the full-screen chart experience. Requests for a points-based SL/TP input alongside the existing percentage mode were also raised. Performance and Lag is the second major theme, with options and F&O traders specifically reporting slowness during active trading sessions, as well as slow chart tile loading on weaker connections — issues that directly undermine time-sensitive trading decisions. Missing Trading Features rank third: users want dual-chart view, limit order sell functionality for scalpers, commodity trading support, and a kill switch for risk management — gaps that position INDMoney behind competitors on feature completeness. Brokerage fee transparency is a notable secondary concern, with at least one user charged standard rates despite being promised a discounted Flash Trading rate, eroding trust. Watchlist bugs — including customised lists not displaying and the add-to-watchlist shortcut missing from the option chain — also drew repeated complaints. Positive sentiment exists around low brokerage pricing when correctly applied, fast order execution, and the innovative Flash Scalping UI, which should be protected as key differentiators.",
   "action_ideas": [
-    "Fix the full-screen chart experience by repositioning buy/sell buttons as a collapsible overlay, resolve the bug causing positions to vanish from charts mid-session, and enable watchlist customisation directly from the option chain to eliminate high-impact UI regressions affecting live traders.",
-    "Automate reduced brokerage offer activation for all eligible Flash Trading users so the correct rate applies without requiring a support call, and add a real-time itemised brokerage breakdown on the order confirmation screen to fully eliminate billing confusion and honour communicated promotions.",
-    "Prioritise a hotfix for mobile Auto SL/TP execution reliability to prevent unintended losses, and add a points-based absolute-value input option alongside the existing percentage option in the Auto SL/TP feature to close the gap with competing platforms."
+    "Run a dedicated QA sprint targeting chart stability: fix position disappearance, TP/SL mobile failures, and zoom-triggered accidental executions; add a gesture-lock toggle to prevent unintended order placements during chart navigation; and relocate buy/sell buttons to a collapsible overlay to restore full-screen chart real estate, while also adding a points-based SL/TP input option.",
+    "Conduct a thorough performance audit of the F&O and options trading flow to identify and resolve latency bottlenecks during active sessions, and implement progressive chart tile loading so charts render acceptably on slow or 3G connections.",
+    "Accelerate the roadmap for dual-chart view and limit order sell functionality; add a kill switch to the trading interface as a critical risk-management control; open a public feature-request tracker for trader upvoting; and evaluate a commodity trading beta to close the competitive feature gap."
   ],
-  "generated_at": "2026-05-29T18:17:49.478551",
-  "review_count": 20
+  "generated_at": "2026-06-05T17:25:47.763815",
+  "review_count": 19
 }

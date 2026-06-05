@@ -1,3 +1,24 @@
+## Week of June 5, 2026
+
+### Weekly Note
+Across both review batches this week, three themes dominate user feedback for INDMoney. Chart Bugs and UI Improvements is the most critical and recurring concern: users report positions vanishing from charts mid-session, TP/SL orders failing silently on mobile while working inconsistently on desktop, accidental trade executions triggered by zoom gestures causing real financial losses, and buy/sell buttons obstructing the full-screen chart experience. Requests for a points-based SL/TP input alongside the existing percentage mode were also raised. Performance and Lag is the second major theme, with options and F&O traders specifically reporting slowness during active trading sessions, as well as slow chart tile loading on weaker connections — issues that directly undermine time-sensitive trading decisions. Missing Trading Features rank third: users want dual-chart view, limit order sell functionality for scalpers, commodity trading support, and a kill switch for risk management — gaps that position INDMoney behind competitors on feature completeness. Brokerage fee transparency is a notable secondary concern, with at least one user charged standard rates despite being promised a discounted Flash Trading rate, eroding trust. Watchlist bugs — including customised lists not displaying and the add-to-watchlist shortcut missing from the option chain — also drew repeated complaints. Positive sentiment exists around low brokerage pricing when correctly applied, fast order execution, and the innovative Flash Scalping UI, which should be protected as key differentiators.
+
+### Top 3 Themes — Quotes — Actions
+
+**1. Chart Bugs & UI Improvements**
+> "Sometimes the position vanished from the chart, TP/SL didn't work on mobile, from desktop browsers I can but that also depends on luck, if I use setup then it works sometime, and then position disappear from chart. So frustrating, and last day while zooming in/out the chart my position got executed in loss, just ridiculous."
+→ Run a dedicated QA sprint targeting chart stability: fix position disappearance, TP/SL mobile failures, and zoom-triggered accidental executions; add a gesture-lock toggle to prevent unintended order placements during chart navigation; and relocate buy/sell buttons to a collapsible overlay to restore full-screen chart real estate, while also adding a points-based SL/TP input option.
+
+**2. Performance & Lag Issues**
+> "recently while trading options it is getting little bit lag and slow can you check please"
+→ Conduct a thorough performance audit of the F&O and options trading flow to identify and resolve latency bottlenecks during active sessions, and implement progressive chart tile loading so charts render acceptably on slow or 3G connections.
+
+**3. Missing Trading Features**
+> "best app ...but dual chart view must needed"
+→ Accelerate the roadmap for dual-chart view and limit order sell functionality; add a kill switch to the trading interface as a critical risk-management control; open a public feature-request tracker for trader upvoting; and evaluate a commodity trading beta to close the competitive feature gap.
+
+---
+
 ## Week of May 29, 2026
 
 ### Weekly Note
