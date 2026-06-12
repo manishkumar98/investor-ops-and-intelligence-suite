@@ -1,3 +1,24 @@
+## Week of June 12, 2026
+
+### Weekly Note
+Synthesising reviews from late March through June 2026, three dominant pain points emerge that demand immediate product attention. Chart reliability and order execution are the most critical and trust-eroding issues: positions vanish from charts mid-session, TP/SL orders fail inconsistently on mobile, zoom gestures accidentally trigger order execution causing real monetary losses, and a kill switch is entirely absent. These are not cosmetic bugs — they are directly harming traders financially. Trading performance and lag compound the problem, with F&O and options sessions suffering slowness that undermines an otherwise well-regarded core experience. Users who praise the platform's brokerage and Flash features still flag lag as a growing concern, suggesting degradation over time rather than a baseline issue. Missing features and customisation gaps — limit sell orders for scalpers, dual-chart view, points-based SL/TP input, commodity trading, and broken watchlist functionality from the option chain — signal that the platform is not yet feature-complete for active traders. Secondary themes include UI complexity relative to simpler competitors and brokerage pricing discrepancies where promised Flash Trading rates are not automatically applied, creating distrust. On the positive side, Flash Scalping's one-click switching and influencer-driven acquisition show genuine product strengths worth protecting. Performance stability, charting reliability, and feature completeness are the top priorities this week.
+
+### Top 3 Themes — Quotes — Actions
+
+**1. Chart & Order Execution Bugs**
+> "Sometimes the position vanished from the chart, TP/SL didn't work on mobile, from desktop browsers I can but that also depends on luck, if I use setup then it works sometime, and then position disappear from chart. So frustrating, and last day while zooming in/out the chart my position got executed in loss, just ridiculous."
+→ Audit and fix the mobile charting engine immediately to eliminate position disappearance and accidental order execution on zoom gestures; enforce full TP/SL reliability on mobile at parity with desktop; add a prominently visible kill switch as an urgent trader safety feature.
+
+**2. Trading Performance & Lag**
+> "The best application with the best brokerage in the market really mast hai but recently while trading options it is getting little bit lag and slow can you check please"
+→ Investigate and resolve F&O and options trading lag at both server and client levels; prioritise chart rendering performance under low-bandwidth conditions and monitor session stability continuously to prevent further degradation of the core trading experience.
+
+**3. Missing Trading Features & Customisation**
+> "customized watch list is not visible under watchlist. user preferences is allowed to add to watchlist from option chain which is missing. specific chart trend should be highlighted even at chart as well."
+→ Ship limit sell orders and restore option-chain-to-watchlist add functionality; implement points-based SL/TP input alongside the existing percentage-based option; publish a public feature roadmap so active traders know when commodity trading, dual-chart view, and other requested features are planned.
+
+---
+
 ## Week of June 5, 2026
 
 ### Weekly Note

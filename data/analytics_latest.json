@@ -26,90 +26,90 @@
       "color": "#fb7185"
     },
     {
-      "word": "brokerage",
+      "word": "ind",
       "count": 3,
       "color": "#34d399"
+    },
+    {
+      "word": "flash",
+      "count": 3,
+      "color": "#818cf8"
+    },
+    {
+      "word": "brokerage",
+      "count": 3,
+      "color": "#facc15"
     },
     {
       "word": "lag",
       "count": 3,
-      "color": "#818cf8"
+      "color": "#f87171"
     },
     {
       "word": "slow",
       "count": 3,
-      "color": "#facc15"
+      "color": "#2dd4bf"
     },
     {
       "word": "please",
       "count": 3,
-      "color": "#f87171"
+      "color": "#4ade80"
     },
     {
       "word": "then",
       "count": 3,
-      "color": "#2dd4bf"
+      "color": "#60a5fa"
     },
     {
       "word": "which",
       "count": 3,
-      "color": "#4ade80"
+      "color": "#f59e0b"
     },
     {
       "word": "user",
       "count": 3,
-      "color": "#60a5fa"
+      "color": "#c084fc"
     },
     {
       "word": "offer",
       "count": 3,
-      "color": "#f59e0b"
+      "color": "#fb7185"
     },
     {
       "word": "position",
       "count": 3,
-      "color": "#c084fc"
+      "color": "#34d399"
     },
     {
       "word": "star",
       "count": 3,
-      "color": "#fb7185"
+      "color": "#818cf8"
     },
     {
       "word": "application",
       "count": 2,
-      "color": "#34d399"
+      "color": "#facc15"
     },
     {
       "word": "while",
       "count": 2,
-      "color": "#818cf8"
-    },
-    {
-      "word": "getting",
-      "count": 2,
-      "color": "#facc15"
-    },
-    {
-      "word": "tak",
-      "count": 2,
       "color": "#f87171"
     },
     {
-      "word": "ind",
+      "word": "getting",
       "count": 2,
       "color": "#2dd4bf"
     }
   ],
   "sentiment": {
     "positive": 10,
-    "neutral": 3,
+    "neutral": 4,
     "negative": 6
   },
   "rating_dist": {
-    "5": 7,
-    "3": 3,
-    "4": 3,
+    "3": 4,
+    "4": 4,
+    "5": 6,
     "1": 5,
     "2": 1
   },
@@ -135,7 +135,7 @@
       "rating": 2
     }
   ],
-  "total": 19,
-  "generated_at": "2026-06-05T17:25:47.763815",
-  "review_count": 19
+  "total": 20,
+  "generated_at": "2026-06-12T17:43:38.329528",
+  "review_count": 20
 }
