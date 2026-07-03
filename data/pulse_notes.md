@@ -1,3 +1,24 @@
+## Week of July 3, 2026
+
+### Weekly Note
+Synthesising both batches of reviews spanning May to July 2026, three dominant pain points rise to the top, all centred on the active F&O trading experience. F&O trading reliability is the most critical concern: TP/SL orders fail intermittently on mobile, positions vanish from the chart unexpectedly, and at least one user suffered a real financial loss due to an accidental order execution triggered by a zoom gesture. These are not cosmetic issues — they represent bugs with direct monetary consequences that could seriously erode trust among active traders. Chart and layout issues are the second major theme: buy/sell buttons obstruct the full-screen chart view, payoff graphs for calendar spreads are inaccurate, and live payoff visualisation for multi-leg smart strategy positions is absent. Third, several essential trading tools are missing entirely, most notably a kill switch, limit order sell functionality, and persistent watchlist symbols added from the option chain — gaps that make the platform non-viable for scalpers and risk-conscious traders. On a more positive note, UI/UX and ease of use remain strong differentiators, with multiple users praising the clean, beginner-friendly interface. App performance issues during options trading and tablet optimisation gaps are secondary but recurring signals. Immediate engineering priority should go to F&O reliability fixes, followed by chart UX improvements and missing tool development, to protect and grow the active trader segment.
+
+### Top 3 Themes — Quotes — Actions
+
+**1. F&O Trading Features & Reliability**
+> "Sometimes the position vanished from the chart, TP/SL didn't work on mobile, from desktop browsers I can but that also depends on luck, if I use setup then it works sometime, and then position disappear from chart. So frustrating, and last day while zooming in/out the chart my position got executed in loss, just ridiculous."
+→ Conduct an urgent bug investigation into TP/SL execution failures and position disappearance on mobile, and implement gesture conflict prevention to eliminate accidental order executions during chart zoom interactions — treat this as a critical financial-safety fix.
+
+**2. Chart & Layout Issues**
+> "The buy and sell buttons at the bottom significantly reduce the chart viewing area, which affects the full-screen chart experience. Kindly move these buttons elsewhere so the chart can remain fully visible in full-screen mode."
+→ Redesign the full-screen chart layout by relocating buy/sell buttons to a collapsible overlay or side panel, fix calendar spread payoff graph accuracy, and add real-time live payoff visualisation for multi-leg smart strategy positions.
+
+**3. Missing Trading Tools (Kill Switch, Limit Orders, Watchlist)**
+> "kill switch button nahi h"
+→ Prioritise development of a kill switch feature, limit order sell functionality, and a fix for watchlist symbol persistence when symbols are added via the option chain, to make the platform viable for scalpers and risk-conscious advanced traders.
+
+---
+
 ## Week of June 12, 2026
 
 ### Weekly Note

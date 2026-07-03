@@ -1,27 +1,27 @@
 {
   "themes": [
-    "Trading Performance & Lag",
-    "Chart & Order Execution Bugs",
-    "Missing Trading Features & Customisation",
-    "UI Complexity & Navigation Issues",
-    "Brokerage Charges & Pricing Discrepancies"
+    "UI/UX & Ease of Use",
+    "App Performance & Speed",
+    "F&O Trading Features & Reliability",
+    "Missing Trading Tools (Kill Switch, Limit Orders, Watchlist)",
+    "Chart & Layout Issues"
   ],
   "top_3_themes": [
-    "Chart & Order Execution Bugs",
-    "Trading Performance & Lag",
-    "Missing Trading Features & Customisation"
+    "F&O Trading Features & Reliability",
+    "Chart & Layout Issues",
+    "Missing Trading Tools (Kill Switch, Limit Orders, Watchlist)"
   ],
   "quotes": [
     "Sometimes the position vanished from the chart, TP/SL didn't work on mobile, from desktop browsers I can but that also depends on luck, if I use setup then it works sometime, and then position disappear from chart. So frustrating, and last day while zooming in/out the chart my position got executed in loss, just ridiculous.",
-    "The best application with the best brokerage in the market really mast hai but recently while trading options it is getting little bit lag and slow can you check please",
-    "customized watch list is not visible under watchlist. user preferences is allowed to add to watchlist from option chain which is missing. specific chart trend should be highlighted even at chart as well."
+    "The buy and sell buttons at the bottom significantly reduce the chart viewing area, which affects the full-screen chart experience. Kindly move these buttons elsewhere so the chart can remain fully visible in full-screen mode.",
+    "kill switch button nahi h"
   ],
-  "weekly_note": "Synthesising reviews from late March through June 2026, three dominant pain points emerge that demand immediate product attention. Chart reliability and order execution are the most critical and trust-eroding issues: positions vanish from charts mid-session, TP/SL orders fail inconsistently on mobile, zoom gestures accidentally trigger order execution causing real monetary losses, and a kill switch is entirely absent. These are not cosmetic bugs — they are directly harming traders financially. Trading performance and lag compound the problem, with F&O and options sessions suffering slowness that undermines an otherwise well-regarded core experience. Users who praise the platform's brokerage and Flash features still flag lag as a growing concern, suggesting degradation over time rather than a baseline issue. Missing features and customisation gaps — limit sell orders for scalpers, dual-chart view, points-based SL/TP input, commodity trading, and broken watchlist functionality from the option chain — signal that the platform is not yet feature-complete for active traders. Secondary themes include UI complexity relative to simpler competitors and brokerage pricing discrepancies where promised Flash Trading rates are not automatically applied, creating distrust. On the positive side, Flash Scalping's one-click switching and influencer-driven acquisition show genuine product strengths worth protecting. Performance stability, charting reliability, and feature completeness are the top priorities this week.",
+  "weekly_note": "Synthesising both batches of reviews spanning May to July 2026, three dominant pain points rise to the top, all centred on the active F&O trading experience. F&O trading reliability is the most critical concern: TP/SL orders fail intermittently on mobile, positions vanish from the chart unexpectedly, and at least one user suffered a real financial loss due to an accidental order execution triggered by a zoom gesture. These are not cosmetic issues — they represent bugs with direct monetary consequences that could seriously erode trust among active traders. Chart and layout issues are the second major theme: buy/sell buttons obstruct the full-screen chart view, payoff graphs for calendar spreads are inaccurate, and live payoff visualisation for multi-leg smart strategy positions is absent. Third, several essential trading tools are missing entirely, most notably a kill switch, limit order sell functionality, and persistent watchlist symbols added from the option chain — gaps that make the platform non-viable for scalpers and risk-conscious traders. On a more positive note, UI/UX and ease of use remain strong differentiators, with multiple users praising the clean, beginner-friendly interface. App performance issues during options trading and tablet optimisation gaps are secondary but recurring signals. Immediate engineering priority should go to F&O reliability fixes, followed by chart UX improvements and missing tool development, to protect and grow the active trader segment.",
   "action_ideas": [
-    "Audit and fix the mobile charting engine immediately to eliminate position disappearance and accidental order execution on zoom gestures; enforce full TP/SL reliability on mobile at parity with desktop; add a prominently visible kill switch as an urgent trader safety feature.",
-    "Investigate and resolve F&O and options trading lag at both server and client levels; prioritise chart rendering performance under low-bandwidth conditions and monitor session stability continuously to prevent further degradation of the core trading experience.",
-    "Ship limit sell orders and restore option-chain-to-watchlist add functionality; implement points-based SL/TP input alongside the existing percentage-based option; publish a public feature roadmap so active traders know when commodity trading, dual-chart view, and other requested features are planned."
+    "Conduct an urgent bug investigation into TP/SL execution failures and position disappearance on mobile, and implement gesture conflict prevention to eliminate accidental order executions during chart zoom interactions — treat this as a critical financial-safety fix.",
+    "Redesign the full-screen chart layout by relocating buy/sell buttons to a collapsible overlay or side panel, fix calendar spread payoff graph accuracy, and add real-time live payoff visualisation for multi-leg smart strategy positions.",
+    "Prioritise development of a kill switch feature, limit order sell functionality, and a fix for watchlist symbol persistence when symbols are added via the option chain, to make the platform viable for scalpers and risk-conscious advanced traders."
   ],
-  "generated_at": "2026-06-12T17:43:38.329528",
-  "review_count": 20
+  "generated_at": "2026-07-03T16:45:58.299464",
+  "review_count": 16
 }

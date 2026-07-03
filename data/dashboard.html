@@ -658,44 +658,65 @@ header h1 {
         // ── Baked-in data (updated by pipeline each week) ──────────────────
         const EMAIL_DRAFT = `WEEKLY INDMONEY PRODUCT PULSE
 ============================================================
-Date    : June 12, 2026
+Date    : July 3, 2026
 ============================================================
 
 SECTION 1 — WEEKLY PULSE
 ──────────────────────────
-Top 3 Themes: Chart & Order Execution Bugs, Trading Performance & Lag, Missing Trading Features & Customisation
+Top 3 Themes: F&O Trading Features & Reliability, Chart & Layout Issues, Missing Trading Tools (Kill Switch, Limit Orders, Watchlist)
 
 User Quotes:
   "Sometimes the position vanished from the chart, TP/SL didn't work on mobile, from desktop browsers I can but that also depends on luck, if I use setup then it works sometime, and then position disappear from chart. So frustrating, and last day while zooming in/out the chart my position got executed in loss, just ridiculous."
-  "The best application with the best brokerage in the market really mast hai but recently while trading options it is getting little bit lag and slow can you check please"
-  "customized watch list is not visible under watchlist. user preferences is allowed to add to watchlist from option chain which is missing. specific chart trend should be highlighted even at chart as well."
+  "The buy and sell buttons at the bottom significantly reduce the chart viewing area, which affects the full-screen chart experience. Kindly move these buttons elsewhere so the chart can remain fully visible in full-screen mode."
+  "kill switch button nahi h"
 
 Weekly Note:
-Synthesising reviews from late March through June 2026, three dominant pain points emerge that demand immediate product attention. Chart reliability and order execution are the most critical and trust-eroding issues: positions vanish from charts mid-session, TP/SL orders fail inconsistently on mobile, zoom gestures accidentally trigger order execution causing real monetary losses, and a kill switch is entirely absent. These are not cosmetic bugs — they are directly harming traders financially. Trading performance and lag compound the problem, with F&O and options sessions suffering slowness that undermines an otherwise well-regarded core experience. Users who praise the platform's brokerage and Flash features still flag lag as a growing concern, suggesting degradation over time rather than a baseline issue. Missing features and customisation gaps — limit sell orders for scalpers, dual-chart view, points-based SL/TP input, commodity trading, and broken watchlist functionality from the option chain — signal that the platform is not yet feature-complete for active traders. Secondary themes include UI complexity relative to simpler competitors and brokerage pricing discrepancies where promised Flash Trading rates are not automatically applied, creating distrust. On the positive side, Flash Scalping's one-click switching and influencer-driven acquisition show genuine product strengths worth protecting. Performance stability, charting reliability, and feature completeness are the top priorities this week.
+Synthesising both batches of reviews spanning May to July 2026, three dominant pain points rise to the top, all centred on the active F&O trading experience. F&O trading reliability is the most critical concern: TP/SL orders fail intermittently on mobile, positions vanish from the chart unexpectedly, and at least one user suffered a real financial loss due to an accidental order execution triggered by a zoom gesture. These are not cosmetic issues — they represent bugs with direct monetary consequences that could seriously erode trust among active traders. Chart and layout issues are the second major theme: buy/sell buttons obstruct the full-screen chart view, payoff graphs for calendar spreads are inaccurate, and live payoff visualisation for multi-leg smart strategy positions is absent. Third, several essential trading tools are missing entirely, most notably a kill switch, limit order sell functionality, and persistent watchlist symbols added from the option chain — gaps that make the platform non-viable for scalpers and risk-conscious traders. On a more positive note, UI/UX and ease of use remain strong differentiators, with multiple users praising the clean, beginner-friendly interface. App performance issues during options trading and tablet optimisation gaps are secondary but recurring signals. Immediate engineering priority should go to F&O reliability fixes, followed by chart UX improvements and missing tool development, to protect and grow the active trader segment.
 
 Action Ideas:
-1. Audit and fix the mobile charting engine immediately to eliminate position disappearance and accidental order execution on zoom gestures; enforce full TP/SL reliability on mobile at parity with desktop; add a prominently visible kill switch as an urgent trader safety feature.
-2. Investigate and resolve F&O and options trading lag at both server and client levels; prioritise chart rendering performance under low-bandwidth conditions and monitor session stability continuously to prevent further degradation of the core trading experience.
-3. Ship limit sell orders and restore option-chain-to-watchlist add functionality; implement points-based SL/TP input alongside the existing percentage-based option; publish a public feature roadmap so active traders know when commodity trading, dual-chart view, and other requested features are planned.
+1. Conduct an urgent bug investigation into TP/SL execution failures and position disappearance on mobile, and implement gesture conflict prevention to eliminate accidental order executions during chart zoom interactions — treat this as a critical financial-safety fix.
+2. Redesign the full-screen chart layout by relocating buy/sell buttons to a collapsible overlay or side panel, fix calendar spread payoff graph accuracy, and add real-time live payoff visualisation for multi-leg smart strategy positions.
+3. Prioritise development of a kill switch feature, limit order sell functionality, and a fix for watchlist symbol persistence when symbols are added via the option chain, to make the platform viable for scalpers and risk-conscious advanced traders.
 
 SECTION 2 — FEE EXPLAINER
 ──────────────────────────
 exit_load
 
-• SBI ELSS Tax Advantage Fund carries an exit load of 0%, meaning no exit load fee is charged upon redemption after the mandatory 3-year lock-in period has been completed.
-• The 3-year lock-in period in SBI ELSS Tax Advantage Fund effectively restricts early redemption, making the exit load structure straightforward — no fee applies once the lock-in is served.
-• SBI Large Cap Fund Direct Plan carries an expense ratio typically in the range of 0.5–0.9% per annum, which is deducted from the fund's Net Asset Value (NAV) on an ongoing basis.
-• Regular plans of SBI Mutual Fund schemes carry a higher expense ratio compared to direct plans, as they include distributor commission embedded within the Total Expense Ratio (TER).
-• Securities Transaction Tax (STT) of 0.001% is applicable on equity mutual fund redemptions, which is a government-mandated tax separate from the fund's exit load or expense ratio.
-• SEBI mandates full disclosure of the Total Expense Ratio (TER) for all mutual fund schemes, ensuring transparency for investors regarding all applicable charges.
+• SBI ELSS Tax Advantage Fund carries an exit load of 0%, meaning no exit load fee is charged upon redemption, as the mandatory 3-year lock-in period already restricts early withdrawals.
+• The expense ratio for SBI Large Cap Fund Direct Plan typically ranges between 0.5% and 0.9% per annum, which is deducted from the fund's Net Asset Value (NAV).
+• Regular plans of SBI Mutual Fund schemes carry a higher expense ratio compared to direct plans, due to the inclusion of distributor commission in the cost structure.
+• Securities Transaction Tax (STT) of 0.001% is applicable on equity mutual fund redemptions, which is a government-mandated tax separate from the fund's expense ratio.
+• SEBI mandates that all mutual fund schemes must disclose their Total Expense Ratio (TER), ensuring transparency in the fees charged to investors across all SBI Mutual Fund schemes.
+• Exit load structures and expense ratios can vary across different SBI Mutual Fund schemes, and investors should review the scheme information document (SID) for scheme-specific fee details.
 
 Sources: https://www.sbimf.com/en-us/investor-service/exit-load, https://www.amfiindia.com/investor-corner/knowledge-center/expense-ratio.html
-Last checked: 2026-06-12
+Last checked: 2026-07-03
 
 ============================================================
 [DRAFT — Pending human review before sending]`;
 
-        const NOTES_MD = `## Week of June 12, 2026
+        const NOTES_MD = `## Week of July 3, 2026
+
+### Weekly Note
+Synthesising both batches of reviews spanning May to July 2026, three dominant pain points rise to the top, all centred on the active F&O trading experience. F&O trading reliability is the most critical concern: TP/SL orders fail intermittently on mobile, positions vanish from the chart unexpectedly, and at least one user suffered a real financial loss due to an accidental order execution triggered by a zoom gesture. These are not cosmetic issues — they represent bugs with direct monetary consequences that could seriously erode trust among active traders. Chart and layout issues are the second major theme: buy/sell buttons obstruct the full-screen chart view, payoff graphs for calendar spreads are inaccurate, and live payoff visualisation for multi-leg smart strategy positions is absent. Third, several essential trading tools are missing entirely, most notably a kill switch, limit order sell functionality, and persistent watchlist symbols added from the option chain — gaps that make the platform non-viable for scalpers and risk-conscious traders. On a more positive note, UI/UX and ease of use remain strong differentiators, with multiple users praising the clean, beginner-friendly interface. App performance issues during options trading and tablet optimisation gaps are secondary but recurring signals. Immediate engineering priority should go to F&O reliability fixes, followed by chart UX improvements and missing tool development, to protect and grow the active trader segment.
+
+### Top 3 Themes — Quotes — Actions
+
+**1. F&O Trading Features & Reliability**
+> "Sometimes the position vanished from the chart, TP/SL didn't work on mobile, from desktop browsers I can but that also depends on luck, if I use setup then it works sometime, and then position disappear from chart. So frustrating, and last day while zooming in/out the chart my position got executed in loss, just ridiculous."
+→ Conduct an urgent bug investigation into TP/SL execution failures and position disappearance on mobile, and implement gesture conflict prevention to eliminate accidental order executions during chart zoom interactions — treat this as a critical financial-safety fix.
+
+**2. Chart & Layout Issues**
+> "The buy and sell buttons at the bottom significantly reduce the chart viewing area, which affects the full-screen chart experience. Kindly move these buttons elsewhere so the chart can remain fully visible in full-screen mode."
+→ Redesign the full-screen chart layout by relocating buy/sell buttons to a collapsible overlay or side panel, fix calendar spread payoff graph accuracy, and add real-time live payoff visualisation for multi-leg smart strategy positions.
+
+**3. Missing Trading Tools (Kill Switch, Limit Orders, Watchlist)**
+> "kill switch button nahi h"
+→ Prioritise development of a kill switch feature, limit order sell functionality, and a fix for watchlist symbol persistence when symbols are added via the option chain, to make the platform viable for scalpers and risk-conscious advanced traders.
+
+---
+
+## Week of June 12, 2026
 
 ### Weekly Note
 Synthesising reviews from late March through June 2026, three dominant pain points emerge that demand immediate product attention. Chart reliability and order execution are the most critical and trust-eroding issues: positions vanish from charts mid-session, TP/SL orders fail inconsistently on mobile, zoom gestures accidentally trigger order execution causing real monetary losses, and a kill switch is entirely absent. These are not cosmetic bugs — they are directly harming traders financially. Trading performance and lag compound the problem, with F&O and options sessions suffering slowness that undermines an otherwise well-regarded core experience. Users who praise the platform's brokerage and Flash features still flag lag as a growing concern, suggesting degradation over time rather than a baseline issue. Missing features and customisation gaps — limit sell orders for scalpers, dual-chart view, points-based SL/TP input, commodity trading, and broken watchlist functionality from the option chain — signal that the platform is not yet feature-complete for active traders. Secondary themes include UI complexity relative to simpler competitors and brokerage pricing discrepancies where promised Flash Trading rates are not automatically applied, creating distrust. On the positive side, Flash Scalping's one-click switching and influencer-driven acquisition show genuine product strengths worth protecting. Performance stability, charting reliability, and feature completeness are the top priorities this week.
@@ -893,31 +914,31 @@ Reviews this week present a polarised but telling picture of INDmoney's trading 
 
         const PULSE_DATA = {
             "themes": [
-                        "Trading Performance & Lag",
-                        "Chart & Order Execution Bugs",
-                        "Missing Trading Features & Customisation",
-                        "UI Complexity & Navigation Issues",
-                        "Brokerage Charges & Pricing Discrepancies"
+                        "UI/UX & Ease of Use",
+                        "App Performance & Speed",
+                        "F&O Trading Features & Reliability",
+                        "Missing Trading Tools (Kill Switch, Limit Orders, Watchlist)",
+                        "Chart & Layout Issues"
             ],
             "top_3_themes": [
-                        "Chart & Order Execution Bugs",
-                        "Trading Performance & Lag",
-                        "Missing Trading Features & Customisation"
+                        "F&O Trading Features & Reliability",
+                        "Chart & Layout Issues",
+                        "Missing Trading Tools (Kill Switch, Limit Orders, Watchlist)"
             ],
             "quotes": [
                         "Sometimes the position vanished from the chart, TP/SL didn't work on mobile, from desktop browsers I can but that also depends on luck, if I use setup then it works sometime, and then position disappear from chart. So frustrating, and last day while zooming in/out the chart my position got executed in loss, just ridiculous.",
-                        "The best application with the best brokerage in the market really mast hai but recently while trading options it is getting little bit lag and slow can you check please",
-                        "customized watch list is not visible under watchlist. user preferences is allowed to add to watchlist from option chain which is missing. specific chart trend should be highlighted even at chart as well."
+                        "The buy and sell buttons at the bottom significantly reduce the chart viewing area, which affects the full-screen chart experience. Kindly move these buttons elsewhere so the chart can remain fully visible in full-screen mode.",
+                        "kill switch button nahi h"
             ],
-            "weekly_note": "Synthesising reviews from late March through June 2026, three dominant pain points emerge that demand immediate product attention. Chart reliability and order execution are the most critical and trust-eroding issues: positions vanish from charts mid-session, TP/SL orders fail inconsistently on mobile, zoom gestures accidentally trigger order execution causing real monetary losses, and a kill switch is entirely absent. These are not cosmetic bugs — they are directly harming traders financially. Trading performance and lag compound the problem, with F&O and options sessions suffering slowness that undermines an otherwise well-regarded core experience. Users who praise the platform's brokerage and Flash features still flag lag as a growing concern, suggesting degradation over time rather than a baseline issue. Missing features and customisation gaps — limit sell orders for scalpers, dual-chart view, points-based SL/TP input, commodity trading, and broken watchlist functionality from the option chain — signal that the platform is not yet feature-complete for active traders. Secondary themes include UI complexity relative to simpler competitors and brokerage pricing discrepancies where promised Flash Trading rates are not automatically applied, creating distrust. On the positive side, Flash Scalping's one-click switching and influencer-driven acquisition show genuine product strengths worth protecting. Performance stability, charting reliability, and feature completeness are the top priorities this week.",
+            "weekly_note": "Synthesising both batches of reviews spanning May to July 2026, three dominant pain points rise to the top, all centred on the active F&O trading experience. F&O trading reliability is the most critical concern: TP/SL orders fail intermittently on mobile, positions vanish from the chart unexpectedly, and at least one user suffered a real financial loss due to an accidental order execution triggered by a zoom gesture. These are not cosmetic issues — they represent bugs with direct monetary consequences that could seriously erode trust among active traders. Chart and layout issues are the second major theme: buy/sell buttons obstruct the full-screen chart view, payoff graphs for calendar spreads are inaccurate, and live payoff visualisation for multi-leg smart strategy positions is absent. Third, several essential trading tools are missing entirely, most notably a kill switch, limit order sell functionality, and persistent watchlist symbols added from the option chain — gaps that make the platform non-viable for scalpers and risk-conscious traders. On a more positive note, UI/UX and ease of use remain strong differentiators, with multiple users praising the clean, beginner-friendly interface. App performance issues during options trading and tablet optimisation gaps are secondary but recurring signals. Immediate engineering priority should go to F&O reliability fixes, followed by chart UX improvements and missing tool development, to protect and grow the active trader segment.",
             "action_ideas": [
-                        "Audit and fix the mobile charting engine immediately to eliminate position disappearance and accidental order execution on zoom gestures; enforce full TP/SL reliability on mobile at parity with desktop; add a prominently visible kill switch as an urgent trader safety feature.",
-                        "Investigate and resolve F&O and options trading lag at both server and client levels; prioritise chart rendering performance under low-bandwidth conditions and monitor session stability continuously to prevent further degradation of the core trading experience.",
-                        "Ship limit sell orders and restore option-chain-to-watchlist add functionality; implement points-based SL/TP input alongside the existing percentage-based option; publish a public feature roadmap so active traders know when commodity trading, dual-chart view, and other requested features are planned."
+                        "Conduct an urgent bug investigation into TP/SL execution failures and position disappearance on mobile, and implement gesture conflict prevention to eliminate accidental order executions during chart zoom interactions — treat this as a critical financial-safety fix.",
+                        "Redesign the full-screen chart layout by relocating buy/sell buttons to a collapsible overlay or side panel, fix calendar spread payoff graph accuracy, and add real-time live payoff visualisation for multi-leg smart strategy positions.",
+                        "Prioritise development of a kill switch feature, limit order sell functionality, and a fix for watchlist symbol persistence when symbols are added via the option chain, to make the platform viable for scalpers and risk-conscious advanced traders."
             ]
 };
-        const ANALYTICS_META = {"review_count": 20, "sentiment": {"positive": 10, "neutral": 4, "negative": 6}, "rating_dist": {"3": 4, "4": 4, "5": 6, "1": 5, "2": 1}};
-        const FEE_DATA = {"scenario_name": "Exit Load", "explanation_bullets": ["• SBI ELSS Tax Advantage Fund carries an exit load of 0%, meaning no exit load fee is charged upon redemption after the mandatory 3-year lock-in period has been completed.", "• The 3-year lock-in period in SBI ELSS Tax Advantage Fund effectively restricts early redemption, making the exit load structure straightforward — no fee applies once the lock-in is served.", "• SBI Large Cap Fund Direct Plan carries an expense ratio typically in the range of 0.5–0.9% per annum, which is deducted from the fund's Net Asset Value (NAV) on an ongoing basis.", "• Regular plans of SBI Mutual Fund schemes carry a higher expense ratio compared to direct plans, as they include distributor commission embedded within the Total Expense Ratio (TER).", "• Securities Transaction Tax (STT) of 0.001% is applicable on equity mutual fund redemptions, which is a government-mandated tax separate from the fund's exit load or expense ratio.", "• SEBI mandates full disclosure of the Total Expense Ratio (TER) for all mutual fund schemes, ensuring transparency for investors regarding all applicable charges."], "source_links": ["https://www.sbimf.com/en-us/investor-service/exit-load", "https://www.amfiindia.com/investor-corner/knowledge-center/expense-ratio.html"], "last_checked": "2026-06-12"};
+        const ANALYTICS_META = {"review_count": 16, "sentiment": {"positive": 8, "neutral": 3, "negative": 5}, "rating_dist": {"5": 4, "4": 4, "1": 5, "3": 3}};
+        const FEE_DATA = {"scenario_name": "Exit Load", "explanation_bullets": ["• SBI ELSS Tax Advantage Fund carries an exit load of 0%, meaning no exit load fee is charged upon redemption, as the mandatory 3-year lock-in period already restricts early withdrawals.", "• The expense ratio for SBI Large Cap Fund Direct Plan typically ranges between 0.5% and 0.9% per annum, which is deducted from the fund's Net Asset Value (NAV).", "• Regular plans of SBI Mutual Fund schemes carry a higher expense ratio compared to direct plans, due to the inclusion of distributor commission in the cost structure.", "• Securities Transaction Tax (STT) of 0.001% is applicable on equity mutual fund redemptions, which is a government-mandated tax separate from the fund's expense ratio.", "• SEBI mandates that all mutual fund schemes must disclose their Total Expense Ratio (TER), ensuring transparency in the fees charged to investors across all SBI Mutual Fund schemes.", "• Exit load structures and expense ratios can vary across different SBI Mutual Fund schemes, and investors should review the scheme information document (SID) for scheme-specific fee details."], "source_links": ["https://www.sbimf.com/en-us/investor-service/exit-load", "https://www.amfiindia.com/investor-corner/knowledge-center/expense-ratio.html"], "last_checked": "2026-07-03"};
         // ───────────────────────────────────────────────────────────────────
 
         // Chart color tokens — overridden to dark when body[data-theme="light"]
@@ -1172,7 +1193,7 @@ Reviews this week present a polarised but telling picture of INDmoney's trading 
         }
 
         // ── Word Cloud data ──────────────────────────────────────────────────
-        const KEYWORDS = [{"w": "chart", "n": 9, "c": "#4ade80"}, {"w": "trading", "n": 6, "c": "#60a5fa"}, {"w": "best", "n": 4, "c": "#f59e0b"}, {"w": "option", "n": 4, "c": "#c084fc"}, {"w": "order", "n": 4, "c": "#fb7185"}, {"w": "ind", "n": 3, "c": "#34d399"}, {"w": "flash", "n": 3, "c": "#818cf8"}, {"w": "brokerage", "n": 3, "c": "#facc15"}, {"w": "lag", "n": 3, "c": "#f87171"}, {"w": "slow", "n": 3, "c": "#2dd4bf"}, {"w": "please", "n": 3, "c": "#4ade80"}, {"w": "then", "n": 3, "c": "#60a5fa"}, {"w": "which", "n": 3, "c": "#f59e0b"}, {"w": "user", "n": 3, "c": "#c084fc"}, {"w": "offer", "n": 3, "c": "#fb7185"}, {"w": "position", "n": 3, "c": "#34d399"}, {"w": "star", "n": 3, "c": "#818cf8"}, {"w": "application", "n": 2, "c": "#facc15"}, {"w": "while", "n": 2, "c": "#f87171"}, {"w": "getting", "n": 2, "c": "#2dd4bf"}];
+        const KEYWORDS = [{"w": "chart", "n": 8, "c": "#4ade80"}, {"w": "experience", "n": 4, "c": "#60a5fa"}, {"w": "trading", "n": 4, "c": "#f59e0b"}, {"w": "please", "n": 4, "c": "#c084fc"}, {"w": "position", "n": 4, "c": "#fb7185"}, {"w": "option", "n": 4, "c": "#34d399"}, {"w": "while", "n": 3, "c": "#818cf8"}, {"w": "which", "n": 3, "c": "#facc15"}, {"w": "make", "n": 3, "c": "#f87171"}, {"w": "both", "n": 3, "c": "#2dd4bf"}, {"w": "features", "n": 3, "c": "#4ade80"}, {"w": "should", "n": 3, "c": "#60a5fa"}, {"w": "best", "n": 3, "c": "#f59e0b"}, {"w": "then", "n": 3, "c": "#c084fc"}, {"w": "smooth", "n": 2, "c": "#fb7185"}, {"w": "far", "n": 2, "c": "#34d399"}, {"w": "options", "n": 2, "c": "#818cf8"}, {"w": "interface", "n": 2, "c": "#facc15"}, {"w": "market", "n": 2, "c": "#f87171"}, {"w": "platform", "n": 2, "c": "#2dd4bf"}];
         const UPVOTED_REVIEWS = [
             {name:'Manish Mathur',date:'21 Apr 2026',stars:4,sentiment:'Neutral',text:'easy to use and understand UI DESIGN, FAST & RELIABLE',tags:['UI/UX','Performance'],upvotes:141},
             {name:'App User',date:'28 Mar 2026',stars:1,sentiment:'Negative',text:'On listing day the stock was not visible on the app for around 10 minutes after it went live on the exchange. Available on other brokerages during the same time.',tags:['Investment & Trading','Performance'],upvotes:828},
@@ -1180,7 +1201,7 @@ Reviews this week present a polarised but telling picture of INDmoney's trading 
         ];
 
         // ── Category data ─────────────────────────────────────────────────────
-        const CATEGORIES_DATA = [{"name": "Trading Performance & Lag", "count": 120, "pct": 59.4, "color": "#4ade80"}, {"name": "Chart & Order Execution Bugs", "count": 27, "pct": 13.4, "color": "#60a5fa"}, {"name": "Missing Trading Features & Customisation", "count": 24, "pct": 11.9, "color": "#f59e0b"}, {"name": "UI Complexity & Navigation Issues", "count": 16, "pct": 7.9, "color": "#f472b6"}, {"name": "Brokerage Charges & Pricing Discrepancies", "count": 15, "pct": 7.4, "color": "#a78bfa"}];
+        const CATEGORIES_DATA = [{"name": "UI/UX & Ease of Use", "count": 120, "pct": 59.4, "color": "#4ade80"}, {"name": "App Performance & Speed", "count": 27, "pct": 13.4, "color": "#60a5fa"}, {"name": "F&O Trading Features & Reliability", "count": 24, "pct": 11.9, "color": "#f59e0b"}, {"name": "Missing Trading Tools (Kill Switch, Limit Orders, Watchlist)", "count": 16, "pct": 7.9, "color": "#f472b6"}, {"name": "Chart & Layout Issues", "count": 15, "pct": 7.4, "color": "#a78bfa"}];
 
         // ── Ideation data ─────────────────────────────────────────────────────
         const AI_IDEAS = [
@@ -1189,7 +1210,7 @@ Reviews this week present a polarised but telling picture of INDmoney's trading 
             {title:'Add Trailing Stop-Loss Feature',body:'Power traders explicitly request trailing stop-loss orders. This is a standard feature on competing platforms and would reduce churn.',impact:'Medium'},
             {title:'Mutual Funds SIP Reminders',body:'Users want push notifications for SIP execution dates and confirmation of investment. Easy win for engagement and trust.',impact:'Medium'},
         ];
-        const NEGATIVE_REVIEWS = [{"name": "App User", "stars": 1, "text": "customized watch list is not visible under watchlist. user preferences is allowed to add to watchlist from option chain which is missing. specific cha", "tags": ["Missing Trading Features & Customisation"]}, {"name": "App User", "stars": 1, "text": "why I am not getting ₹10 fno trade offer ?", "tags": ["Trading Performance & Lag"]}, {"name": "App User", "stars": 1, "text": "Sometimes the position vanished from the chart, TP/SL didn't work on mobile, from desktop browsers I can but that also depends on luck, if I use setup", "tags": ["Chart & Order Execution Bugs"]}, {"name": "App User", "stars": 1, "text": "there is no LIMIT order sell...not for scalper...", "tags": ["Chart & Order Execution Bugs"]}, {"name": "App User", "stars": 2, "text": "Not as user friendly as expected.", "tags": ["Trading Performance & Lag"]}];
+        const NEGATIVE_REVIEWS = [{"name": "App User", "stars": 1, "text": "please correct the payoff graph in case of calendar spreads and also show live payoff when we are taking position on smart startegy multi legs plzzz", "tags": ["UI/UX & Ease of Use"]}, {"name": "App User", "stars": 1, "text": "customized watch list is not visible under watchlist. user preferences is allowed to add to watchlist from option chain which is missing. specific cha", "tags": ["UI/UX & Ease of Use"]}, {"name": "App User", "stars": 1, "text": "why I am not getting ₹10 fno trade offer ?", "tags": ["UI/UX & Ease of Use"]}, {"name": "App User", "stars": 1, "text": "Sometimes the position vanished from the chart, TP/SL didn't work on mobile, from desktop browsers I can but that also depends on luck, if I use setup", "tags": ["UI/UX & Ease of Use"]}, {"name": "App User", "stars": 1, "text": "there is no LIMIT order sell...not for scalper...", "tags": ["Missing Trading Tools (Kill Switch, Limit Orders, Watchlist)"]}];
 
         let _bugSelected = new Set();
 
