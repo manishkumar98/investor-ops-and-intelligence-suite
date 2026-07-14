@@ -1,5 +1,11 @@
 # Investor Ops & Intelligence Suite
-### INDMoney — AI Bootcamp Capstone
+### INDMoney — 
+A platform that enables users to:
+
+Explore information about SBI Mutual Funds available on INDmoney.
+Understand what customers are discussing about the platform through aggregated community insights and sentiment.
+Schedule appointments with investment advisors for personalized investment guidance.
+Book appointments with INDmoney customer support for account and service-related queries.
 
 A unified three-pillar dashboard that merges a RAG FAQ chatbot (M1), a review intelligence pipeline (M2), and a voice appointment scheduler (M3) into a single Streamlit application.
 
